@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Home - IsmaVerse{% endblock %}
+
+{% block content %}
+
+<!-- =====================
+     HERO INTRO PANEL
+===================== -->
+<div class="comic-panel mb-4">
+  <div class="panel-header d-flex justify-content-between align-items-center">
+    <h1 class="panel-title">Welcome to IsmaVerse!</h1>
+    <span class="burst">KA-POW!</span>
+  </div>
+
+  <div class="p-4">
+    <div class="row g-3 align-items-stretch">
+      <div class="col-12 col-lg-7">
+        <div class="speech">
+          <h2 class="h5 fw-bold mb-2">New comics drop here!</h2>
+          <p class="mb-3 text-muted">
+            Heroes, jokes, adventures, and brand-new comic pages straight from Ismael’s imagination.
+          </p>
+
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-comic-cta" href="{{ url_for('comics.list_comics') }}">Browse Comics →</a>
+            <a class="btn btn-outline-dark fw-bold comic-outline-btn"
+               href="{{ url_for('comics.list_comics') }}">Latest Release</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-5">
+        <div class="comic-tile h-100">
+          <h3>Start Here</h3>
+          <ul class="mb-0">
+            <li><strong>Read</strong> the newest comics</li>
+            <li><strong>Meet</strong> the characters</li>
+            <li><strong>Laugh</strong> at the goofy moments</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="comic-divider">
+
+<!-- =====================
+     ISMA ULTRA SECTION
+===================== -->
+<div class="comic-panel mb-4">
+  <div class="panel-header text-center">
+    <h2 class="panel-title">Meet Isma Ultra!</h2>
+  </div>
+
+  <div class="p-4">
+    <div class="row g-4 align-items-center">
+
+      <!-- IMAGE + GLOW -->
+      <div class="col-12 col-md-5 text-center">
+        <div class="isma-ultra-wrapper">
+          <img
+            src="{{ url_for('static', filename='img/comics/IsmaUltra.jpeg') }}"
+            alt="Isma Ultra Superhero"
+            class="img-fluid comic-hero-img"
+          >
+        </div>
+        <div class="mt-3">
+          <span class="burst">HERO ORIGIN</span>
+        </div>
+      </div>
+
+      <!-- TEXT -->
+      <div class="col-12 col-md-7">
+        <div class="speech">
+          <p class="fw-bold mb-2">
+            Hi! I’m Ismael — creator of IsmaVerse.
+          </p>
+
+          <p>
+            I’m 9 years old, and I love making comics.
+          </p>
+
+          <p>
+            Most of my comics are handmade and short, so instead of publishing them, I decided to build my own comic universe right here.
+          </p>
+
+          <p class="mb-0">
+            Some of these comics were drawn when I was only 4 years old — so yeah, a few pages might be messy… but that’s part of the fun!
+            <br><br>
+            <strong>Jump in, read the comics, and meet all the characters I’ve created!</strong>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<hr class="comic-divider">
+
+<!-- =====================
+     BOTTOM SECTIONS
+===================== -->
+<div class="row g-3">
+  <div class="col-12 col-md-4">
+    <div class="comic-tile h-100">
+      <h3>Characters</h3>
+      <p class="text-muted mb-0">Heroes, villains, and silly sidekicks.</p>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <div class="comic-tile h-100">
+      <h3>Comic Library</h3>
+      <p class="text-muted mb-0">Every issue in one place.</p>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <div class="comic-tile h-100">
+      <h3>Coming Soon</h3>
+      <p class="text-muted mb-0">New pages. New powers. Bigger laughs.</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

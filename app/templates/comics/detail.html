@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ comic.title }} - IsmaVerse{% endblock %}
+
+{% block content %}
+
+<a class="text-decoration-none fw-bold" href="{{ url_for('comics.list_comics') }}">
+  &larr; Back to Comics
+</a>
+
+<div class="comic-panel mt-3">
+  <div class="panel-header">
+    <h2 class="panel-title">{{ comic.title }}</h2>
+  </div>
+
+  <div class="p-3 p-md-4">
+    {% if comic.description %}
+      <p class="text-muted mb-3">{{ comic.description }}</p>
+    {% endif %}
+
+    {% if comic.pdf_file %}
+      <iframe
+        class="comic-pdf-frame"
+        src="{{ url_for('static', filename='uploads/pdfs/' ~ comic.pdf_file) }}"
+        title="Comic PDF Viewer"
+      ></iframe>
+
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a class="btn btn-comic-cta"
+           href="{{ url_for('static', filename='uploads/pdfs/' ~ comic.pdf_file) }}"
+           target="_blank" rel="noopener">
+          Open Fullscreen →
+        </a>
+
+        <a class="btn btn-outline-dark fw-bold comic-outline-btn"
+           href="{{ url_for('static', filename='uploads/pdfs/' ~ comic.pdf_file) }}"
+           download>
+          Download PDF
+        </a>
+      </div>
+
+      <p class="small text-muted mt-2 mb-0">
+        If the PDF viewer looks blank on your device, tap <strong>Open Fullscreen</strong>.
+      </p>
+    {% else %}
+      <div class="alert alert-warning fw-bold mb-0">
+        This comic does not have a PDF uploaded yet.
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

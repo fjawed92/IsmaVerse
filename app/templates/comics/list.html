@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Comics - IsmaVerse{% endblock %}
+
+{% block content %}
+<h2 class="fw-bold mb-3">Comics</h2>
+
+{% if comics %}
+  <div class="row g-3">
+    {% for c in comics %}
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+          {% if c.cover_image %}
+            <img class="card-img-top" src="{{ url_for('static', filename='img/comics/' ~ c.cover_image) }}" alt="{{ c.title }}">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ c.title }}</h5>
+            <p class="card-text text-muted">{{ c.description or "" }}</p>
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('comics.comic_detail', comic_id=c.id) }}">Open</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">No comics yet. Next we’ll create an admin page to add the first one.</p>
+{% endif %}
+{% endblock %}

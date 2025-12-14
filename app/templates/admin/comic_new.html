@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}New Comic{% endblock %}
+
+{% block content %}
+<div class="comic-panel">
+  <div class="panel-header">
+    <h2 class="panel-title">Add a New Comic (PDF)</h2>
+  </div>
+
+  <div class="p-4">
+    <form method="POST" enctype="multipart/form-data" class="vstack gap-3">
+      <div>
+        <label class="form-label fw-bold">Title</label>
+        <input class="form-control" name="title" required>
+      </div>
+
+      <div>
+        <label class="form-label fw-bold">Description</label>
+        <textarea class="form-control" name="description" rows="4"></textarea>
+      </div>
+
+      <div>
+        <label class="form-label fw-bold">Upload PDF</label>
+        <input class="form-control" type="file" name="pdf_file" accept="application/pdf">
+        <div class="form-text">Upload a single PDF comic issue.</div>
+      </div>
+
+      <button class="btn btn-comic-cta">Create Comic</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+>
