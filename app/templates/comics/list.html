@@ -2,26 +2,77 @@
 {% block title %}Comics - IsmaVerse{% endblock %}
 
 {% block content %}
-<h2 class="fw-bold mb-3">Comics</h2>
+
+<div class="comic-panel mb-4">
+  <div class="panel-header d-flex justify-content-between align-items-center">
+    <h1 class="panel-title">Comic Library</h1>
+    <span class="burst">READ!</span>
+  </div>
+
+  <div class="p-4">
+    <p class="text-muted mb-0" style="font-weight:700;">
+      Pick a comic and jump right in.
+    </p>
+  </div>
+</div>
 
 {% if comics %}
   <div class="row g-3">
     {% for c in comics %}
       <div class="col-12 col-md-6 col-lg-4">
-        <div class="card shadow-sm h-100">
+
+        <div class="comic-tile h-100 d-flex flex-column">
+
           {% if c.cover_image %}
-            <img class="card-img-top" src="{{ url_for('static', filename='img/comics/' ~ c.cover_image) }}" alt="{{ c.title }}">
+            <div class="mb-3">
+              <img
+                class="img-fluid comic-hero-img"
+                src="{{ url_for('static', filename='img/comics/' ~ c.cover_image) }}"
+                alt="{{ c.title }}"
+                style="border-radius:14px;"
+              >
+            </div>
           {% endif %}
-          <div class="card-body">
-            <h5 class="card-title">{{ c.title }}</h5>
-            <p class="card-text text-muted">{{ c.description or "" }}</p>
-            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('comics.comic_detail', comic_id=c.id) }}">Open</a>
+
+          <h3 class="mb-2">{{ c.title }}</h3>
+
+          {% if c.description %}
+            <p class="text-muted" style="font-weight:700;">{{ c.description }}</p>
+          {% else %}
+            <p class="text-muted" style="font-weight:700;">No description yet.</p>
+          {% endif %}
+
+          <div class="mt-auto d-flex flex-wrap gap-2">
+            <!-- PRIMARY ACTION: Reader -->
+            <a class="btn btn-comic-cta"
+               href="{{ url_for('comics.comic_reader', comic_id=c.id) }}">
+              Read Comic →
+            </a>
+
+            <!-- SECONDARY ACTION: Detail page -->
+            <a class="btn btn-outline-dark fw-bold comic-outline-btn"
+               href="{{ url_for('comics.comic_detail', comic_id=c.id) }}">
+              Details
+            </a>
           </div>
+
         </div>
+
       </div>
     {% endfor %}
   </div>
 {% else %}
-  <p class="text-muted">No comics yet. Next we’ll create an admin page to add the first one.</p>
+  <div class="comic-panel">
+    <div class="panel-header d-flex justify-content-between align-items-center">
+      <h2 class="panel-title" style="font-size:1.6rem;">No Comics Yet</h2>
+      <span class="burst">SOON!</span>
+    </div>
+    <div class="p-4">
+      <p class="text-muted mb-0" style="font-weight:700;">
+        No comics yet. Next we’ll create an admin page to add the first one.
+      </p>
+    </div>
+  </div>
 {% endif %}
+
 {% endblock %}

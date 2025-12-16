@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ comic.title }} - Supa Kid Space{% endblock %}
+{% block title %}{{ comic.title }} - IsmaVerse{% endblock %}
 
 {% block content %}
 
@@ -8,44 +8,57 @@
 </a>
 
 <div class="comic-panel mt-3">
-  <div class="panel-header">
+  <div class="panel-header d-flex justify-content-between align-items-center">
     <h2 class="panel-title">{{ comic.title }}</h2>
+    <span class="burst">INFO</span>
   </div>
 
   <div class="p-3 p-md-4">
+
+    {% if comic.cover_image %}
+      <div class="mb-3 text-center">
+        <img
+          src="{{ url_for('static', filename='img/comics/' ~ comic.cover_image) }}"
+          alt="{{ comic.title }}"
+          class="img-fluid comic-hero-img"
+          style="max-width:420px;border-radius:14px;"
+        >
+      </div>
+    {% endif %}
+
     {% if comic.description %}
-      <p class="text-muted mb-3">{{ comic.description }}</p>
+      <p class="text-muted mb-3" style="font-weight:700;">
+        {{ comic.description }}
+      </p>
     {% endif %}
 
     {% if comic.pdf_file %}
-      <iframe
-        class="comic-pdf-frame"
-        src="{{ url_for('static', filename='uploads/pdfs/' ~ comic.pdf_file) }}"
-        title="Comic PDF Viewer"
-      ></iframe>
-
       <div class="d-flex flex-wrap gap-2 mt-3">
-        <a class="btn btn-comic-cta"
-           href="{{ url_for('static', filename='uploads/pdfs/' ~ comic.pdf_file) }}"
-           target="_blank" rel="noopener">
-          Open Fullscreen →
+
+        <!-- PRIMARY ACTION -->
+        <a class="btn btn-comic-cta btn-lg"
+           href="{{ url_for('comics.comic_reader', comic_id=comic.id) }}">
+          📖 Read Comic
         </a>
 
+        <!-- SECONDARY ACTION -->
         <a class="btn btn-outline-dark fw-bold comic-outline-btn"
-           href="{{ url_for('static', filename='uploads/pdfs/' ~ comic.pdf_file) }}"
+           href="{{ url_for('comics.serve_pdf', filename=comic.pdf_file) }}"
            download>
           Download PDF
         </a>
+
       </div>
 
-      <p class="small text-muted mt-2 mb-0">
-        If the PDF viewer looks blank on your device, tap <strong>Open Fullscreen</strong>.
+      <p class="small text-muted mt-2 mb-0" style="font-weight:700;">
+        Tip: The comic reader works best on phones and tablets.
       </p>
     {% else %}
       <div class="alert alert-warning fw-bold mb-0">
         This comic does not have a PDF uploaded yet.
       </div>
     {% endif %}
+
   </div>
 </div>
 
