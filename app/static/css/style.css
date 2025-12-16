@@ -138,6 +138,7 @@ body{
 
 /* =====================================================
    BURSTS / STICKERS
+   (VISUAL STYLE ONLY — NO ANIMATION HERE)
 ===================================================== */
 .burst{
   display:inline-block;
@@ -148,6 +149,28 @@ body{
   letter-spacing: 1px;
   box-shadow: var(--shadow);
   transform: rotate(6deg);
+}
+
+/* =====================================================
+   HERO ORIGIN ANIMATION (WRAPPER)
+===================================================== */
+.hero-origin-wrap{
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(14px) scale(.92);
+  animation: heroOriginEnter 900ms cubic-bezier(.2,.9,.2,1) 150ms forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes heroOriginEnter{
+  0%   { opacity: 0; transform: translateY(14px) scale(.92); }
+  60%  { opacity: 1; transform: translateY(0) scale(1.06); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* subtle interaction polish */
+.hero-origin-wrap:hover{
+  transform: translateY(0) scale(1.03);
 }
 
 /* =====================================================
@@ -188,7 +211,7 @@ body{
 }
 
 /* =====================================================
-   ISMA ULTRA IMAGE + GREEN GLOW + LIGHTNING
+   ISMA ULTRA IMAGE + GREEN GLOW
 ===================================================== */
 .isma-ultra-wrapper{
   position: relative;
@@ -222,7 +245,7 @@ body{
 }
 
 /* =====================================================
-   LIGHTNING EFFECT (CSS ONLY)
+   LIGHTNING EFFECT
 ===================================================== */
 .lightning{
   position: absolute;
@@ -230,24 +253,20 @@ body{
   height: 220px;
   z-index: 2;
   pointer-events: none;
-
   background: linear-gradient(
     180deg,
     rgba(255,255,255,0.95),
     rgba(34,255,102,0.95)
   );
-
   filter:
     drop-shadow(0 0 12px rgba(34,255,102,0.95))
     drop-shadow(0 0 22px rgba(34,255,102,0.75));
-
   clip-path: polygon(
     45% 0%, 60% 12%, 52% 18%, 68% 30%, 54% 36%,
     72% 50%, 50% 58%, 64% 72%, 44% 78%, 56% 92%,
     38% 100%, 34% 84%, 46% 76%, 30% 62%,
     48% 56%, 26% 40%, 44% 34%, 24% 20%, 40% 14%
   );
-
   opacity: 0;
   animation: lightningFlicker 1.6s infinite;
 }
@@ -263,7 +282,7 @@ body{
 }
 
 /* =====================================================
-   PDF EMBED VIEWER (OPTION A)
+   PDF EMBED VIEWER
 ===================================================== */
 .comic-pdf-frame{
   width: 100%;
@@ -275,11 +294,17 @@ body{
 }
 
 /* =====================================================
-   ACCESSIBILITY
+   ACCESSIBILITY — REDUCED MOTION
 ===================================================== */
 @media (prefers-reduced-motion: reduce){
   .lightning,
-  .isma-ultra-wrapper::before{
-    animation: none;
+  .isma-ultra-wrapper::before,
+  .hero-origin-wrap{
+    animation: none !important;
+  }
+
+  .hero-origin-wrap{
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
