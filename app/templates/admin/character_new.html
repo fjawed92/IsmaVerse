@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}New Character{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 m-0">New Character</h1>
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin.admin_characters_list') }}">Back</a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="POST">
+
+        <div class="mb-3">
+          <label class="form-label">Superhero Name</label>
+          <input type="text" name="superhero_name" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Powers</label>
+          <textarea name="powers" class="form-control" rows="3"
+                    placeholder="Example: Super strength, flight, laser vision..."></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Weakness</label>
+          <textarea name="weakness" class="form-control" rows="3"
+                    placeholder="Example: Loud noises, water, gets sleepy in the sun..."></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Origins</label>
+          <textarea name="origins" class="form-control" rows="4"
+                    placeholder="Short backstory: where they’re from, how they got powers, mission..."></textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Create</button>
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin.admin_characters_list') }}">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

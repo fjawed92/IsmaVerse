@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Admin - Comics{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 m-0">Comics</h1>
+    <a class="btn btn-primary" href="{{ url_for('admin.admin_create_comic') }}">
+      + New Comic
+    </a>
+  </div>
+
+  {% if comics %}
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+          <thead>
+            <tr>
+              <th style="width:80px;">ID</th>
+              <th>Title</th>
+              <th style="width:220px;">Created</th>
+              <th style="width:240px;" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for comic in comics %}
+            <tr>
+              <td>{{ comic.id }}</td>
+              <td>
+                <div class="fw-semibold">{{ comic.title }}</div>
+                {% if comic.description %}
+                  <div class="text-muted small">{{ comic.description }}</div>
+                {% endif %}
+                {% if comic.pdf_file %}
+                  <div class="small">
+                    <span class="badge text-bg-secondary">PDF</span>
+                    <span class="text-muted">{{ comic.pdf_file }}</span>
+                  </div>
+                {% else %}
+                  <div class="small text-muted">No PDF uploaded</div>
+                {% endif %}
+              </td>
+              <td class="text-muted">
+                {% if comic.created_at %}
+                  {{ comic.created_at.strftime("%b %d, %Y %I:%M %p") }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary"
+                   href="{{ url_for('comics.comic_detail', comic_id=comic.id) }}">
+                  View
+                </a>
+
+                <a class="btn btn-sm btn-outline-primary"
+                   href="{{ url_for('admin.admin_edit_comic', comic_id=comic.id) }}">
+                  Edit
+                </a>
+
+                <form class="d-inline"
+                      method="POST"
+                      action="{{ url_for('admin.admin_delete_comic', comic_id=comic.id) }}"
+                      onsubmit="return confirm('Delete this comic? This cannot be undone.');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      No comics yet. Click <strong>New Comic</strong> to create one.
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

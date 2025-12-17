@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Edit Character{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 m-0">Edit Character</h1>
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin.admin_characters_list') }}">Back</a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="POST">
+
+        <div class="mb-3">
+          <label class="form-label">Superhero Name</label>
+          <input type="text" name="superhero_name" class="form-control"
+                 value="{{ character.superhero_name }}" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Powers</label>
+          <textarea name="powers" class="form-control" rows="3">{{ character.powers or "" }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Weakness</label>
+          <textarea name="weakness" class="form-control" rows="3">{{ character.weakness or "" }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Origins</label>
+          <textarea name="origins" class="form-control" rows="4">{{ character.origins or "" }}</textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin.admin_characters_list') }}">Cancel</a>
+
+          <div class="ms-auto">
+            <form method="POST"
+                  action="{{ url_for('admin.admin_delete_character', character_id=character.id) }}"
+                  onsubmit="return confirm('Delete this character? This cannot be undone.');">
+              <button type="submit" class="btn btn-outline-danger">Delete</button>
+            </form>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
