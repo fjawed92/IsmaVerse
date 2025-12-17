@@ -16,11 +16,6 @@ instance/
 *.sqlite3
 
 # ======================
-# Migrations (ignore local ones)
-# ======================
-migrations/
-
-# ======================
 # User uploads (CRITICAL)
 # ======================
 static/uploads/pdfs
