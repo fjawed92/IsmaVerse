@@ -410,6 +410,7 @@ button:focus-visible,
 }
 
 /* Image */
+/* Image frame (keeps consistent card layout) */
 .hero-avatar-wrap {
   padding: 14px;
   background: #fff;
@@ -418,13 +419,16 @@ button:focus-visible,
 
 .hero-avatar {
   width: 100%;
-  height: 220px;
-  object-fit: cover;
+  height: 260px;            /* a bit taller so full body fits better */
+  object-fit: contain;      /* IMPORTANT: show whole image (no crop) */
+  object-position: center;  /* center it */
   border: 4px solid var(--ink);
   border-radius: 16px;
   box-shadow: 5px 5px 0 var(--ink);
-  background: #fff;
+  background: #ffffff;      /* prevents ugly empty space */
+  padding: 8px;             /* “zoom out” feel inside the frame */
 }
+
 
 .hero-avatar-placeholder {
   height: 220px;
