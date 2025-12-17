@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Heroes{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- =====================
+       PAGE HEADER
+  ===================== -->
+  <div class="hero-page-header mb-4">
+    <div class="hero-kicker">MEET THE HEROES</div>
+    <h1 class="hero-title">Character Profiles</h1>
+    <p class="hero-subtitle mb-0">
+      Comic-style hero cards with powers, weaknesses, and origin stories.
+    </p>
+  </div>
+
+  {% if characters %}
+  <div class="row g-4">
+
+    {% for c in characters %}
+    <div class="col-12 col-md-6 col-lg-4">
+
+      <article class="hero-card">
+
+        <!-- TOP BURST -->
+        <div class="hero-burst" aria-hidden="true">HERO FILE</div>
+
+        <!-- IMAGE -->
+        {% if c.image_file %}
+        <div class="hero-avatar-wrap">
+          <img
+            src="{{ url_for('static', filename='uploads/characters/' ~ c.image_file) }}"
+            alt="{{ c.superhero_name }} character image"
+            class="hero-avatar"
+          >
+        </div>
+        {% else %}
+        <div class="hero-avatar-wrap hero-avatar-placeholder">
+          <span>NO IMAGE</span>
+        </div>
+        {% endif %}
+
+        <!-- HEADER -->
+        <header class="hero-card-header">
+          <div class="hero-name-wrap">
+            <h2 class="hero-name">{{ c.superhero_name }}</h2>
+
+            <div class="hero-stickers">
+              {% if c.powers %}
+                <span class="hero-sticker hero-sticker-good">POWERED</span>
+              {% else %}
+                <span class="hero-sticker hero-sticker-muted">MYSTERY</span>
+              {% endif %}
+
+              {% if c.weakness %}
+                <span class="hero-sticker hero-sticker-warn">WEAK SPOT</span>
+              {% endif %}
+            </div>
+          </div>
+        </header>
+
+        <!-- BODY -->
+        <div class="hero-card-body">
+
+          <section class="hero-section">
+            <div class="hero-section-title">Powers</div>
+            <div class="hero-section-text">
+              {% if c.powers %}
+                {{ c.powers }}
+              {% else %}
+                <span class="hero-muted">Not revealed yet…</span>
+              {% endif %}
+            </div>
+          </section>
+
+          <section class="hero-section">
+            <div class="hero-section-title">Weakness</div>
+            <div class="hero-section-text">
+              {% if c.weakness %}
+                {{ c.weakness }}
+              {% else %}
+                <span class="hero-muted">Top secret.</span>
+              {% endif %}
+            </div>
+          </section>
+
+          <section class="hero-section">
+            <div class="hero-section-title">Origin</div>
+            <div class="hero-section-text">
+              {% if c.origins %}
+                {{ c.origins }}
+              {% else %}
+                <span class="hero-muted">Origin story loading…</span>
+              {% endif %}
+            </div>
+          </section>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="hero-card-footer">
+          <span class="hero-id">#{{ "%03d"|format(c.id) }}</span>
+          <span class="hero-footer-note">Collect them all!</span>
+        </footer>
+
+      </article>
+
+    </div>
+    {% endfor %}
+
+  </div>
+  {% else %}
+    <div class="alert alert-info">
+      No characters yet. Add characters in the admin panel first.
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

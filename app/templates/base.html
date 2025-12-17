@@ -13,44 +13,77 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
 
+  <!-- Site CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="comic-body">
 
+<!-- =====================
+     NAVBAR
+===================== -->
 <nav class="navbar navbar-expand-lg comic-nav sticky-top">
   <div class="container">
+
+    <!-- BRAND -->
     <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('main.home') }}">
       <span class="comic-badge">NEW!</span>
       <span class="brand-title">Isma Verse</span>
     </a>
 
+    <!-- MOBILE TOGGLER -->
     <button class="navbar-toggler comic-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
       <span class="navbar-toggler-icon"></span>
     </button>
 
+    <!-- NAV LINKS -->
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+
         <li class="nav-item">
-          <a class="nav-link comic-link" href="{{ url_for('main.home') }}">Home</a>
+          <a class="nav-link comic-link" href="{{ url_for('main.home') }}">
+            Home
+          </a>
         </li>
+
         <li class="nav-item">
-          <a class="nav-link comic-link" href="{{ url_for('comics.list_comics') }}">Comics</a>
+          <a class="nav-link comic-link" href="{{ url_for('comics.list_comics') }}">
+            Comics
+          </a>
         </li>
+
+        <!-- CHARACTERS LINK -->
+        <li class="nav-item">
+          <a class="nav-link comic-link" href="{{ url_for('characters.list_characters') }}">
+            Characters
+            <span class="ms-1 badge text-bg-warning align-middle">NEW</span>
+          </a>
+        </li>
+
+        <!-- PRIMARY CTA -->
         <li class="nav-item mt-2 mt-lg-0">
           <a class="btn btn-comic-cta" href="{{ url_for('comics.list_comics') }}">
             Read Now <span class="ms-1">→</span>
           </a>
         </li>
+
       </ul>
     </div>
+
   </div>
 </nav>
 
+<!-- =====================
+     MAIN CONTENT
+===================== -->
 <main class="container py-4">
   {% block content %}{% endblock %}
 </main>
 
+<!-- =====================
+     SCRIPTS
+===================== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
 </body>
 </html>

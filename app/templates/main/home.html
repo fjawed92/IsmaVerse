@@ -108,10 +108,24 @@
 ===================== -->
 <div class="row g-3">
   <div class="col-12 col-md-4">
-    <div class="comic-tile h-100">
-      <h3>Characters</h3>
-      <p class="text-muted mb-0">Heroes, villains, and silly sidekicks.</p>
-    </div>
+    <a href="{{ url_for('characters.list_characters') }}"
+       class="text-decoration-none text-reset d-block h-100">
+
+      <div class="comic-tile h-100 comic-tile-link">
+        <h3>Characters</h3>
+
+        <p class="text-muted">
+          Heroes, villains, and silly sidekicks.
+        </p>
+
+        <div class="mt-2">
+          <span class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">
+            Meet the Heroes →
+          </span>
+        </div>
+      </div>
+
+    </a>
   </div>
 
   <div class="col-12 col-md-4">

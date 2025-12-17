@@ -13,7 +13,9 @@ def create_app():
     from .views.main_routes import main_bp
     from .views.comics_routes import comics_bp
     from .views.admin_routes import admin_bp
+    from .views.characters_routes import characters_bp
 
+    app.register_blueprint(characters_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(comics_bp, url_prefix="/comics")

@@ -11,28 +11,42 @@
 
   <div class="card shadow-sm">
     <div class="card-body">
-      <form method="POST">
+
+      <form method="POST" enctype="multipart/form-data">
 
         <div class="mb-3">
           <label class="form-label">Superhero Name</label>
           <input type="text" name="superhero_name" class="form-control" required>
         </div>
 
+        <!-- NEW: IMAGE UPLOAD -->
+        <div class="mb-3">
+          <label class="form-label">Character Picture (optional)</label>
+          <input type="file" name="image_file" class="form-control" accept="image/*">
+          <div class="form-text">PNG / JPG / JPEG / WEBP</div>
+        </div>
+
         <div class="mb-3">
           <label class="form-label">Powers</label>
-          <textarea name="powers" class="form-control" rows="3"
+          <textarea name="powers"
+                    class="form-control"
+                    rows="3"
                     placeholder="Example: Super strength, flight, laser vision..."></textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Weakness</label>
-          <textarea name="weakness" class="form-control" rows="3"
+          <textarea name="weakness"
+                    class="form-control"
+                    rows="3"
                     placeholder="Example: Loud noises, water, gets sleepy in the sun..."></textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Origins</label>
-          <textarea name="origins" class="form-control" rows="4"
+          <textarea name="origins"
+                    class="form-control"
+                    rows="4"
                     placeholder="Short backstory: where they’re from, how they got powers, mission..."></textarea>
         </div>
 
@@ -42,6 +56,7 @@
         </div>
 
       </form>
+
     </div>
   </div>
 
