@@ -1,16 +1,35 @@
 import os
 import uuid
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from flask_login import login_required
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
 from ..extensions import db
 from ..models.comic import Comic
 from ..models.character import Character
+from ..models.user import User
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+
+
+@admin_bp.before_request
+def restrict_to_admins():
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.login", next=request.path))
+
+    if not current_user.is_admin:
+        flash("Admin access required.", "danger")
+        return redirect(url_for("main.home"))
 
 ALLOWED_PDF = {"pdf"}
 ALLOWED_IMG = {"png", "jpg", "jpeg", "webp"}
@@ -293,3 +312,115 @@ def admin_delete_character(character_id):
 
     flash("Character deleted.", "warning")
     return redirect(url_for("admin.admin_characters_list"))
+
+
+# =====================================================
+# ADMIN: LIST USERS
+# =====================================================
+@admin_bp.route("/users", methods=["GET"])
+@login_required
+def admin_users_list():
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template("admin/users_list.html", users=users)
+
+
+# =====================================================
+# ADMIN: CREATE USER
+# =====================================================
+@admin_bp.route("/users/new", methods=["GET", "POST"])
+@login_required
+def admin_create_user():
+    if request.method == "GET":
+        return render_template("admin/user_new.html")
+
+    username = request.form.get("username", "").strip()
+    email = request.form.get("email", "").strip() or None
+    password = request.form.get("password", "")
+    confirm = request.form.get("confirm_password", "")
+    roles = request.form.get("roles", "").strip() or "user"
+
+    if not username or not password:
+        flash("Username and password are required.", "danger")
+        return redirect(url_for("admin.admin_create_user"))
+
+    if password != confirm:
+        flash("Passwords do not match.", "danger")
+        return redirect(url_for("admin.admin_create_user"))
+
+    existing = User.query.filter(
+        db.or_(User.username == username, User.email == email)
+    ).first()
+    if existing:
+        flash("Username or email already in use.", "danger")
+        return redirect(url_for("admin.admin_create_user"))
+
+    user = User(username=username, email=email, roles=roles)
+    user.set_password(password)
+
+    db.session.add(user)
+    db.session.commit()
+
+    flash("User created!", "success")
+    return redirect(url_for("admin.admin_users_list"))
+
+
+# =====================================================
+# ADMIN: EDIT USER
+# =====================================================
+@admin_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
+@login_required
+def admin_edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    if request.method == "GET":
+        return render_template("admin/user_edit.html", user=user)
+
+    username = request.form.get("username", "").strip()
+    email = request.form.get("email", "").strip() or None
+    roles = request.form.get("roles", "").strip() or "user"
+    password = request.form.get("password", "")
+    confirm = request.form.get("confirm_password", "")
+
+    if not username:
+        flash("Username is required.", "danger")
+        return redirect(url_for("admin.admin_edit_user", user_id=user.id))
+
+    if password and password != confirm:
+        flash("Passwords do not match.", "danger")
+        return redirect(url_for("admin.admin_edit_user", user_id=user.id))
+
+    existing = (
+        User.query.filter(db.or_(User.username == username, User.email == email))
+        .filter(User.id != user.id)
+        .first()
+    )
+    if existing:
+        flash("Username or email already in use.", "danger")
+        return redirect(url_for("admin.admin_edit_user", user_id=user.id))
+
+    user.username = username
+    user.email = email
+    user.roles = roles
+
+    if password:
+        user.set_password(password)
+
+    db.session.commit()
+
+    flash("User updated!", "success")
+    return redirect(url_for("admin.admin_users_list"))
+
+
+# =====================================================
+# ADMIN: DELETE USER
+# =====================================================
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@login_required
+def admin_delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash("User deleted.", "warning")
+    return redirect(url_for("admin.admin_users_list"))
