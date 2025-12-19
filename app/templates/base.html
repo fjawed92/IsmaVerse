@@ -59,6 +59,22 @@
           </a>
         </li>
 
+        {% if current_user.is_authenticated %}
+        <li class="nav-item">
+          <span class="nav-link comic-link">Hi, {{ current_user.username }}</span>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link comic-link" href="{{ url_for('auth.logout') }}">Logout</a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link comic-link" href="{{ url_for('auth.login') }}">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link comic-link" href="{{ url_for('auth.register') }}">Register</a>
+        </li>
+        {% endif %}
+
         <!-- PRIMARY CTA -->
         <li class="nav-item mt-2 mt-lg-0">
           <a class="btn btn-comic-cta" href="{{ url_for('comics.list_comics') }}">
@@ -76,6 +92,16 @@
      MAIN CONTENT
 ===================== -->
 <main class="container py-4">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
   {% block content %}{% endblock %}
 </main>
 
