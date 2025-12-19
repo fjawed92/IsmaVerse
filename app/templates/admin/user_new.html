@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Admin - New User{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="admin-hero mb-4">
+    <div class="admin-hero-label">ADMIN HQ</div>
+    <h1 class="admin-hero-title">Create a New Hero</h1>
+    <p class="admin-hero-subtitle mb-0">Add a brand-new adventurer with a shiny secret identity and role powers.</p>
+  </div>
+
+  <div class="comic-panel admin-panel">
+    <div class="panel-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h2 class="panel-title m-0">New User Form</h2>
+      <a class="btn comic-outline-btn btn-outline-secondary" href="{{ url_for('admin.admin_users_list') }}">Back to List</a>
+    </div>
+
+    <div class="p-4">
+      <form method="POST" class="comic-form">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-control" name="username" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" placeholder="optional">
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" name="password" required>
+            <div class="form-text">Keep it secret like a hero mask.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Confirm Password</label>
+            <input type="password" class="form-control" name="confirm_password" required>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Roles</label>
+          <input type="text" class="form-control" name="roles" placeholder="e.g. admin,user" value="user">
+          <div class="form-text">Use commas for multiple powers (roles).</div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <a class="btn comic-outline-btn btn-outline-secondary" href="{{ url_for('admin.admin_users_list') }}">Cancel</a>
+          <button type="submit" class="btn btn-comic-cta">Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

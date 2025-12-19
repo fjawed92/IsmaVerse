@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Admin - Edit User{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="admin-hero mb-4">
+    <div class="admin-hero-label">ADMIN HQ</div>
+    <h1 class="admin-hero-title">Edit Secret Identity</h1>
+    <p class="admin-hero-subtitle mb-0">Tune roles, update contact info, or give {{ user.username }} a new password.</p>
+  </div>
+
+  <div class="comic-panel admin-panel">
+    <div class="panel-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h2 class="panel-title m-0">User Details</h2>
+      <a class="btn comic-outline-btn btn-outline-secondary" href="{{ url_for('admin.admin_users_list') }}">Back to List</a>
+    </div>
+
+    <div class="p-4">
+      <form method="POST" class="comic-form">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" value="{{ user.email }}" placeholder="optional">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Roles</label>
+          <input type="text" class="form-control" name="roles" value="{{ user.roles }}" placeholder="e.g. admin,user">
+          <div class="form-text">Comma-separated roles string.</div>
+        </div>
+
+        <div class="comic-divider"></div>
+        <h2 class="h6 text-uppercase fw-bold">Change Password</h2>
+        <p class="text-muted small">Leave blank to keep the current password.</p>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-control" name="password">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control" name="confirm_password">
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <a class="btn comic-outline-btn btn-outline-secondary" href="{{ url_for('admin.admin_users_list') }}">Cancel</a>
+          <button type="submit" class="btn btn-comic-cta">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

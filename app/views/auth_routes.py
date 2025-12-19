@@ -35,7 +35,7 @@ def register():
         flash("Username or email already in use.", "danger")
         return redirect(url_for("auth.register"))
 
-    user = User(username=username, email=email)
+    user = User(username=username, email=email, roles="user")
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
