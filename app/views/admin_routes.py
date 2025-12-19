@@ -2,6 +2,7 @@ import os
 import uuid
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask_login import login_required
 from werkzeug.utils import secure_filename
 
 from ..extensions import db
@@ -46,6 +47,7 @@ def save_character_image(file_storage) -> str:
 # ADMIN: CREATE COMIC
 # =====================================================
 @admin_bp.route("/comics/new", methods=["GET", "POST"])
+@login_required
 def admin_create_comic():
     if request.method == "GET":
         return render_template("admin/comic_new.html")
@@ -83,6 +85,7 @@ def admin_create_comic():
 # ADMIN: LIST ALL COMICS
 # =====================================================
 @admin_bp.route("/comics", methods=["GET"])
+@login_required
 def admin_comics_list():
     comics = Comic.query.order_by(Comic.created_at.desc()).all()
     return render_template("admin/comics_list.html", comics=comics)
@@ -92,6 +95,7 @@ def admin_comics_list():
 # ADMIN: EDIT COMIC
 # =====================================================
 @admin_bp.route("/comics/<int:comic_id>/edit", methods=["GET", "POST"])
+@login_required
 def admin_edit_comic(comic_id):
     comic = Comic.query.get_or_404(comic_id)
 
@@ -142,6 +146,7 @@ def admin_edit_comic(comic_id):
 # ADMIN: DELETE COMIC (POST ONLY)
 # =====================================================
 @admin_bp.route("/comics/<int:comic_id>/delete", methods=["POST"])
+@login_required
 def admin_delete_comic(comic_id):
     comic = Comic.query.get_or_404(comic_id)
 
@@ -166,6 +171,7 @@ def admin_delete_comic(comic_id):
 # ADMIN: LIST CHARACTERS
 # =====================================================
 @admin_bp.route("/characters", methods=["GET"])
+@login_required
 def admin_characters_list():
     characters = Character.query.order_by(Character.created_at.desc()).all()
     return render_template("admin/characters_list.html", characters=characters)
@@ -175,6 +181,7 @@ def admin_characters_list():
 # ADMIN: CREATE CHARACTER (WITH IMAGE)
 # =====================================================
 @admin_bp.route("/characters/new", methods=["GET", "POST"])
+@login_required
 def admin_create_character():
     if request.method == "GET":
         return render_template("admin/character_new.html")
@@ -214,6 +221,7 @@ def admin_create_character():
 # ADMIN: EDIT CHARACTER (WITH IMAGE REPLACE)
 # =====================================================
 @admin_bp.route("/characters/<int:character_id>/edit", methods=["GET", "POST"])
+@login_required
 def admin_edit_character(character_id):
     character = Character.query.get_or_404(character_id)
 
@@ -265,6 +273,7 @@ def admin_edit_character(character_id):
 # ADMIN: DELETE CHARACTER (POST ONLY) + IMAGE CLEANUP
 # =====================================================
 @admin_bp.route("/characters/<int:character_id>/delete", methods=["POST"])
+@login_required
 def admin_delete_character(character_id):
     character = Character.query.get_or_404(character_id)
 
