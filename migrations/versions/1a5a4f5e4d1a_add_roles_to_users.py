@@ -17,11 +17,11 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
+	op.add_column(
         'users',
         sa.Column('roles', sa.String(length=120), nullable=False, server_default='user')
     )
-    op.alter_column('users', 'roles', server_default=None)
+
 
 
 def downgrade():
