@@ -334,6 +334,7 @@ def admin_create_user():
         return render_template("admin/user_new.html")
 
     username = request.form.get("username", "").strip()
+    username_lower = username.lower()
     email = request.form.get("email", "").strip() or None
     password = request.form.get("password", "")
     confirm = request.form.get("confirm_password", "")
@@ -347,8 +348,12 @@ def admin_create_user():
         flash("Passwords do not match.", "danger")
         return redirect(url_for("admin.admin_create_user"))
 
-    existing = User.query.filter(
-        db.or_(User.username == username, User.email == email)
+    filters = [db.func.lower(User.username) == username_lower]
+    if email:
+        filters.append(User.email == email)
+
+    existing = (
+        User.query.filter(db.or_(*filters)) if len(filters) > 1 else User.query.filter(*filters)
     ).first()
     if existing:
         flash("Username or email already in use.", "danger")
@@ -376,6 +381,7 @@ def admin_edit_user(user_id):
         return render_template("admin/user_edit.html", user=user)
 
     username = request.form.get("username", "").strip()
+    username_lower = username.lower()
     email = request.form.get("email", "").strip() or None
     roles = request.form.get("roles", "").strip() or "user"
     password = request.form.get("password", "")
@@ -389,11 +395,14 @@ def admin_edit_user(user_id):
         flash("Passwords do not match.", "danger")
         return redirect(url_for("admin.admin_edit_user", user_id=user.id))
 
+    filters = [db.func.lower(User.username) == username_lower]
+    if email:
+        filters.append(User.email == email)
+
     existing = (
-        User.query.filter(db.or_(User.username == username, User.email == email))
-        .filter(User.id != user.id)
-        .first()
+        User.query.filter(db.or_(*filters)) if len(filters) > 1 else User.query.filter(*filters)
     )
+    existing = existing.filter(User.id != user.id).first()
     if existing:
         flash("Username or email already in use.", "danger")
         return redirect(url_for("admin.admin_edit_user", user_id=user.id))

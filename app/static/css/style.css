@@ -318,6 +318,10 @@ button:focus-visible,
   text-shadow: 3px 3px 0 var(--ink);
 }
 
+.admin-hero-title.no-shadow {
+  text-shadow: none;
+}
+
 .admin-hero-subtitle {
   max-width: 720px;
   font-size: 1.05rem;
