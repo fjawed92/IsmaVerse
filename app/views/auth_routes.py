@@ -16,6 +16,7 @@ def register():
         return render_template("auth/register.html")
 
     username = request.form.get("username", "").strip()
+    username_lower = username.lower()
     email = request.form.get("email", "").strip() or None
     password = request.form.get("password", "")
     confirm = request.form.get("confirm_password", "")
@@ -28,8 +29,12 @@ def register():
         flash("Passwords do not match.", "danger")
         return redirect(url_for("auth.register"))
 
-    existing = User.query.filter(
-        db.or_(User.username == username, User.email == email)
+    filters = [db.func.lower(User.username) == username_lower]
+    if email:
+        filters.append(User.email == email)
+
+    existing = (
+        User.query.filter(db.or_(*filters)) if len(filters) > 1 else User.query.filter(*filters)
     ).first()
     if existing:
         flash("Username or email already in use.", "danger")
@@ -56,7 +61,8 @@ def login():
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")
 
-    user = User.query.filter_by(username=username).first()
+    username_lower = username.lower()
+    user = User.query.filter(db.func.lower(User.username) == username_lower).first()
     if not user or not user.check_password(password):
         flash("Invalid username or password.", "danger")
         return redirect(url_for("auth.login"))
