@@ -496,6 +496,157 @@ button:focus-visible,
 
 
 /* =====================================================
+   15) RESPONSIVE / MOBILE TWEAKS
+   - Smaller typography on narrow screens
+   - Friendlier navbar collapse behavior
+   - Cozy padding for panels + speech bubbles
+===================================================== */
+@media (max-width: 991.98px) {
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .35rem;
+  }
+
+  .panel-title {
+    font-size: 1.55rem;
+    text-align: left;
+  }
+
+  .panel-header .burst {
+    align-self: flex-start;
+  }
+
+  .speech,
+  .comic-panel > .p-4 {
+    padding: 1rem;
+  }
+
+  .brand-title {
+    font-size: 1.35rem;
+  }
+
+  .comic-nav .navbar-nav {
+    align-items: stretch;
+    gap: .25rem;
+  }
+
+  .comic-nav .nav-item {
+    width: 100%;
+  }
+
+  .comic-nav .nav-link,
+  .comic-nav .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .comic-nav .btn {
+    margin-top: .25rem;
+  }
+
+  .hero-page-header {
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .hero-title {
+    font-size: 1.6rem;
+  }
+
+  .hero-subtitle {
+    font-size: .95rem;
+  }
+
+  .hero-card-footer {
+    flex-direction: column;
+    gap: .45rem;
+    align-items: flex-start;
+  }
+
+  .hero-card-header {
+    padding: .85rem;
+  }
+
+  .hero-section {
+    padding: .6rem .75rem;
+  }
+
+  .comic-tile {
+    padding: .85rem;
+  }
+
+  .btn-comic-cta,
+  .comic-outline-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admin-hero {
+    text-align: center;
+    padding: 1.1rem;
+  }
+
+  .admin-hero-label {
+    margin: 0 auto .35rem auto;
+    display: inline-block;
+  }
+
+  .admin-hero-title {
+    font-size: 2rem;
+  }
+
+  .admin-hero-subtitle {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .comic-pdf-frame {
+    height: 70vh;
+  }
+}
+
+@media (max-width: 575.98px) {
+  body {
+    font-size: .97rem;
+  }
+
+  .panel-title {
+    font-size: 1.35rem;
+  }
+
+  .brand-title {
+    font-size: 1.2rem;
+  }
+
+  .hero-name {
+    font-size: 1.1rem;
+  }
+
+  .hero-section-title {
+    font-size: .8rem;
+  }
+
+  .hero-section-text {
+    font-size: .95rem;
+  }
+
+  .hero-burst {
+    top: 10px;
+    right: 8px;
+  }
+
+  .hero-card-footer {
+    align-items: stretch;
+  }
+
+  .hero-footer-note {
+    text-align: left;
+  }
+}
+
+
+/* =====================================================
    14) CHARACTERS PAGE — HERO CARDS (Dog Man style)
 ===================================================== */
 .hero-page-header {
