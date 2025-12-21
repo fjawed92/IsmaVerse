@@ -66,6 +66,11 @@
             Manage Users
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link comic-link" href="{{ url_for('admin.admin_comics_list') }}">
+            Manage Comics
+          </a>
+        </li>
         {% endif %}
         <li class="nav-item">
           <span class="nav-link comic-link">Hi, {{ current_user.username }}</span>
