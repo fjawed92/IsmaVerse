@@ -55,7 +55,6 @@
         <li class="nav-item">
           <a class="nav-link comic-link" href="{{ url_for('characters.list_characters') }}">
             Characters
-            <span class="ms-1 badge text-bg-warning align-middle">NEW</span>
           </a>
         </li>
 
@@ -69,6 +68,11 @@
         <li class="nav-item">
           <a class="nav-link comic-link" href="{{ url_for('admin.admin_comics_list') }}">
             Manage Comics
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link comic-link" href="{{ url_for('admin.admin_characters_list') }}">
+            Manage Characters
           </a>
         </li>
         {% endif %}
