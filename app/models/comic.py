@@ -1,5 +1,6 @@
 from ..extensions import db
 
+
 class Comic(db.Model):
     __tablename__ = "comics"
 
@@ -9,3 +10,9 @@ class Comic(db.Model):
     cover_image = db.Column(db.String(255), nullable=True)  # filename stored in static/img/comics/
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     pdf_file = db.Column(db.String(255), nullable=True)
+    comments = db.relationship(
+        "Comment",
+        backref="comic",
+        lazy="dynamic",
+        cascade="all, delete-orphan"
+    )

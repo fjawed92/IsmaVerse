@@ -1,6 +1,9 @@
-from flask import Blueprint, render_template, abort, current_app, send_from_directory
+from flask import Blueprint, render_template, abort, current_app, send_from_directory, request, flash, redirect, url_for
+from flask_login import login_required, current_user
 from werkzeug.utils import safe_join
+from ..extensions import db
 from ..models.comic import Comic
+from ..models.comment import Comment
 import os
 
 comics_bp = Blueprint("comics", __name__)
@@ -21,7 +24,8 @@ def list_comics():
 @comics_bp.route("/<int:comic_id>")
 def comic_detail(comic_id):
     comic = Comic.query.get_or_404(comic_id)
-    return render_template("comics/detail.html", comic=comic)
+    comments = Comment.query.filter_by(comic_id=comic.id).order_by(Comment.created_at.desc()).all()
+    return render_template("comics/detail.html", comic=comic, comments=comments)
 
 
 # =====================================================
@@ -64,3 +68,24 @@ def serve_pdf(filename):
         abort(404)
 
     return send_from_directory(pdf_dir, filename)
+
+
+# =====================================================
+# COMMENT CREATION
+# =====================================================
+@comics_bp.route("/<int:comic_id>/comments", methods=["POST"])
+@login_required
+def add_comment(comic_id):
+    comic = Comic.query.get_or_404(comic_id)
+    body = request.form.get("comment", "").strip()
+
+    if not body:
+        flash("Please enter a comment before posting.", "warning")
+        return redirect(url_for("comics.comic_detail", comic_id=comic.id))
+
+    comment = Comment(body=body, comic_id=comic.id, user_id=current_user.id)
+    db.session.add(comment)
+    db.session.commit()
+
+    flash("Comment added!", "success")
+    return redirect(url_for("comics.comic_detail", comic_id=comic.id))
