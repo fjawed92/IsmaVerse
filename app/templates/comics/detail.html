@@ -70,24 +70,26 @@
 
   <div class="p-3 p-md-4">
     {% if current_user.is_authenticated %}
-      <form method="post" action="{{ url_for('comics.add_comment', comic_id=comic.id) }}" class="mb-4">
-        <label for="comment" class="form-label fw-bold">Share your thoughts</label>
-        <textarea id="comment" name="comment" class="form-control" rows="3" maxlength="1000" required></textarea>
-        <button type="submit" class="btn btn-comic-cta mt-2">Post Comment</button>
+      <form method="post" action="{{ url_for('comics.add_comment', comic_id=comic.id) }}" class="comment-form mb-4">
+        <label for="comment" class="form-label fw-bold mb-2">Share your thoughts</label>
+        <textarea id="comment" name="comment" class="form-control comic-textarea" rows="3" maxlength="1000" required></textarea>
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-comic-cta comic-shadow mt-2">Post Comment</button>
+        </div>
       </form>
     {% else %}
       <div class="alert alert-info fw-bold">Please <a href="{{ url_for('auth.login', next=request.path) }}">log in</a> to join the conversation.</div>
     {% endif %}
 
     {% if comments %}
-      <div class="list-group">
+      <div class="comment-list">
         {% for comment in comments %}
-          <div class="list-group-item border-3 mb-3 shadow-sm" style="border-color:#111; border-radius: 14px;">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <div class="fw-bold">{{ comment.author.username }}</div>
-              <small class="text-muted">{{ comment.created_at.strftime('%b %d, %Y %I:%M %p') if comment.created_at else 'Just now' }}</small>
+          <div class="comment-card">
+            <div class="comment-meta">
+              <div class="comment-author">{{ comment.author.username }}</div>
+              <div class="comment-date">{{ comment.created_at.strftime('%b %d, %Y %I:%M %p') if comment.created_at else 'Just now' }}</div>
             </div>
-            <p class="mb-0">{{ comment.body }}</p>
+            <p class="comment-body mb-0">{{ comment.body }}</p>
           </div>
         {% endfor %}
       </div>
