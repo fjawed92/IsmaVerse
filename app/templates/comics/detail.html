@@ -62,4 +62,41 @@
   </div>
 </div>
 
+<div class="comic-panel mt-4">
+  <div class="panel-header d-flex justify-content-between align-items-center">
+    <h3 class="panel-title mb-0">Comments</h3>
+    <span class="burst">CHAT</span>
+  </div>
+
+  <div class="p-3 p-md-4">
+    {% if current_user.is_authenticated %}
+      <form method="post" action="{{ url_for('comics.add_comment', comic_id=comic.id) }}" class="comment-form mb-4">
+        <label for="comment" class="form-label fw-bold mb-2">Share your thoughts</label>
+        <textarea id="comment" name="comment" class="form-control comic-textarea" rows="3" maxlength="1000" required></textarea>
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-comic-cta comic-shadow mt-2">Post Comment</button>
+        </div>
+      </form>
+    {% else %}
+      <div class="alert alert-info fw-bold">Please <a href="{{ url_for('auth.login', next=request.path) }}">log in</a> to join the conversation.</div>
+    {% endif %}
+
+    {% if comments %}
+      <div class="comment-list">
+        {% for comment in comments %}
+          <div class="comment-card">
+            <div class="comment-meta">
+              <div class="comment-author">{{ comment.author.username }}</div>
+              <div class="comment-date">{{ comment.created_at.strftime('%b %d, %Y %I:%M %p') if comment.created_at else 'Just now' }}</div>
+            </div>
+            <p class="comment-body mb-0">{{ comment.body }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted mb-0 fw-bold">No comments yet. Be the first to add one!</p>
+    {% endif %}
+  </div>
+</div>
+
 {% endblock %}
