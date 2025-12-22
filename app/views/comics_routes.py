@@ -34,6 +34,7 @@ def comic_detail(comic_id):
 @comics_bp.route("/read/<int:comic_id>")
 def comic_reader(comic_id):
     comic = Comic.query.get_or_404(comic_id)
+    comments = Comment.query.filter_by(comic_id=comic.id).order_by(Comment.created_at.desc()).all()
 
     # DB stores only the filename (e.g. "issue_1.pdf")
     if not comic.pdf_file or not comic.pdf_file.lower().endswith(".pdf"):
@@ -42,6 +43,7 @@ def comic_reader(comic_id):
     return render_template(
         "comics/reader.html",
         comic=comic,
+        comments=comments,
         pdf_file=comic.pdf_file
     )
 
@@ -78,14 +80,15 @@ def serve_pdf(filename):
 def add_comment(comic_id):
     comic = Comic.query.get_or_404(comic_id)
     body = request.form.get("comment", "").strip()
+    redirect_target = request.form.get("next") or url_for("comics.comic_detail", comic_id=comic.id)
 
     if not body:
         flash("Please enter a comment before posting.", "warning")
-        return redirect(url_for("comics.comic_detail", comic_id=comic.id))
+        return redirect(redirect_target)
 
     comment = Comment(body=body, comic_id=comic.id, user_id=current_user.id)
     db.session.add(comment)
     db.session.commit()
 
     flash("Comment added!", "success")
-    return redirect(url_for("comics.comic_detail", comic_id=comic.id))
+    return redirect(redirect_target)
