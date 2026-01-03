@@ -894,6 +894,30 @@ button:focus-visible,
   white-space: pre-wrap;
 }
 
+.hero-detail-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.hero-detail-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .2rem 0;
+  border-bottom: 2px dashed rgba(0, 0, 0, 0.12);
+}
+
+.hero-detail-list li:last-child {
+  border-bottom: none;
+}
+
+.hero-detail-list span {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
 .hero-muted {
   color: #555;
   font-weight: 700;

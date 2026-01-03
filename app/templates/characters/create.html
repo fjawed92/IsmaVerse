@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Create Your Own Hero{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 960px;">
+
+  <div class="hero-page-header mb-4">
+    <div class="hero-kicker">CREATE YOUR OWN HERO</div>
+    <h1 class="hero-title">Build a Kid-Friendly Legend</h1>
+    <p class="hero-subtitle mb-0">
+      Dream up a brand-new hero for the Isma Verse. Add your favorite colors, powers,
+      and a super-cool chest symbol, then let the comic magic begin!
+    </p>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="POST" class="comic-form">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Superhero Name</label>
+            <input type="text" name="superhero_name" class="form-control" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Age</label>
+            <input type="number" name="age" class="form-control" min="4" max="16" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Hair Color</label>
+            <input type="text" name="hair_color" class="form-control" placeholder="Brown" required>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Costume Color</label>
+            <input type="text" name="costume_color" class="form-control" placeholder="Blue" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Boots Color</label>
+            <input type="text" name="boots_color" class="form-control" placeholder="Red" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Gloves Color</label>
+            <input type="text" name="gloves_color" class="form-control" placeholder="Yellow" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Hero Chest Symbol</label>
+            <input type="text" name="chest_symbol" class="form-control" placeholder="Lightning bolt" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Eye Mask Color</label>
+            <input type="text" name="eye_mask_color" class="form-control" placeholder="Black" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Cape Color</label>
+            <input type="text" name="cape_color" class="form-control" placeholder="Purple" required>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Powers</label>
+            <textarea name="powers" class="form-control" rows="3" placeholder="Example: Super speed, bubble shield, talking to animals." required></textarea>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Weakness</label>
+            <textarea name="weakness" class="form-control" rows="3" placeholder="Example: Gets sleepy during rainy weather." required></textarea>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">Create Hero</button>
+          <a class="btn btn-outline-secondary" href="{{ url_for('characters.list_characters') }}">Back to Heroes</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
