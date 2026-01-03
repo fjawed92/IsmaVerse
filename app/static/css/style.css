@@ -87,7 +87,7 @@ button:focus-visible,
   background: linear-gradient(135deg, #0d5aff 0%, #5b6bff 48%, #2fe4ff 100%);
   border-bottom: 5px solid var(--ink);
   box-shadow: 0 6px 0 var(--ink), 0 12px 24px rgba(0, 0, 0, 0.2);
-  padding: .35rem 0;
+  padding: .25rem 0;
   overflow: hidden;
 }
 
@@ -148,10 +148,10 @@ button:focus-visible,
 .comic-link {
   position: relative;
   z-index: 1;
-  padding: .5rem .8rem !important;
-  border-radius: 999px;
+  padding: .4rem .65rem !important;
+  border-radius: 0;
   transition: transform .15s ease, background-color .15s ease, box-shadow .15s ease, color .15s ease;
-  border: 2px solid rgba(255, 255, 255, 0.7);
+  border: none;
   background: rgba(255, 255, 255, 0.15);
   text-transform: uppercase;
   letter-spacing: .04em;
@@ -159,7 +159,7 @@ button:focus-visible,
 
 .comic-link:hover {
   background: var(--comic-yellow);
-  border: 2px solid var(--ink);
+  border: none;
   box-shadow: 3px 3px 0 var(--ink);
   color: var(--ink) !important;
   transform: translateY(-2px) rotate(-0.5deg);
@@ -172,7 +172,7 @@ button:focus-visible,
 
 .comic-link-highlight {
   background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.7);
+  border: none;
   box-shadow: none;
   color: #ffffff !important;
 }
@@ -232,14 +232,14 @@ button:focus-visible,
 @media (min-width: 768px) {
   .comic-nav .navbar-nav {
     flex-wrap: nowrap;
-    gap: .35rem;
+    gap: .25rem;
   }
 }
 
 @media (min-width: 1200px) {
   .comic-link {
-    padding-left: .85rem !important;
-    padding-right: .85rem !important;
+    padding-left: .7rem !important;
+    padding-right: .7rem !important;
   }
 }
 
