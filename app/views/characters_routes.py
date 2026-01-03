@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import uuid
@@ -66,14 +67,14 @@ def build_image_prompt(hero_data: dict) -> str:
     return "\n".join(prompt_lines)
 
 
-def save_generated_image(image_url: str) -> str:
+def save_generated_image_bytes(image_bytes: bytes) -> str:
     upload_dir = os.path.join(current_app.root_path, "static", "uploads", "characters")
     os.makedirs(upload_dir, exist_ok=True)
     filename = f"{uuid.uuid4().hex}.png"
     save_path = os.path.join(upload_dir, filename)
 
-    with urllib.request.urlopen(image_url) as response, open(save_path, "wb") as file_obj:
-        file_obj.write(response.read())
+    with open(save_path, "wb") as file_obj:
+        file_obj.write(image_bytes)
 
     return filename
 
@@ -88,7 +89,7 @@ def generate_hero_image(prompt: str) -> str | None:
             "model": "gpt-image-1",
             "prompt": prompt,
             "size": "1024x1024",
-            "response_format": "url",
+            "response_format": "b64_json",
         }
     ).encode("utf-8")
 
@@ -105,8 +106,9 @@ def generate_hero_image(prompt: str) -> str | None:
     with urllib.request.urlopen(request_obj) as response:
         response_body = json.loads(response.read().decode("utf-8"))
 
-    image_url = response_body["data"][0]["url"]
-    return save_generated_image(image_url)
+    image_b64 = response_body["data"][0]["b64_json"]
+    image_bytes = base64.b64decode(image_b64)
+    return save_generated_image_bytes(image_bytes)
 
 
 @characters_bp.route("/")
@@ -186,6 +188,7 @@ def create_character():
     try:
         image_filename = generate_hero_image(prompt)
     except Exception:
+        current_app.logger.exception("Failed to generate hero image.")
         image_filename = None
 
     character = Character(
