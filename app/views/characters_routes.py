@@ -2,6 +2,7 @@ import base64
 import json
 import os
 import uuid
+import urllib.error
 import urllib.request
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
@@ -61,6 +62,7 @@ def build_image_prompt(hero_data: dict) -> str:
         f"Hair color: {hero_data['hair_color']}",
         f"Powers: {hero_data['powers']}",
         f"Weakness: {hero_data['weakness']}",
+        f"Origin story: {hero_data['origin_story']}",
         "",
         STYLE_PROMPT,
     ]
@@ -80,7 +82,7 @@ def save_generated_image_bytes(image_bytes: bytes) -> str:
 
 
 def generate_hero_image(prompt: str) -> str | None:
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = current_app.config.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
         return None
 
@@ -103,12 +105,60 @@ def generate_hero_image(prompt: str) -> str | None:
         method="POST",
     )
 
-    with urllib.request.urlopen(request_obj) as response:
-        response_body = json.loads(response.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(request_obj) as response:
+            response_body = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8")
+        current_app.logger.error("OpenAI image generation failed: %s", error_body)
+        return None
 
     image_b64 = response_body["data"][0]["b64_json"]
     image_bytes = base64.b64decode(image_b64)
     return save_generated_image_bytes(image_bytes)
+
+
+def generate_origin_story(origin_prompt: str, hero_name: str) -> str | None:
+    api_key = current_app.config.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        return None
+
+    prompt = (
+        "Rewrite the hero origin into a more detailed, thrilling, kid-friendly story. "
+        "Keep it uplifting, adventurous, and suitable for ages 6-12. "
+        "Use 3-5 sentences and mention the hero's name once. "
+        f"Hero name: {hero_name}. "
+        f"Origin: {origin_prompt}"
+    )
+
+    payload = json.dumps(
+        {
+            "model": "gpt-4o-mini",
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.8,
+            "max_tokens": 200,
+        }
+    ).encode("utf-8")
+
+    request_obj = urllib.request.Request(
+        "https://api.openai.com/v1/chat/completions",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request_obj) as response:
+            response_body = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8")
+        current_app.logger.error("OpenAI origin story failed: %s", error_body)
+        return None
+
+    return response_body["choices"][0]["message"]["content"].strip()
 
 
 @characters_bp.route("/")
@@ -132,6 +182,7 @@ def create_character():
     hair_color = normalize_color(request.form.get("hair_color", ""))
     powers = normalize_text(request.form.get("powers", ""))
     weakness = normalize_text(request.form.get("weakness", ""))
+    hero_origin = normalize_text(request.form.get("hero_origin", ""))
     age_raw = normalize_text(request.form.get("age", ""))
 
     required_fields = {
@@ -145,6 +196,7 @@ def create_character():
         "Hair color": hair_color,
         "Powers": powers,
         "Weakness": weakness,
+        "Hero origin": hero_origin,
         "Age": age_raw,
     }
 
@@ -169,6 +221,8 @@ def create_character():
         )
         return redirect(url_for("characters.create_character"))
 
+    origin_story = generate_origin_story(hero_origin, superhero_name) or hero_origin
+
     hero_data = {
         "superhero_name": superhero_name,
         "costume_color": costume_color,
@@ -181,6 +235,7 @@ def create_character():
         "powers": powers,
         "weakness": weakness,
         "age": age,
+        "origin_story": origin_story,
     }
 
     prompt = build_image_prompt(hero_data)
@@ -195,6 +250,7 @@ def create_character():
         superhero_name=superhero_name,
         powers=powers,
         weakness=weakness,
+        origins=origin_story,
         image_prompt=prompt,
         costume_color=costume_color,
         boots_color=boots_color,

@@ -10,6 +10,7 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "Isma-Ultra-Rules")
 
+
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
     if not OPENAI_API_KEY:
@@ -18,6 +19,7 @@ class Config:
     # Always store sqlite DB inside the project /instance folder
     DB_PATH = os.path.join(BASE_DIR, "instance", "app.db")
 
+    
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         "sqlite:///" + DB_PATH
