@@ -91,7 +91,6 @@ def generate_hero_image(prompt: str) -> str | None:
             "model": "gpt-image-1",
             "prompt": prompt,
             "size": "1024x1024",
-            "response_format": "b64_json",
         }
     ).encode("utf-8")
 
@@ -113,8 +112,15 @@ def generate_hero_image(prompt: str) -> str | None:
         current_app.logger.error("OpenAI image generation failed: %s", error_body)
         return None
 
-    image_b64 = response_body["data"][0]["b64_json"]
-    image_bytes = base64.b64decode(image_b64)
+    image_data = response_body["data"][0]
+    if "b64_json" in image_data:
+        image_bytes = base64.b64decode(image_data["b64_json"])
+    elif "url" in image_data:
+        with urllib.request.urlopen(image_data["url"]) as image_response:
+            image_bytes = image_response.read()
+    else:
+        current_app.logger.error("OpenAI image response missing image data.")
+        return None
     return save_generated_image_bytes(image_bytes)
 
 
