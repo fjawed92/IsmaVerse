@@ -91,22 +91,6 @@
           </section>
 
           <section class="hero-section">
-            <div class="hero-section-title">Hero Look</div>
-            <div class="hero-section-text">
-              <ul class="hero-detail-list">
-                <li><span>Costume:</span> {{ c.costume_color|title if c.costume_color else "Unknown" }}</li>
-                <li><span>Boots:</span> {{ c.boots_color|title if c.boots_color else "Unknown" }}</li>
-                <li><span>Gloves:</span> {{ c.gloves_color|title if c.gloves_color else "Unknown" }}</li>
-                <li><span>Chest Symbol:</span> {{ c.chest_symbol if c.chest_symbol else "Unknown" }}</li>
-                <li><span>Eye Mask:</span> {{ c.eye_mask_color|title if c.eye_mask_color else "Unknown" }}</li>
-                <li><span>Cape:</span> {{ c.cape_color|title if c.cape_color else "Unknown" }}</li>
-                <li><span>Hair:</span> {{ c.hair_color|title if c.hair_color else "Unknown" }}</li>
-                <li><span>Age:</span> {{ c.age if c.age else "Unknown" }}</li>
-              </ul>
-            </div>
-          </section>
-
-          <section class="hero-section">
             <div class="hero-section-title">Origin</div>
             <div class="hero-section-text">
               {% if c.origins %}
