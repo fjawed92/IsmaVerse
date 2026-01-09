@@ -16,6 +16,7 @@ class User(UserMixin, db.Model):
     roles = db.Column(db.String(120), nullable=False, default="user")
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     comments = db.relationship("Comment", backref="author", lazy="dynamic")
+    badges = db.relationship("UserBadge", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)

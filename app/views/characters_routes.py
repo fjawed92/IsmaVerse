@@ -6,9 +6,11 @@ import urllib.error
 import urllib.request
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user
 
 from ..extensions import db
 from ..models.character import Character
+from ..services.badges import record_badge_progress
 
 characters_bp = Blueprint("characters", __name__, url_prefix="/characters")
 
@@ -170,6 +172,8 @@ def generate_origin_story(origin_prompt: str, hero_name: str) -> str | None:
 @characters_bp.route("/")
 def list_characters():
     characters = Character.query.order_by(Character.created_at.desc()).all()
+    if current_user.is_authenticated:
+        record_badge_progress(current_user, "character-explorer")
     return render_template("characters/list.html", characters=characters)
 
 
@@ -271,6 +275,9 @@ def create_character():
 
     db.session.add(character)
     db.session.commit()
+
+    if current_user.is_authenticated:
+        record_badge_progress(current_user, "hero-maker")
 
     if image_filename:
         flash("Hero created! Your new hero just landed in Isma Verse.", "success")

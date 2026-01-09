@@ -43,6 +43,55 @@
   </div>
 </div>
 
+<!-- =====================
+     HERO BADGES
+===================== -->
+<div class="badge-panel mb-4">
+  <div class="panel-header d-flex justify-content-between align-items-center">
+    <h2 class="panel-title">Hero Badge Wall</h2>
+    <span class="burst burst-blue">COLLECT!</span>
+  </div>
+
+  <div class="p-4">
+    {% set badge_states = badge_states or {} %}
+    {% set badge_source = "server" if current_user.is_authenticated else "local" %}
+    <p class="mb-3 fw-bold">
+      Earn stickers as you explore IsmaVerse.
+      {% if current_user.is_authenticated %}
+        Your progress is saved to your account!
+      {% else %}
+        Your progress is saved on this device!
+      {% endif %}
+    </p>
+    <ul class="badge-strip" aria-live="polite" data-badge-source="{{ badge_source }}">
+      <li class="badge-item {% if not badge_states.get('comic-reader') %}is-locked{% endif %}" data-badge-id="comic-reader">
+        <span class="badge-sticker badge-sticker--yellow">Read 3 Comics</span>
+        <span class="badge-status">
+          {% if badge_states.get('comic-reader') %}Unlocked!{% else %}Locked{% endif %}
+        </span>
+      </li>
+      <li class="badge-item {% if not badge_states.get('character-explorer') %}is-locked{% endif %}" data-badge-id="character-explorer">
+        <span class="badge-sticker badge-sticker--green">Visited Characters</span>
+        <span class="badge-status">
+          {% if badge_states.get('character-explorer') %}Unlocked!{% else %}Locked{% endif %}
+        </span>
+      </li>
+      <li class="badge-item {% if not badge_states.get('hero-maker') %}is-locked{% endif %}" data-badge-id="hero-maker">
+        <span class="badge-sticker badge-sticker--pink">Created a Hero</span>
+        <span class="badge-status">
+          {% if badge_states.get('hero-maker') %}Unlocked!{% else %}Locked{% endif %}
+        </span>
+      </li>
+      <li class="badge-item {% if not badge_states.get('secret-visitor') %}is-locked{% endif %}" data-badge-id="secret-visitor">
+        <span class="badge-sticker badge-sticker--blue">Secret Badge</span>
+        <span class="badge-status">
+          {% if badge_states.get('secret-visitor') %}Unlocked!{% else %}Locked{% endif %}
+        </span>
+      </li>
+    </ul>
+  </div>
+</div>
+
 <hr class="comic-divider">
 
 <!-- =====================

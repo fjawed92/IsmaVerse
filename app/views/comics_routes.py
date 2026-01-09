@@ -4,6 +4,7 @@ from werkzeug.utils import safe_join
 from ..extensions import db
 from ..models.comic import Comic
 from ..models.comment import Comment
+from ..services.badges import record_badge_progress
 import os
 
 comics_bp = Blueprint("comics", __name__)
@@ -39,6 +40,9 @@ def comic_reader(comic_id):
     # DB stores only the filename (e.g. "issue_1.pdf")
     if not comic.pdf_file or not comic.pdf_file.lower().endswith(".pdf"):
         abort(404)
+
+    if current_user.is_authenticated:
+        record_badge_progress(current_user, "comic-reader")
 
     return render_template(
         "comics/reader.html",
