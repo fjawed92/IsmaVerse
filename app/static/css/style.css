@@ -371,7 +371,94 @@ button:focus-visible,
 
 
 /* =====================================================
-   10) BUTTONS
+   10) BADGE STRIP (HOME)
+===================================================== */
+.badge-panel {
+  background: #ffffff;
+  border: 4px solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.badge-panel .panel-header {
+  background: linear-gradient(90deg, var(--comic-blue), #6fd6ff);
+}
+
+.badge-strip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.2rem;
+}
+
+.badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  text-align: center;
+}
+
+.badge-sticker {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Bangers", cursive;
+  font-size: .95rem;
+  text-transform: uppercase;
+  padding: .6rem;
+  border: 4px solid var(--ink);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  clip-path: polygon(
+    50% 0%, 60% 12%, 78% 6%, 78% 24%, 94% 20%, 88% 38%,
+    100% 50%, 88% 62%, 94% 80%, 78% 76%, 78% 94%, 60% 88%,
+    50% 100%, 40% 88%, 22% 94%, 22% 76%, 6% 80%, 12% 62%,
+    0% 50%, 12% 38%, 6% 20%, 22% 24%, 22% 6%, 40% 12%
+  );
+}
+
+.badge-sticker--yellow {
+  background: radial-gradient(circle at top, #fff9b8, var(--comic-yellow) 70%);
+}
+
+.badge-sticker--green {
+  background: radial-gradient(circle at top, #d6ffea, var(--comic-green) 70%);
+}
+
+.badge-sticker--pink {
+  background: radial-gradient(circle at top, #ffd1f2, var(--comic-pink) 70%);
+}
+
+.badge-sticker--blue {
+  background: radial-gradient(circle at top, #cce8ff, var(--comic-blue) 70%);
+  color: #ffffff;
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+.badge-status {
+  font-weight: 900;
+  letter-spacing: .5px;
+}
+
+.badge-item.is-locked .badge-sticker {
+  filter: grayscale(1);
+  opacity: .55;
+  transform: scale(.96);
+}
+
+.badge-item.is-locked .badge-status::after {
+  content: " 🔒";
+}
+
+
+/* =====================================================
+   11) BUTTONS
 ===================================================== */
 .btn-comic-cta {
   background: var(--comic-yellow);
