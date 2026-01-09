@@ -56,7 +56,9 @@ const getUnlockedBadges = (progress) => ({
 
 const updateBadgeStrip = (progress) => {
   const badgeElements = document.querySelectorAll("[data-badge-id]");
-  if (!badgeElements.length) {
+  const badgeStrip = document.querySelector(".badge-strip");
+  const badgeSource = badgeStrip?.dataset?.badgeSource;
+  if (!badgeElements.length || badgeSource === "server") {
     return;
   }
 
@@ -75,6 +77,12 @@ const updateBadgeStrip = (progress) => {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  const badgeStrip = document.querySelector(".badge-strip");
+  const badgeSource = badgeStrip?.dataset?.badgeSource;
+  if (badgeSource === "server") {
+    return;
+  }
+
   const progress = updateProgressFromPage();
   updateBadgeStrip(progress);
 });
