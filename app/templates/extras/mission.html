@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Daily Mission – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:700px;">
+
+  <div class="comic-panel mb-4" style="overflow:visible;">
+    <div class="panel-header text-center" style="background: linear-gradient(90deg, var(--comic-green), #a0ffcc);">
+      <h1 class="panel-title" style="color:var(--ink);">🎯 Daily Mission!</h1>
+    </div>
+    <div class="p-4 text-center">
+      <p class="fw-bold mb-1" style="font-size:.9rem; text-transform:uppercase; letter-spacing:.5px;">Today's Creative Challenge</p>
+      <div class="speech mb-4" style="margin: 0 auto; max-width:500px; font-size:1.3rem; font-weight:900; line-height:1.4;">
+        {{ mission }}
+      </div>
+
+      <div class="burst mb-3" style="font-size:1.2rem;">
+        {{ today.strftime('%B %d, %Y') }}
+      </div>
+
+      <p class="text-muted fw-bold mb-4">New mission every day! Come back tomorrow for a fresh challenge.</p>
+
+      <div class="row g-3 justify-content-center">
+        <div class="col-auto">
+          <a href="{{ url_for('characters.create_character') }}" class="btn btn-comic-cta">
+            Create a Hero for This Mission!
+          </a>
+        </div>
+        <div class="col-auto">
+          <a href="{{ url_for('extras.fanart_wall') }}" class="btn btn-outline-dark fw-bold comic-outline-btn">
+            Upload Your Drawing 🎨
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAST MISSIONS TEASER -->
+  <div class="comic-tile text-center">
+    <h3>Keep Coming Back!</h3>
+    <p class="text-muted">Complete 5 mission check-ins to unlock the <strong>🎯 Mission Ace</strong> badge!</p>
+    {% if current_user.is_authenticated %}
+    <p class="fw-bold text-success">✅ Today's check-in recorded!</p>
+    {% else %}
+    <p class="text-muted"><a href="{{ url_for('auth.login') }}">Login</a> to track your badge progress!</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

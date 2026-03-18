@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Hero Teams – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="hero-page-header mb-4">
+    <div class="hero-kicker">HERO SQUADS</div>
+    <h1 class="hero-title">Hero Teams</h1>
+    <p class="hero-subtitle mb-0">Group heroes into unstoppable squads!</p>
+    <div class="mt-3">
+      <a class="btn btn-comic-cta" href="{{ url_for('teams.create_team') }}">Build a Team 🤝</a>
+    </div>
+  </div>
+
+  {% if teams %}
+  <div class="row g-4">
+    {% for team in teams %}
+    {% set team_colors = {"blue": "var(--comic-blue)", "red": "var(--comic-red)", "green": "var(--comic-green)", "yellow": "var(--comic-yellow)", "pink": "var(--comic-pink)", "purple": "#9b59b6"} %}
+    {% set tc = team_colors.get(team.color, "var(--comic-blue)") %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <a href="{{ url_for('teams.team_detail', team_id=team.id) }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="comic-panel h-100 comic-tile-link">
+          <div class="panel-header" style="background: linear-gradient(90deg, {{ tc }}, #cccccc44 99%);">
+            <h2 class="panel-title" style="{% if team.color in ['yellow', 'green'] %}color:var(--ink);{% else %}color:#fff;{% endif %}">
+              {{ team.name }}
+            </h2>
+          </div>
+          <div class="p-3">
+            {% if team.slogan %}
+            <p class="fw-bold mb-2" style="font-style:italic;">"{{ team.slogan }}"</p>
+            {% endif %}
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              {% for member in team.members %}
+              <span class="hero-sticker hero-sticker-good">{{ member.superhero_name }}</span>
+              {% endfor %}
+            </div>
+            <small class="text-muted fw-bold">{{ team.members|length }} member(s)</small>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="speech text-center">
+    <p class="fw-bold mb-2">No teams yet! Heroes work better together.</p>
+    <a href="{{ url_for('teams.create_team') }}" class="btn btn-comic-cta">Build the First Team!</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

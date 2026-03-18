@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Create a Villain – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 700px;">
+
+  <div class="admin-hero mb-4" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+    <div class="admin-hero-label" style="background: var(--comic-red);">VILLAIN CREATOR</div>
+    <h1 class="admin-hero-title" style="color: var(--comic-yellow); font-size:2.2rem;">Build Your Villain!</h1>
+    <p class="admin-hero-subtitle" style="color:#ccc;">
+      Design the ultimate bad guy for the IsmaVerse. The AI will draw them!
+    </p>
+  </div>
+
+  <div class="comic-panel">
+    <div class="panel-header" style="background: linear-gradient(90deg, var(--comic-red), #ff6a6a);">
+      <h2 class="panel-title">Villain Details</h2>
+    </div>
+    <div class="p-4">
+      <form method="POST" class="comic-form">
+
+        <div class="mb-3">
+          <label class="form-label">Villain Name *</label>
+          <input type="text" name="villain_name" class="form-control" placeholder="e.g. Dr. Slimeface, Captain Chaos" required maxlength="120">
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <label class="form-label">Age (optional)</label>
+            <input type="number" name="age" class="form-control" placeholder="e.g. 40" min="1" max="999">
+          </div>
+          <div class="col-6">
+            <label class="form-label">Hair Color</label>
+            <input type="text" name="hair_color" class="form-control" placeholder="e.g. fiery red">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Costume Color *</label>
+          <input type="text" name="costume_color" class="form-control" placeholder="e.g. dark purple with lightning bolts" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Evil Powers *</label>
+          <textarea name="powers" class="form-control comic-textarea" rows="2" placeholder="e.g. can turn anything to slime, controls darkness" required maxlength="300"></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Evil Plan *</label>
+          <textarea name="evil_plan" class="form-control comic-textarea" rows="2" placeholder="e.g. steal all the candy in the world!" required maxlength="300"></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Weakness *</label>
+          <input type="text" name="weakness" class="form-control" placeholder="e.g. tickling, the color pink" required maxlength="200">
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Villain Lair Location (optional)</label>
+          <input type="text" name="lair_location" class="form-control" placeholder="e.g. inside a volcano, under the school cafeteria" maxlength="120">
+        </div>
+
+        <div class="speech mb-4">
+          <p class="mb-0 fw-bold">
+            🤖 Our AI will draw your villain based on your description. It may take a moment — evil masterminds take time to render!
+          </p>
+        </div>
+
+        <button type="submit" class="btn btn-comic-cta w-100" style="background:var(--comic-red); color:#fff; font-size:1.1rem;">
+          Unleash the Villain! 😈
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

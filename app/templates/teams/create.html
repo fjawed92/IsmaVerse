@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Build a Team – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:700px;">
+
+  <div class="admin-hero mb-4">
+    <div class="admin-hero-label">TEAM BUILDER</div>
+    <h1 class="admin-hero-title">Assemble Your Squad!</h1>
+    <p class="admin-hero-subtitle">Pick heroes, give them a team name, and save the world together!</p>
+  </div>
+
+  <div class="comic-panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Team Details</h2>
+    </div>
+    <div class="p-4">
+      {% if characters %}
+      <form method="POST" class="comic-form">
+
+        <div class="mb-3">
+          <label class="form-label">Team Name *</label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. The Power Squad, Team IsmaVerse" required maxlength="120">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Team Slogan (optional)</label>
+          <input type="text" name="slogan" class="form-control" placeholder="e.g. We never give up!" maxlength="255">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Team Color</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% set color_labels = {"blue": "💙 Blue", "red": "❤️ Red", "green": "💚 Green", "yellow": "💛 Yellow", "pink": "🩷 Pink", "purple": "💜 Purple"} %}
+            {% for c in colors %}
+            <label class="d-flex align-items-center gap-1 fw-bold" style="cursor:pointer;">
+              <input type="radio" name="color" value="{{ c }}" {% if loop.first %}checked{% endif %}>
+              {{ color_labels.get(c, c|title) }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Pick Your Heroes (choose at least 2) *</label>
+          <div class="row g-2">
+            {% for c in characters %}
+            <div class="col-6 col-md-4">
+              <label class="d-flex align-items-center gap-2 fw-bold p-2" style="border:3px solid var(--ink); border-radius:12px; cursor:pointer; background:#fff; box-shadow:2px 2px 0 var(--ink);">
+                <input type="checkbox" name="members" value="{{ c.id }}">
+                {% if c.image_file %}
+                <img src="{{ url_for('static', filename='uploads/characters/' ~ c.image_file) }}" alt="{{ c.superhero_name }}" style="width:36px; height:36px; object-fit:cover; border-radius:8px; border:2px solid var(--ink);">
+                {% endif %}
+                <span style="font-size:.9rem;">{{ c.superhero_name }}</span>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-comic-cta w-100 py-2" style="font-size:1.1rem;">
+          Assemble Team! 🤝
+        </button>
+      </form>
+      {% else %}
+      <div class="speech text-center">
+        <p class="fw-bold mb-2">No heroes yet! Create some heroes first to build a team.</p>
+        <a href="{{ url_for('characters.create_character') }}" class="btn btn-comic-cta">Create a Hero!</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

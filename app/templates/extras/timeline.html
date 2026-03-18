@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Universe Timeline – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:800px;">
+
+  <div class="comic-panel mb-4">
+    <div class="panel-header text-center" style="background: linear-gradient(90deg, #1a1a2e, var(--comic-blue));">
+      <h1 class="panel-title" style="color: var(--comic-yellow);">📅 The IsmaVerse Timeline</h1>
+    </div>
+    <div class="p-3 text-center">
+      <p class="fw-bold">The complete history of the IsmaVerse universe — from the very beginning!</p>
+    </div>
+  </div>
+
+  <div class="timeline">
+
+    <!-- ERA 1 -->
+    <div class="timeline-era">
+      <div class="timeline-era-label" style="background: var(--comic-yellow); color: var(--ink);">
+        ⭐ The Beginning Era
+      </div>
+    </div>
+
+    <div class="timeline-event">
+      <div class="timeline-dot" style="background: var(--comic-yellow);"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">Year 1 of IsmaVerse</div>
+        <div class="timeline-title">Ismael Creates the Universe</div>
+        <div class="timeline-desc">
+          A young creator picks up a pencil and draws his first hero. The IsmaVerse is born! The first comic pages are scrawled with crayons and imagination — and nothing will ever be the same.
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-event">
+      <div class="timeline-dot" style="background: var(--comic-green);"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">Early Days</div>
+        <div class="timeline-title">Isma Ultra Gets His Powers</div>
+        <div class="timeline-desc">
+          The greatest hero in the universe discovers his incredible abilities. Isma Ultra — faster, stronger, and braver than anyone — begins protecting the world from evil.
+        </div>
+      </div>
+    </div>
+
+    <!-- ERA 2 -->
+    <div class="timeline-era">
+      <div class="timeline-era-label" style="background: var(--comic-blue); color: #fff;">
+        💥 The Comic Age
+      </div>
+    </div>
+
+    <div class="timeline-event">
+      <div class="timeline-dot" style="background: var(--comic-blue);"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">Chapter 1</div>
+        <div class="timeline-title">Chips and Prazes: The First Team-Up</div>
+        <div class="timeline-desc">
+          Two unexpected heroes join forces for the first time. Chips and Prazes prove that teamwork beats any villain — even the snarkiest ones.
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-event">
+      <div class="timeline-dot" style="background: var(--comic-red);"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">Chapter 2</div>
+        <div class="timeline-title">Rise of the Darkness</div>
+        <div class="timeline-desc">
+          A mysterious darkness begins spreading across the IsmaVerse. Isma Ultra faces his greatest challenge yet — a villain that can't be punched away. The age of darkness begins.
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-event">
+      <div class="timeline-dot" style="background: var(--comic-pink);"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">Chapter 3</div>
+        <div class="timeline-title">Attack of the Subway Snakes</div>
+        <div class="timeline-desc">
+          Giant snakes invade the subway system! Heroes race underground to stop the slithering menace before the whole city goes hiss-terical.
+        </div>
+      </div>
+    </div>
+
+    <!-- ERA 3 -->
+    <div class="timeline-era">
+      <div class="timeline-era-label" style="background: var(--comic-green); color: var(--ink);">
+        🦸 The Hero Age
+      </div>
+    </div>
+
+    <div class="timeline-event">
+      <div class="timeline-dot" style="background: var(--comic-green);"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">Present Day</div>
+        <div class="timeline-title">The Masetin Lab Mystery</div>
+        <div class="timeline-desc">
+          Strange experiments are happening at Masetin Lab. Heroes investigate — and discover secrets that could change the IsmaVerse forever!
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-event">
+      <div class="timeline-dot" style="background: var(--comic-yellow);"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">Present Day</div>
+        <div class="timeline-title">The Psychic Defender Arrives</div>
+        <div class="timeline-desc">
+          A brand new hero with mind-bending psychic abilities joins the IsmaVerse. The Psychic Defender can read minds, move objects, and predict danger before it strikes!
+        </div>
+      </div>
+    </div>
+
+    <!-- FUTURE -->
+    <div class="timeline-era">
+      <div class="timeline-era-label" style="background: #333; color: var(--comic-yellow);">
+        🔮 The Future (Coming Soon...)
+      </div>
+    </div>
+
+    <div class="timeline-event">
+      <div class="timeline-dot" style="background: #aaa; border: 3px dashed var(--ink);"></div>
+      <div class="timeline-content" style="opacity:.6;">
+        <div class="timeline-date">???</div>
+        <div class="timeline-title">The Next Chapter...</div>
+        <div class="timeline-desc">
+          Something big is coming to the IsmaVerse. New heroes. New villains. New adventures. Stay tuned — Ismael is drawing the next page right now!
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mt-4 text-center">
+    <a href="{{ url_for('comics.list_comics') }}" class="btn btn-comic-cta">Read the Comics!</a>
+    <a href="{{ url_for('characters.list_characters') }}" class="btn btn-outline-dark fw-bold comic-outline-btn ms-2">Meet the Heroes</a>
+  </div>
+
+</div>
+{% endblock %}

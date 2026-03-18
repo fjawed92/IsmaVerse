@@ -25,5 +25,29 @@ class Character(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    reactions = db.relationship("HeroReaction", back_populates="character", cascade="all, delete-orphan")
+    hero_comments = db.relationship("HeroComment", back_populates="character", cascade="all, delete-orphan")
+
+    @property
+    def power_level(self):
+        score = 50
+        if self.powers:
+            score += min(len(self.powers.split()), 20) * 2
+        if self.weakness:
+            score -= min(len(self.weakness.split()), 10) * 1
+        if self.age:
+            score += max(0, 16 - self.age) * 1
+        total_reactions = len(self.reactions)
+        score += min(total_reactions * 2, 30)
+        return max(10, min(score, 100))
+
+    @property
+    def reaction_counts(self):
+        counts = {"boom": 0, "pow": 0, "amazing": 0, "wow": 0, "cool": 0}
+        for r in self.reactions:
+            if r.reaction_type in counts:
+                counts[r.reaction_type] += 1
+        return counts
+
     def __repr__(self) -> str:
         return f"<Character {self.id} {self.superhero_name}>"

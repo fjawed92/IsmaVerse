@@ -1,15 +1,18 @@
 import base64
 import json
 import os
+import random as _random
 import uuid
 import urllib.error
 import urllib.request
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
-from flask_login import current_user
+from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
+from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models.character import Character
+from ..models.hero_reaction import HeroReaction, REACTION_TYPES
+from ..models.hero_comment import HeroComment
 from ..services.badges import record_badge_progress
 
 characters_bp = Blueprint("characters", __name__, url_prefix="/characters")
@@ -278,6 +281,7 @@ def create_character():
 
     if current_user.is_authenticated:
         record_badge_progress(current_user, "hero-maker")
+        record_badge_progress(current_user, "power-up")
 
     if image_filename:
         flash("Hero created! Your new hero just landed in Isma Verse.", "success")
@@ -288,3 +292,108 @@ def create_character():
         )
 
     return redirect(url_for("characters.list_characters"))
+
+
+@characters_bp.route("/<int:character_id>")
+def character_detail(character_id):
+    character = Character.query.get_or_404(character_id)
+    all_characters = Character.query.all()
+
+    # Session key for anonymous reactions
+    if "react_session" not in session:
+        session["react_session"] = uuid.uuid4().hex
+    sess_key = session["react_session"]
+
+    # Which reactions has this session already sent for this character?
+    already_reacted = {
+        r.reaction_type
+        for r in HeroReaction.query.filter_by(character_id=character_id, session_key=sess_key).all()
+    }
+
+    return render_template(
+        "characters/detail.html",
+        character=character,
+        all_characters=all_characters,
+        reaction_types=REACTION_TYPES,
+        already_reacted=already_reacted,
+    )
+
+
+@characters_bp.route("/<int:character_id>/react", methods=["POST"])
+def react_to_hero(character_id):
+    character = Character.query.get_or_404(character_id)
+    reaction_type = request.form.get("reaction_type", "")
+
+    if reaction_type not in REACTION_TYPES:
+        flash("Invalid reaction.", "danger")
+        return redirect(url_for("characters.character_detail", character_id=character_id))
+
+    if "react_session" not in session:
+        session["react_session"] = uuid.uuid4().hex
+    sess_key = session["react_session"]
+
+    existing = HeroReaction.query.filter_by(
+        character_id=character_id,
+        session_key=sess_key,
+        reaction_type=reaction_type,
+    ).first()
+
+    if existing:
+        flash("Already reacted with that one! Try another.", "info")
+        return redirect(url_for("characters.character_detail", character_id=character_id))
+
+    reaction = HeroReaction(
+        character_id=character_id,
+        reaction_type=reaction_type,
+        session_key=sess_key,
+        user_id=current_user.id if current_user.is_authenticated else None,
+    )
+    db.session.add(reaction)
+    db.session.commit()
+
+    if current_user.is_authenticated:
+        total_reacts = HeroReaction.query.filter_by(user_id=current_user.id).count()
+        if total_reacts >= 5:
+            record_badge_progress(current_user, "reactor", increment=0)
+        record_badge_progress(current_user, "reactor")
+
+    flash(f"{reaction_type.upper()}! Reaction added!", "success")
+    return redirect(url_for("characters.character_detail", character_id=character_id))
+
+
+@characters_bp.route("/<int:character_id>/comment", methods=["POST"])
+@login_required
+def comment_on_hero(character_id):
+    character = Character.query.get_or_404(character_id)
+    body = " ".join(request.form.get("body", "").split())
+
+    if not body:
+        flash("Comment cannot be empty!", "danger")
+        return redirect(url_for("characters.character_detail", character_id=character_id))
+
+    if len(body) > 500:
+        flash("Comment is too long (max 500 characters).", "danger")
+        return redirect(url_for("characters.character_detail", character_id=character_id))
+
+    comment = HeroComment(
+        character_id=character_id,
+        user_id=current_user.id,
+        body=body,
+    )
+    db.session.add(comment)
+    db.session.commit()
+
+    record_badge_progress(current_user, "commentator")
+
+    flash("Comment posted!", "success")
+    return redirect(url_for("characters.character_detail", character_id=character_id))
+
+
+@characters_bp.route("/random")
+def random_character():
+    characters = Character.query.all()
+    if not characters:
+        flash("No heroes yet! Create one first.", "warning")
+        return redirect(url_for("characters.list_characters"))
+    picked = _random.choice(characters)
+    return redirect(url_for("characters.character_detail", character_id=picked.id))

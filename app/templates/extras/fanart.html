@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Fan Art Wall – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="hero-page-header mb-4" style="background: linear-gradient(135deg, #fff6e8, #ffe4ff);">
+    <div class="hero-kicker">CREATIVE CORNER</div>
+    <h1 class="hero-title">🎨 Fan Art Wall</h1>
+    <p class="hero-subtitle mb-0">Share your drawings of IsmaVerse heroes, villains, and stories!</p>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- UPLOAD FORM -->
+    <div class="col-12 col-lg-4">
+      <div class="comic-panel">
+        <div class="panel-header" style="background: linear-gradient(90deg, var(--comic-pink), #ff9fe8);">
+          <h2 class="panel-title">Upload Your Art!</h2>
+        </div>
+        <div class="p-3">
+          <form method="POST" enctype="multipart/form-data" class="comic-form">
+            <div class="mb-3">
+              <label class="form-label">Drawing Title *</label>
+              <input type="text" name="title" class="form-control" placeholder="e.g. My version of Isma Ultra!" required maxlength="120">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Your Name *</label>
+              <input type="text" name="artist_name" class="form-control" placeholder="e.g. Jake, Emma, Alex" required maxlength="80">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description (optional)</label>
+              <textarea name="description" class="form-control comic-textarea" rows="2" placeholder="Tell us about your drawing!" maxlength="300"></textarea>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Your Drawing *</label>
+              <input type="file" name="image" class="form-control" accept="image/*" required style="border:3px solid var(--ink); border-radius:12px; box-shadow:2px 2px 0 var(--ink);">
+              <small class="text-muted fw-bold">PNG, JPG, GIF, WebP accepted</small>
+            </div>
+            <button type="submit" class="btn btn-comic-cta w-100">
+              Upload Art! 🎨
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- GALLERY -->
+    <div class="col-12 col-lg-8">
+      {% if artworks %}
+      <div class="row g-3">
+        {% for art in artworks %}
+        <div class="col-12 col-sm-6">
+          <div class="comic-panel h-100">
+            <div class="hero-avatar-wrap" style="padding:0; overflow:hidden;">
+              <img
+                src="{{ url_for('static', filename='uploads/fanart/' ~ art.image_file) }}"
+                alt="{{ art.title }}"
+                style="width:100%; height:220px; object-fit:cover; border-bottom:4px solid var(--ink);"
+              >
+            </div>
+            <div class="p-3">
+              <h3 class="fw-900 mb-1" style="font-family:'Bangers',cursive; font-size:1.3rem; letter-spacing:.5px;">{{ art.title }}</h3>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="hero-sticker hero-sticker-good">by {{ art.artist_name }}</span>
+                <small class="text-muted fw-bold">{{ art.created_at.strftime('%b %d') }}</small>
+              </div>
+              {% if art.description %}
+              <p class="text-muted fw-bold mb-0" style="font-size:.9rem;">{{ art.description }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="speech text-center py-4">
+        <p class="fw-bold mb-2">No fan art yet! Be the first to share your drawing!</p>
+        <p class="text-muted">Draw your favorite IsmaVerse hero or create your own and upload it here.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

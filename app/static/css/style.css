@@ -1130,3 +1130,462 @@ button:focus-visible,
   font-weight: 900;
   letter-spacing: .5px;
 }
+
+
+/* =====================================================
+   16) DARK MODE — NIGHT MISSION THEME
+===================================================== */
+[data-theme="dark"] {
+  --paper: #12131f;
+  --ink: #f0f0f0;
+  --shadow: 4px 4px 0 rgba(240,240,240,.35);
+  --shadow-lg: 8px 8px 0 rgba(240,240,240,.3);
+}
+
+[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,.07) 1px, transparent 1.8px) 0 0/14px 14px,
+    #12131f;
+  color: #f0f0f0;
+}
+
+[data-theme="dark"] .comic-panel,
+[data-theme="dark"] .comic-tile,
+[data-theme="dark"] .badge-panel,
+[data-theme="dark"] .hero-card,
+[data-theme="dark"] .hero-card-body,
+[data-theme="dark"] .hero-section,
+[data-theme="dark"] .comment-card,
+[data-theme="dark"] .comment-form,
+[data-theme="dark"] .speech,
+[data-theme="dark"] .hero-page-header,
+[data-theme="dark"] .admin-hero,
+[data-theme="dark"] .timeline-content {
+  background: #1e1f2f !important;
+  color: #f0f0f0;
+  border-color: rgba(240,240,240,.4);
+}
+
+[data-theme="dark"] .hero-card-header {
+  background: #252638 !important;
+  color: #f0f0f0;
+  border-color: rgba(240,240,240,.35);
+}
+
+[data-theme="dark"] .hero-card-footer {
+  background: #2a2b40 !important;
+  color: #f0f0f0;
+  border-color: rgba(240,240,240,.35);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .comic-textarea {
+  background: #252638;
+  color: #f0f0f0;
+  border-color: rgba(240,240,240,.4);
+}
+
+[data-theme="dark"] .text-muted {
+  color: #aaa !important;
+}
+
+[data-theme="dark"] .comic-dropdown {
+  background: #1e1f2f;
+  border: 3px solid rgba(240,240,240,.4);
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: #f0f0f0;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background: #2a2b40;
+}
+
+[data-theme="dark"] .hero-muted {
+  color: #aaa;
+}
+
+.dark-mode-btn {
+  background: transparent;
+  border: 2px solid rgba(255,255,255,.5);
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  padding: .25rem .5rem;
+  border-radius: 8px;
+  transition: background .15s ease;
+}
+
+.dark-mode-btn:hover {
+  background: rgba(255,255,255,.2);
+}
+
+
+/* =====================================================
+   17) POWER BAR
+===================================================== */
+.power-bar-track {
+  width: 100%;
+  height: 14px;
+  background: #e8e8e8;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.power-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--comic-blue), var(--comic-green));
+  border-radius: 999px;
+  transition: width .4s ease;
+}
+
+[data-theme="dark"] .power-bar-track {
+  background: #333;
+}
+
+
+/* =====================================================
+   18) REACTIONS
+===================================================== */
+.reaction-btn {
+  transition: transform .1s ease, box-shadow .1s ease;
+  border-radius: 12px !important;
+}
+
+.reaction-btn:hover {
+  transform: scale(1.1) rotate(-2deg);
+  box-shadow: 5px 5px 0 var(--ink) !important;
+}
+
+.reaction-btn--used {
+  opacity: .6;
+  filter: grayscale(30%);
+}
+
+.reaction-btn--used:hover {
+  transform: none;
+}
+
+
+/* =====================================================
+   19) BATTLE ARENA
+===================================================== */
+.vs-badge {
+  text-align: center;
+  padding: 1rem;
+}
+
+.battle-hero-card {
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.battle-hero-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 12px 12px 0 var(--ink);
+}
+
+
+/* =====================================================
+   20) VILLAIN CARDS
+===================================================== */
+.villain-card {
+  border-color: var(--comic-red) !important;
+  background: linear-gradient(180deg, #fff 0%, #fff8f8 100%);
+}
+
+.villain-burst {
+  background: var(--comic-red) !important;
+  color: #fff !important;
+}
+
+.villain-card-header {
+  background: linear-gradient(135deg, #ffd0d0 0%, #fff 60%) !important;
+}
+
+.villain-card-footer {
+  background: #ffe0e0 !important;
+}
+
+.villain-placeholder {
+  background: repeating-linear-gradient(
+    45deg, #ffe0e0, #ffe0e0 10px, #ffc0c0 10px, #ffc0c0 20px
+  ) !important;
+}
+
+
+/* =====================================================
+   21) TIMELINE
+===================================================== */
+.timeline {
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--ink);
+  border-radius: 2px;
+}
+
+.timeline-era {
+  margin: 2rem 0 1rem;
+}
+
+.timeline-era-label {
+  display: inline-block;
+  font-family: "Bangers", cursive;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  padding: .4rem 1rem;
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow);
+  border-radius: 8px;
+}
+
+.timeline-event {
+  position: relative;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.timeline-dot {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  margin-top: .25rem;
+  box-shadow: 2px 2px 0 var(--ink);
+  position: relative;
+  z-index: 1;
+  margin-left: -2.85rem;
+}
+
+.timeline-content {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-md);
+  padding: .85rem 1rem;
+  box-shadow: var(--shadow);
+  flex: 1;
+}
+
+.timeline-date {
+  font-size: .8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #555;
+  margin-bottom: .2rem;
+}
+
+[data-theme="dark"] .timeline-date { color: #aaa; }
+
+.timeline-title {
+  font-family: "Bangers", cursive;
+  font-size: 1.3rem;
+  letter-spacing: .5px;
+  margin-bottom: .35rem;
+}
+
+.timeline-desc {
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+
+/* =====================================================
+   22) NAVBAR DROPDOWN
+===================================================== */
+.comic-dropdown {
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  background: #fff;
+  padding: .4rem 0;
+}
+
+.comic-dropdown .dropdown-item {
+  padding: .45rem 1rem;
+  color: var(--ink);
+  transition: background .12s;
+}
+
+.comic-dropdown .dropdown-item:hover {
+  background: var(--comic-yellow);
+  color: var(--ink);
+}
+
+.comic-dropdown .dropdown-divider {
+  border-color: var(--ink);
+  opacity: .3;
+}
+
+
+/* =====================================================
+   23) BADGE EXTRAS (new colors)
+===================================================== */
+.badge-sticker--red {
+  background: radial-gradient(circle at top, #ffd0d0, var(--comic-red) 70%);
+  color: #fff;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+.badge-sticker--purple {
+  background: radial-gradient(circle at top, #e8d0ff, #9b59b6 70%);
+  color: #fff;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+
+/* =====================================================
+   24) PRINT STYLES — Hero Trading Cards
+===================================================== */
+@media print {
+  body { background: white !important; }
+
+  nav, footer,
+  .comic-nav,
+  .container > *:not(.print-hero-card),
+  main > *:not(.print-hero-card) { display: none !important; }
+
+  .print-hero-card {
+    display: block !important;
+    width: 3.5in;
+    height: 5in;
+    margin: 0 auto;
+    page-break-inside: avoid;
+  }
+
+  .print-card-inner {
+    width: 100%;
+    height: 100%;
+    border: 4px solid #111;
+    border-radius: 16px;
+    overflow: hidden;
+    font-family: "Comic Neue", sans-serif;
+    display: flex;
+    flex-direction: column;
+    background: #fff7e6;
+  }
+
+  .print-card-header {
+    background: linear-gradient(135deg, #1e6bff, #2fe4ff);
+    color: #fff;
+    padding: .6rem .8rem;
+    border-bottom: 3px solid #111;
+  }
+
+  .print-card-title {
+    font-family: "Bangers", cursive;
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #111;
+  }
+
+  .print-card-id {
+    font-size: .7rem;
+    font-weight: 700;
+    opacity: .85;
+  }
+
+  .print-card-img {
+    width: 100%;
+    height: 2in;
+    object-fit: contain;
+    background: #fff;
+    border-bottom: 3px solid #111;
+  }
+
+  .print-card-section {
+    padding: .3rem .7rem;
+    font-weight: 700;
+    font-size: .75rem;
+    border-bottom: 2px dashed rgba(0,0,0,.15);
+  }
+
+  .print-card-footer {
+    margin-top: auto;
+    padding: .35rem .7rem;
+    background: #ffd400;
+    border-top: 3px solid #111;
+    font-weight: 900;
+    font-size: .7rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+}
+
+
+/* =====================================================
+   25) QUIZ PAGE
+===================================================== */
+.quiz-option {
+  transition: background .12s, transform .1s;
+}
+
+.quiz-option:hover {
+  background: #fff9e0 !important;
+  transform: translateX(4px);
+}
+
+.quiz-option:has(input:checked) {
+  background: var(--comic-yellow) !important;
+  border-color: var(--comic-blue) !important;
+}
+
+
+/* =====================================================
+   26) SOUND BURST + BADGE ANIMATIONS
+===================================================== */
+.comic-sound-burst {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--comic-yellow);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  font-family: "Bangers", cursive;
+  font-size: 1rem;
+  padding: .2rem .5rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  animation: soundBurstPop 0.7s ease-out forwards;
+  z-index: 999;
+  white-space: nowrap;
+}
+
+@keyframes soundBurstPop {
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(0.6); }
+  50%  { opacity: 1; transform: translateX(-50%) translateY(-12px) scale(1.15); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-22px) scale(1); }
+}
+
+.badge-just-unlocked .badge-sticker {
+  animation: badgeUnlock 1.2s cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes badgeUnlock {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.4) rotate(15deg); }
+  60%  { transform: scale(1.2) rotate(-8deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comic-sound-burst,
+  .badge-just-unlocked .badge-sticker { animation: none !important; }
+}
