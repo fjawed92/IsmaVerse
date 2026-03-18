@@ -15,6 +15,13 @@ depends_on = None
 
 
 def upgrade():
+    from sqlalchemy import inspect
+    bind = op.get_bind()
+    existing = inspect(bind).get_table_names()
+
+    if 'story_arcs' in existing:
+        return  # tables already created by another migration on this server
+
     op.create_table(
         'story_arcs',
         sa.Column('id', sa.Integer(), nullable=False),
