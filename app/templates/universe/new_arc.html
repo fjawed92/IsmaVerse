@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}New Story Arc — IsmaVerse{% endblock %}
+
+{% block content %}
+
+<div class="comic-panel mb-4">
+  <div class="panel-header d-flex justify-content-between align-items-center">
+    <h1 class="panel-title mb-0">Launch Story Arc #{{ next_arc_number }}</h1>
+    <span class="burst">GO!</span>
+  </div>
+  <div class="p-4">
+    <p style="font-weight:700;" class="mb-0">
+      Pick the heroes and villains for this arc. AI will write the story, generate the cover, and create all the comic panels automatically!
+    </p>
+  </div>
+</div>
+
+<form method="POST" action="{{ url_for('universe.new_arc') }}">
+
+  <!-- HEROES -->
+  <div class="comic-panel mb-4">
+    <div class="panel-header">
+      <h2 class="panel-title" style="font-size:1.4rem;">Choose Your Heroes</h2>
+    </div>
+    <div class="p-4">
+      {% if heroes %}
+        <div class="row g-3">
+          {% for hero in heroes %}
+          <div class="col-6 col-md-4 col-lg-3">
+            <label class="d-block" style="cursor:pointer;">
+              <input
+                type="checkbox"
+                name="hero_ids"
+                value="{{ hero.id }}"
+                class="hero-checkbox d-none"
+              >
+              <div class="comic-tile text-center hero-pick-card p-3" style="border:3px solid transparent; transition:.15s;">
+                {% if hero.image_file %}
+                  <img
+                    src="{{ url_for('static', filename='uploads/characters/' ~ hero.image_file) }}"
+                    alt="{{ hero.superhero_name }}"
+                    class="img-fluid mb-2"
+                    style="border-radius:10px; max-height:100px; object-fit:cover;"
+                  >
+                {% else %}
+                  <div class="mb-2" style="font-size:3rem;">🦸</div>
+                {% endif %}
+                <div style="font-weight:800; font-size:.9rem;">{{ hero.superhero_name }}</div>
+                <div class="text-muted" style="font-size:.75rem;">Power {{ hero.power_level }}</div>
+              </div>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted fw-bold">No heroes yet! <a href="{{ url_for('characters.create_character') }}">Create a hero first.</a></p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- VILLAINS -->
+  <div class="comic-panel mb-4">
+    <div class="panel-header">
+      <h2 class="panel-title" style="font-size:1.4rem;">Choose Your Villains <span class="text-muted" style="font-size:.8em;">(optional)</span></h2>
+    </div>
+    <div class="p-4">
+      {% if villains %}
+        <div class="row g-3">
+          {% for villain in villains %}
+          <div class="col-6 col-md-4 col-lg-3">
+            <label class="d-block" style="cursor:pointer;">
+              <input
+                type="checkbox"
+                name="villain_ids"
+                value="{{ villain.id }}"
+                class="villain-checkbox d-none"
+              >
+              <div class="comic-tile text-center villain-pick-card p-3" style="border:3px solid transparent; transition:.15s;">
+                {% if villain.image_file %}
+                  <img
+                    src="{{ url_for('static', filename='uploads/villains/' ~ villain.image_file) }}"
+                    alt="{{ villain.villain_name }}"
+                    class="img-fluid mb-2"
+                    style="border-radius:10px; max-height:100px; object-fit:cover;"
+                  >
+                {% else %}
+                  <div class="mb-2" style="font-size:3rem;">😈</div>
+                {% endif %}
+                <div style="font-weight:800; font-size:.9rem;">{{ villain.villain_name }}</div>
+                {% if villain.lair_location %}
+                  <div class="text-muted" style="font-size:.75rem;">{{ villain.lair_location }}</div>
+                {% endif %}
+              </div>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted fw-bold">No villains yet. <a href="{{ url_for('villains.create_villain') }}">Create a villain</a> to add drama!</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="d-flex gap-3 flex-wrap">
+    <button type="submit" class="btn btn-comic-cta" {% if not heroes %}disabled{% endif %}>
+      Generate Story Arc with AI ✨
+    </button>
+    <a href="{{ url_for('universe.universe_hub') }}" class="btn btn-outline-dark fw-bold comic-outline-btn">
+      Cancel
+    </a>
+  </div>
+  <p class="text-muted mt-2" style="font-weight:700; font-size:.85rem;">
+    AI will generate the arc title, story summary, and a cover image. This may take a moment!
+  </p>
+
+</form>
+
+<style>
+.hero-checkbox:checked + .hero-pick-card {
+  border-color: #ffe066 !important;
+  background: #fffbe6;
+  box-shadow: 0 0 0 3px #ffe066;
+}
+.villain-checkbox:checked + .villain-pick-card {
+  border-color: #e63946 !important;
+  background: #fff0f0;
+  box-shadow: 0 0 0 3px #e63946;
+}
+</style>
+
+<script>
+document.querySelectorAll('.hero-checkbox, .villain-checkbox').forEach(function(cb) {
+  cb.addEventListener('change', function() {
+    // visual state handled by CSS :checked sibling selector above
+  });
+});
+</script>
+
+{% endblock %}

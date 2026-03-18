@@ -3,3 +3,4 @@ from .character import Character
 from .comment import Comment
 from .badge import Badge, UserBadge
 from .user import User
+from .story_arc import StoryArc, ComicIssue, ComicPanel

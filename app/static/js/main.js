@@ -61,35 +61,6 @@ const updateBadgeStrip = (progress) => {
 };
 
 
-/* =====================================================
-   DARK MODE — NIGHT MISSION THEME
-===================================================== */
-const DARK_KEY = "ismaverseDarkMode";
-
-const applyTheme = (dark) => {
-  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-  const emoji = dark ? "☀️" : "🌙";
-  document.querySelectorAll(".dark-mode-btn").forEach((btn) => {
-    btn.textContent = emoji;
-    btn.title = dark ? "Switch to Light Mode" : "Switch to Night Mode";
-  });
-};
-
-const toggleDarkMode = () => {
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  const next = !isDark;
-  localStorage.setItem(DARK_KEY, next ? "1" : "0");
-  applyTheme(next);
-  playSound("pow");
-};
-
-const initDarkMode = () => {
-  const saved = localStorage.getItem(DARK_KEY);
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const dark = saved !== null ? saved === "1" : prefersDark;
-  applyTheme(dark);
-};
-
 
 /* =====================================================
    COMIC SOUND EFFECTS
@@ -215,12 +186,6 @@ const checkBadgeUnlocks = () => {
    INIT
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
-  // Dark mode
-  initDarkMode();
-  document.querySelectorAll(".dark-mode-btn").forEach((btn) => {
-    btn.addEventListener("click", toggleDarkMode);
-  });
-
   // Badge tracking (anonymous)
   const badgeStrip = document.querySelector(".badge-strip");
   const badgeSource = badgeStrip?.dataset?.badgeSource;

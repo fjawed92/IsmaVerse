@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ arc.title }} — IsmaVerse{% endblock %}
+
+{% block content %}
+
+<!-- ARC HEADER -->
+<div class="comic-panel mb-4">
+  <div class="panel-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <span class="comic-badge" style="font-size:.8rem;">ARC {{ arc.arc_number }}</span>
+      <h1 class="panel-title mb-0 mt-1">{{ arc.title }}</h1>
+    </div>
+    {% if arc.status == 'complete' %}
+      <span class="burst" style="background:#28a745;">COMPLETE!</span>
+    {% else %}
+      <span class="burst">ONGOING!</span>
+    {% endif %}
+  </div>
+
+  <div class="p-4">
+    <div class="row g-4 align-items-start">
+
+      {% if arc.cover_image %}
+      <div class="col-12 col-md-4">
+        <img
+          src="{{ url_for('static', filename='uploads/arc_covers/' ~ arc.cover_image) }}"
+          alt="{{ arc.title }}"
+          class="img-fluid"
+          style="border-radius:14px; border:3px solid #222;"
+        >
+      </div>
+      {% endif %}
+
+      <div class="col-12 col-md-{{ '8' if arc.cover_image else '12' }}">
+        {% if arc.tagline %}
+          <p class="mb-2" style="font-size:1.1rem; font-weight:800; font-style:italic;">{{ arc.tagline }}</p>
+        {% endif %}
+
+        {% if arc.summary %}
+          <p style="font-weight:700;">{{ arc.summary }}</p>
+        {% endif %}
+
+        <!-- Cast -->
+        <div class="mb-2">
+          <strong>Heroes:</strong>
+          {% for h in arc.heroes %}
+            <a href="{{ url_for('characters.character_detail', character_id=h.id) }}"
+               class="badge me-1" style="background:#ffe066; color:#222; text-decoration:none; font-weight:800;">
+              {{ h.superhero_name }}
+            </a>
+          {% endfor %}
+        </div>
+        {% if arc.villains %}
+        <div class="mb-3">
+          <strong>Villains:</strong>
+          {% for v in arc.villains %}
+            <span class="badge bg-danger me-1">{{ v.villain_name }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Generate issue button -->
+        {% if arc.status == 'ongoing' %}
+        <form method="POST" action="{{ url_for('universe.new_issue', arc_id=arc.id) }}" class="d-inline">
+          <button type="submit" class="btn btn-comic-cta">
+            Generate Issue #{{ arc.issues|length + 1 }} with AI ✨
+          </button>
+        </form>
+        <p class="text-muted mt-2" style="font-weight:700; font-size:.85rem;">
+          Each issue generates 6 AI-illustrated panels with story and dialogue.
+        </p>
+        {% else %}
+          <p class="fw-bold" style="color:#28a745;">
+            This arc is complete! All {{ arc.issues|length }} issues have been published.
+          </p>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ISSUES LIST -->
+{% if arc.issues %}
+<div class="comic-panel mb-4">
+  <div class="panel-header">
+    <h2 class="panel-title" style="font-size:1.4rem;">
+      Issues ({{ arc.issues|length }})
+    </h2>
+  </div>
+  <div class="p-4">
+    <div class="row g-3">
+      {% for issue in arc.issues %}
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="comic-tile h-100 d-flex flex-column">
+
+          {% if issue.cover_image %}
+          <img
+            src="{{ url_for('static', filename='uploads/arc_covers/' ~ issue.cover_image) }}"
+            alt="{{ issue.title }}"
+            class="img-fluid mb-3"
+            style="border-radius:10px; object-fit:cover; max-height:180px; width:100%;"
+          >
+          {% endif %}
+
+          <span class="comic-badge mb-2" style="font-size:.7rem; width:fit-content;">ISSUE #{{ issue.issue_number }}</span>
+          <h4 class="mb-1">{{ issue.title }}</h4>
+
+          {% if issue.summary %}
+            <p class="text-muted mb-3" style="font-weight:700;">{{ issue.summary[:100] }}{% if issue.summary|length > 100 %}…{% endif %}</p>
+          {% endif %}
+
+          <div class="mt-auto">
+            <a href="{{ url_for('universe.issue_reader', issue_id=issue.id) }}" class="btn btn-comic-cta w-100">
+              Read Issue →
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="comic-panel">
+  <div class="p-4">
+    <p class="fw-bold mb-0">No issues yet — generate the first one above!</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- BACK LINK -->
+<a href="{{ url_for('universe.universe_hub') }}" class="btn btn-outline-dark fw-bold comic-outline-btn mt-2">
+  ← Back to Universe Hub
+</a>
+
+{% endblock %}
