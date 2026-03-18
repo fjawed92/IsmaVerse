@@ -22,6 +22,7 @@ def create_app():
     from .views.battle_routes import battle_bp
     from .views.team_routes import team_bp
     from .views.extras_routes import extras_bp
+    from .views.universe_routes import universe_bp
 
     app.register_blueprint(characters_bp)
     app.register_blueprint(auth_bp)
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(battle_bp)
     app.register_blueprint(team_bp)
     app.register_blueprint(extras_bp)
+    app.register_blueprint(universe_bp)
 
     # Add enumerate as a Jinja2 global
     app.jinja_env.globals["enumerate"] = enumerate
