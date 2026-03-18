@@ -32,8 +32,6 @@
 
     <!-- MOBILE TOGGLER -->
     <div class="d-flex align-items-center gap-2 d-lg-none">
-      <!-- Dark mode toggle (mobile) -->
-      <button id="dark-toggle-mobile" class="btn btn-sm dark-mode-btn" title="Toggle Night Mode" aria-label="Toggle dark mode">🌙</button>
       <button class="navbar-toggler comic-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -114,11 +112,6 @@
           <a class="nav-link comic-link" href="{{ url_for('auth.register') }}">Register</a>
         </li>
         {% endif %}
-
-        <!-- Dark mode toggle (desktop) -->
-        <li class="nav-item d-none d-lg-flex align-items-center">
-          <button id="dark-toggle" class="btn btn-sm dark-mode-btn ms-1" title="Toggle Night Mode" aria-label="Toggle dark mode">🌙</button>
-        </li>
 
         <!-- PRIMARY CTA -->
         <li class="nav-item mt-2 mt-lg-0">

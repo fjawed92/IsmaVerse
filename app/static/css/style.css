@@ -267,7 +267,7 @@ button:focus-visible,
   font-size: 2rem;
   letter-spacing: 1px;
   margin: 0;
-  text-shadow: 3px 3px 0 var(--ink);
+  text-shadow: 1px 1px 0 rgba(0,0,0,.4);
 }
 
 
@@ -355,9 +355,11 @@ button:focus-visible,
   padding: 1rem;
 }
 
-.comic-tile h3 {
-  font-family: "Bangers", cursive;
-  letter-spacing: 1px;
+.comic-tile h3,
+.comic-tile h4 {
+  font-family: "Comic Neue", system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: .3px;
 }
 
 .comic-tile-link {
@@ -588,7 +590,7 @@ button:focus-visible,
   font-family: "Bangers", cursive;
   font-size: 2.6rem;
   margin: .75rem 0 .25rem;
-  text-shadow: 3px 3px 0 var(--ink);
+  text-shadow: 1px 1px 0 rgba(0,0,0,.35);
 }
 
 .admin-hero-title.no-shadow {
@@ -1132,95 +1134,6 @@ button:focus-visible,
 }
 
 
-/* =====================================================
-   16) DARK MODE — NIGHT MISSION THEME
-===================================================== */
-[data-theme="dark"] {
-  --paper: #12131f;
-  --ink: #f0f0f0;
-  --shadow: 4px 4px 0 rgba(240,240,240,.35);
-  --shadow-lg: 8px 8px 0 rgba(240,240,240,.3);
-}
-
-[data-theme="dark"] body {
-  background:
-    radial-gradient(circle at 1px 1px, rgba(255,255,255,.07) 1px, transparent 1.8px) 0 0/14px 14px,
-    #12131f;
-  color: #f0f0f0;
-}
-
-[data-theme="dark"] .comic-panel,
-[data-theme="dark"] .comic-tile,
-[data-theme="dark"] .badge-panel,
-[data-theme="dark"] .hero-card,
-[data-theme="dark"] .hero-card-body,
-[data-theme="dark"] .hero-section,
-[data-theme="dark"] .comment-card,
-[data-theme="dark"] .comment-form,
-[data-theme="dark"] .speech,
-[data-theme="dark"] .hero-page-header,
-[data-theme="dark"] .admin-hero,
-[data-theme="dark"] .timeline-content {
-  background: #1e1f2f !important;
-  color: #f0f0f0;
-  border-color: rgba(240,240,240,.4);
-}
-
-[data-theme="dark"] .hero-card-header {
-  background: #252638 !important;
-  color: #f0f0f0;
-  border-color: rgba(240,240,240,.35);
-}
-
-[data-theme="dark"] .hero-card-footer {
-  background: #2a2b40 !important;
-  color: #f0f0f0;
-  border-color: rgba(240,240,240,.35);
-}
-
-[data-theme="dark"] .form-control,
-[data-theme="dark"] .comic-textarea {
-  background: #252638;
-  color: #f0f0f0;
-  border-color: rgba(240,240,240,.4);
-}
-
-[data-theme="dark"] .text-muted {
-  color: #aaa !important;
-}
-
-[data-theme="dark"] .comic-dropdown {
-  background: #1e1f2f;
-  border: 3px solid rgba(240,240,240,.4);
-}
-
-[data-theme="dark"] .dropdown-item {
-  color: #f0f0f0;
-}
-
-[data-theme="dark"] .dropdown-item:hover {
-  background: #2a2b40;
-}
-
-[data-theme="dark"] .hero-muted {
-  color: #aaa;
-}
-
-.dark-mode-btn {
-  background: transparent;
-  border: 2px solid rgba(255,255,255,.5);
-  color: #fff;
-  font-size: 1rem;
-  line-height: 1;
-  padding: .25rem .5rem;
-  border-radius: 8px;
-  transition: background .15s ease;
-}
-
-.dark-mode-btn:hover {
-  background: rgba(255,255,255,.2);
-}
-
 
 /* =====================================================
    17) POWER BAR
@@ -1240,10 +1153,6 @@ button:focus-visible,
   background: linear-gradient(90deg, var(--comic-blue), var(--comic-green));
   border-radius: 999px;
   transition: width .4s ease;
-}
-
-[data-theme="dark"] .power-bar-track {
-  background: #333;
 }
 
 

@@ -40,7 +40,7 @@
   {% else %}
   <!-- QUESTIONS -->
   <form method="POST">
-    {% for i, q in questions|enumerate %}
+    {% for i, q in enumerate(questions) %}
     <div class="comic-panel mb-3">
       <div class="panel-header" style="background: linear-gradient(90deg, var(--comic-blue), #6fd6ff);">
         <h2 class="panel-title" style="font-size:1.3rem;">Question {{ i + 1 }}</h2>
@@ -48,7 +48,7 @@
       <div class="p-3">
         <p class="fw-bold mb-3" style="font-size:1.05rem;">{{ q.question }}</p>
         <div class="d-flex flex-column gap-2">
-          {% for j, answer in q.answers|enumerate %}
+          {% for j, answer in enumerate(q.answers) %}
           <label class="quiz-option d-flex align-items-center gap-2 p-2 fw-bold" style="cursor:pointer; border:3px solid var(--ink); border-radius:12px; background:#fff; box-shadow:2px 2px 0 var(--ink);">
             <input type="radio" name="q{{ i }}" value="{{ j }}" required>
             {{ answer.text }}
