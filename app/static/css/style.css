@@ -80,166 +80,366 @@ button:focus-visible,
 
 
 /* =====================================================
-   4) NAVBAR
+   4) NAVBAR — Superhero Comic Book Edition
 ===================================================== */
+
+/* --- Base nav container ---
+   CRITICAL: NO overflow:hidden here — it clips dropdown menus.
+   The decorative backdrop is a child div instead of ::before/::after. */
 .comic-nav {
   position: relative;
-  background: linear-gradient(135deg, #0d5aff 0%, #5b6bff 48%, #2fe4ff 100%);
-  border-bottom: 5px solid var(--ink);
-  box-shadow: 0 6px 0 var(--ink), 0 12px 24px rgba(0, 0, 0, 0.2);
-  padding: .25rem 0;
-  overflow: hidden;
+  background: #0d0d20;
+  border-bottom: 5px solid var(--comic-yellow);
+  box-shadow: 0 5px 0 var(--ink), 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 0.35rem 0;
+  z-index: 1030;
 }
 
-.comic-nav::before {
-  content: "";
+/* Decorative halftone + glow backdrop (child div, not pseudo — preserves overflow:visible) */
+.comic-nav-backdrop {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.35) 0 2px, transparent 3px) 0 0/18px 18px,
-    radial-gradient(circle at 75% 40%, rgba(255, 255, 255, 0.28) 0 2px, transparent 3px) 0 0/22px 22px;
-  opacity: 0.45;
+    radial-gradient(circle at 8% 50%, rgba(30, 107, 255, 0.25) 0%, transparent 55%),
+    radial-gradient(circle at 92% 50%, rgba(255, 45, 45, 0.2) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(255, 212, 0, 0.06) 0%, transparent 70%),
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1px, transparent 2px) 0 0/16px 16px;
   pointer-events: none;
+  z-index: 0;
 }
 
-.comic-nav::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    120deg,
-    rgba(0, 0, 0, 0.08),
-    rgba(0, 0, 0, 0.08) 8px,
-    transparent 8px,
-    transparent 20px
-  );
-  opacity: 0.2;
-  pointer-events: none;
-}
-
-.comic-nav .navbar-brand,
-.comic-nav .nav-link {
-  color: #ffffff !important;
-  font-weight: 900;
-  text-shadow: 2px 2px 0 var(--ink);
-}
-
-.comic-nav .navbar-brand {
+/* All direct children of container sit above backdrop */
+.comic-nav .container {
   position: relative;
   z-index: 1;
 }
 
-.brand-title {
-  font-family: "Bangers", cursive;
-  font-size: 1.6rem;
-  letter-spacing: 1px;
+/* --- Brand / Logo --- */
+.comic-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
 }
 
 .comic-badge {
   display: inline-block;
-  background: radial-gradient(circle at top, #fff6a0 10%, var(--comic-yellow) 70%);
+  background: radial-gradient(circle at 30% 30%, #fff9b0 0%, var(--comic-yellow) 60%, #e6a800 100%);
   border: 3px solid var(--ink);
-  padding: .25rem .5rem;
+  border-radius: 4px;
+  padding: 0.15rem 0.55rem;
+  font-family: "Bangers", cursive;
+  font-size: 1.25rem;
   font-weight: 900;
-  box-shadow: var(--shadow);
-  transform: rotate(-6deg);
-}
-
-.comic-link {
-  position: relative;
-  z-index: 1;
-  padding: .4rem .65rem !important;
-  border-radius: 0;
-  transition: transform .15s ease, background-color .15s ease, box-shadow .15s ease, color .15s ease;
-  border: none;
-  background: rgba(255, 255, 255, 0.15);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-
-.comic-link:hover {
-  background: var(--comic-yellow);
-  border: none;
-  box-shadow: 3px 3px 0 var(--ink);
-  color: var(--ink) !important;
-  transform: translateY(-2px) rotate(-0.5deg);
-}
-
-.comic-link:focus-visible {
-  outline: 3px dashed var(--comic-yellow);
-  outline-offset: 3px;
-}
-
-.comic-link-highlight {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  box-shadow: none;
-  color: #ffffff !important;
-}
-
-.comic-nav .btn-comic-cta {
-  border-radius: 999px;
-  background: var(--comic-red);
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  text-shadow: 2px 2px 0 var(--ink);
-}
-
-.comic-nav .btn-comic-cta:hover {
-  background: var(--comic-yellow);
+  letter-spacing: 1.5px;
   color: var(--ink);
+  text-shadow: none;
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: rotate(-5deg);
+  transition: transform 0.2s ease;
 }
 
-.comic-toggler {
-  border: 3px solid var(--ink);
-  box-shadow: 2px 2px 0 var(--ink);
+.comic-brand:hover .comic-badge {
+  transform: rotate(5deg) scale(1.05);
 }
 
+.brand-title {
+  font-family: "Bangers", cursive;
+  font-size: 1.75rem;
+  letter-spacing: 2px;
+  color: #ffffff;
+  /* layered shadow: red offset + dark depth — no double-text since it's the brand only */
+  text-shadow: 2px 2px 0 var(--comic-red), 4px 4px 0 rgba(0, 0, 0, 0.4);
+  transition: text-shadow 0.2s ease;
+}
+
+.comic-brand:hover .brand-title {
+  text-shadow: 2px 2px 0 var(--comic-yellow), 4px 4px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* --- Nav list --- */
 .comic-nav .navbar-nav {
-  text-align: center;
-  position: relative;
-  z-index: 1;
+  gap: 0.15rem;
+  align-items: stretch;
 }
 
+/* --- Individual nav links ---
+   text-shadow intentionally NONE to prevent the double-text hover bug */
+.comic-link {
+  font-family: "Bangers", cursive;
+  font-size: 1.05rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #d8d8ff !important;
+  text-shadow: none;                    /* NO shadow = NO double-text bug */
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem !important;
+  transition: background 0.15s ease, color 0.15s ease,
+              box-shadow 0.15s ease, transform 0.15s ease,
+              border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.comic-link:hover,
+.comic-link:focus-visible {
+  background: var(--comic-yellow);
+  color: var(--ink) !important;
+  text-shadow: none;                    /* Explicitly none — kills any inherited shadow */
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+/* Show item is active / open */
+.comic-link.show,
+.nav-item.show > .comic-link {
+  background: rgba(255, 212, 0, 0.15);
+  border-color: var(--comic-yellow);
+  color: var(--comic-yellow) !important;
+  text-shadow: none;
+}
+
+/* Dropdown caret colour fix */
+.comic-link.dropdown-toggle::after {
+  border-top-color: currentColor;
+  vertical-align: 0.18em;
+}
+
+/* Separator dots between items (desktop only) */
 .comic-nav .nav-item {
   position: relative;
 }
 
-.comic-nav .nav-item::after {
-  content: "";
+.comic-nav .nav-item + .nav-item::before {
+  content: "★";
   position: absolute;
-  right: -6px;
+  left: -4px;
   top: 50%;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--comic-pink);
-  border: 2px solid var(--ink);
   transform: translateY(-50%);
-  box-shadow: 1px 1px 0 var(--ink);
+  font-size: 0.5rem;
+  color: var(--comic-pink);
+  pointer-events: none;
+  line-height: 1;
 }
 
-.comic-nav .nav-item:last-child::after {
-  display: none;
+/* --- Dropdown menus --- */
+.comic-dropdown {
+  background: #ffffff;
+  border: 3px solid var(--ink);
+  border-radius: 0 0 8px 8px;
+  border-top: 4px solid var(--comic-yellow);
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: 0.4rem 0;
+  min-width: 210px;
+  /* z-index above sticky nav */
+  z-index: 1050 !important;
+  animation: dropIn 0.15s ease forwards;
 }
 
-.comic-toggler .navbar-toggler-icon {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='4' y='7' width='24' height='4' rx='2' fill='%23ffd400' stroke='%23000000' stroke-width='3'/%3E%3Crect x='4' y='14' width='24' height='4' rx='2' fill='%23ff5ad6' stroke='%23000000' stroke-width='3'/%3E%3Crect x='4' y='21' width='24' height='4' rx='2' fill='%2322ff66' stroke='%23000000' stroke-width='3'/%3E%3C/svg%3E");
-  background-size: 100% 100%;
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@media (min-width: 768px) {
+.comic-dropdown .dropdown-item {
+  font-family: "Bangers", cursive;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink);
+  padding: 0.5rem 1.2rem;
+  border-left: 4px solid transparent;
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+
+.comic-dropdown .dropdown-item:hover,
+.comic-dropdown .dropdown-item:focus {
+  background: var(--comic-yellow);
+  color: var(--ink);
+  border-left-color: var(--comic-red);
+  outline: none;
+}
+
+.comic-dropdown .dropdown-divider {
+  border-color: rgba(17, 17, 17, 0.2);
+  margin: 0.3rem 0.8rem;
+}
+
+/* --- CTA button --- */
+.comic-cta-item {
+  margin-left: 0.5rem;
+}
+
+.btn-comic-cta {
+  font-family: "Bangers", cursive;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: var(--comic-red);
+  color: #ffffff !important;
+  text-shadow: none;                    /* No double-text */
+  border: 3px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 var(--ink);
+  padding: 0.35rem 1.1rem;
+  transition: background 0.15s ease, color 0.15s ease,
+              box-shadow 0.15s ease, transform 0.15s ease;
+  display: inline-block;
+}
+
+.btn-comic-cta:hover,
+.btn-comic-cta:focus-visible {
+  background: var(--comic-yellow);
+  color: var(--ink) !important;
+  text-shadow: none;
+  box-shadow: 2px 2px 0 var(--ink);
+  transform: translate(2px, 2px);
+  outline: none;
+}
+
+/* --- Mobile hamburger toggler --- */
+.comic-toggler {
+  background: transparent;
+  border: 3px solid var(--comic-yellow);
+  border-radius: 4px;
+  box-shadow: 2px 2px 0 var(--ink);
+  padding: 6px 10px;
+  transition: border-color 0.2s;
+}
+
+.comic-toggler:focus-visible {
+  outline: 3px dashed var(--comic-yellow);
+  outline-offset: 3px;
+}
+
+.comic-burger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 26px;
+  height: 20px;
+}
+
+.comic-burger span {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.2s ease, width 0.2s ease, background 0.2s ease;
+}
+
+.comic-burger span:nth-child(1) { background: var(--comic-yellow); width: 100%; }
+.comic-burger span:nth-child(2) { background: var(--comic-pink);   width: 72%; }
+.comic-burger span:nth-child(3) { background: var(--comic-green);  width: 48%; }
+
+/* X state when menu is open */
+.comic-toggler[aria-expanded="true"] {
+  border-color: var(--comic-red);
+}
+
+.comic-toggler[aria-expanded="true"] .comic-burger span:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+  width: 100%;
+  background: var(--comic-red);
+}
+
+.comic-toggler[aria-expanded="true"] .comic-burger span:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.comic-toggler[aria-expanded="true"] .comic-burger span:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+  width: 100%;
+  background: var(--comic-red);
+}
+
+/* --- Mobile collapse panel --- */
+@media (max-width: 991.98px) {
+  /* Hide star separators on mobile */
+  .comic-nav .nav-item + .nav-item::before {
+    display: none;
+  }
+
+  .comic-nav .navbar-collapse {
+    background: #0f0f25;
+    border: 3px solid var(--comic-yellow);
+    border-top: none;
+    box-shadow: 4px 8px 0 var(--ink);
+    padding: 0.75rem 1rem 1rem;
+    margin-top: 4px;
+  }
+
+  .comic-nav .navbar-nav {
+    gap: 0.3rem;
+  }
+
+  .comic-link {
+    padding: 0.55rem 1rem !important;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    color: #e8e8ff !important;
+  }
+
+  .comic-link:hover {
+    transform: none;
+  }
+
+  /* Dropdowns go inline / static on mobile */
+  .comic-nav .dropdown-menu {
+    position: static !important;
+    float: none;
+    box-shadow: none;
+    border: 2px solid rgba(255, 212, 0, 0.3);
+    border-top: 2px solid var(--comic-yellow);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    margin: 4px 0 4px 1rem;
+    animation: none;
+  }
+
+  .comic-nav .dropdown-menu .dropdown-item {
+    color: #d8d8ff;
+    font-size: 0.95rem;
+  }
+
+  .comic-nav .dropdown-menu .dropdown-item:hover {
+    background: var(--comic-yellow);
+    color: var(--ink);
+  }
+
+  .comic-cta-item {
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+
+  .btn-comic-cta {
+    width: 100%;
+    text-align: center;
+    display: block;
+  }
+}
+
+/* --- Desktop tweaks --- */
+@media (min-width: 992px) {
   .comic-nav .navbar-nav {
     flex-wrap: nowrap;
-    gap: .25rem;
+    gap: 0.1rem;
+  }
+
+  .comic-link {
+    padding-left: 0.65rem !important;
+    padding-right: 0.65rem !important;
   }
 }
 
 @media (min-width: 1200px) {
   .comic-link {
-    padding-left: .7rem !important;
-    padding-right: .7rem !important;
+    padding-left: 0.8rem !important;
+    padding-right: 0.8rem !important;
   }
 }
 
@@ -1314,31 +1514,8 @@ button:focus-visible,
 
 
 /* =====================================================
-   22) NAVBAR DROPDOWN
+   22) NAVBAR DROPDOWN — styles now in section 4 above
 ===================================================== */
-.comic-dropdown {
-  border: 3px solid var(--ink);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  background: #fff;
-  padding: .4rem 0;
-}
-
-.comic-dropdown .dropdown-item {
-  padding: .45rem 1rem;
-  color: var(--ink);
-  transition: background .12s;
-}
-
-.comic-dropdown .dropdown-item:hover {
-  background: var(--comic-yellow);
-  color: var(--ink);
-}
-
-.comic-dropdown .dropdown-divider {
-  border-color: var(--ink);
-  opacity: .3;
-}
 
 
 /* =====================================================
