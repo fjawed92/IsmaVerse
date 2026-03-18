@@ -253,6 +253,18 @@ def admin_edit_character(character_id):
     origins = request.form.get("origins", "").strip()
     image = request.files.get("image_file")
 
+    # Power level override
+    power_override_raw = request.form.get("power_level_override", "").strip()
+    reset_power = request.form.get("reset_power_override") == "1"
+    if reset_power:
+        character.power_level_override = None
+    elif power_override_raw:
+        try:
+            val = int(power_override_raw)
+            character.power_level_override = max(10, min(val, 100))
+        except ValueError:
+            pass
+
     if not superhero_name:
         flash("Superhero name is required.", "danger")
         return redirect(url_for("admin.admin_edit_character", character_id=character.id))

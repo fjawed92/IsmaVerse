@@ -22,6 +22,8 @@ class Character(db.Model):
     age = db.Column(db.Integer, nullable=True)
     hair_color = db.Column(db.String(80), nullable=True)
 
+    power_level_override = db.Column(db.Integer, nullable=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -30,6 +32,8 @@ class Character(db.Model):
 
     @property
     def power_level(self):
+        if self.power_level_override is not None:
+            return max(10, min(self.power_level_override, 100))
         score = 50
         if self.powers:
             score += min(len(self.powers.split()), 20) * 2
