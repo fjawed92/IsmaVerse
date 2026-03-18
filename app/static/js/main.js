@@ -183,6 +183,113 @@ const checkBadgeUnlocks = () => {
 
 
 /* =====================================================
+   HERO CREATION LOADING SCREEN
+===================================================== */
+const HERO_CREATION_MESSAGES = [
+  { main: "ASSEMBLING COSTUME...",      sub: "Picking the perfect colours and style!" },
+  { main: "ACTIVATING SUPERPOWERS...",  sub: "Charging up those incredible abilities!" },
+  { main: "WRITING ORIGIN STORY...",    sub: "Making it more epic than ever!" },
+  { main: "DRAWING YOUR HERO...",       sub: "The AI artist is sketching right now!" },
+  { main: "ADDING ENERGY EFFECTS...",   sub: "Those power blasts are looking AMAZING!" },
+  { main: "INKING THE OUTLINE...",      sub: "Bold lines for a bold hero!" },
+  { main: "COLOURING THE COSTUME...",   sub: "Adding those awesome colours you chose!" },
+  { main: "FINAL DETAILS...",           sub: "Almost done — your hero looks incredible!" },
+  { main: "UPLOADING TO ISMAVERSE...",  sub: "Your legend is about to be born!" },
+];
+
+const initHeroCreationOverlay = () => {
+  const form    = document.getElementById("heroCreationForm");
+  const overlay = document.getElementById("heroCreationOverlay");
+  if (!form || !overlay) return;
+
+  // Spawn star particles
+  const starsContainer = document.getElementById("hcoStars");
+  if (starsContainer) {
+    for (let i = 0; i < 40; i++) {
+      const star = document.createElement("span");
+      star.className = "hco-star";
+      star.style.left   = `${Math.random() * 100}%`;
+      star.style.width  = `${1 + Math.random() * 3}px`;
+      star.style.height = star.style.width;
+      const dur   = 6 + Math.random() * 10;
+      const delay = Math.random() * 12;
+      star.style.animationDuration = `${dur}s`;
+      star.style.animationDelay    = `-${delay}s`;
+      starsContainer.appendChild(star);
+    }
+  }
+
+  let msgInterval   = null;
+  let progInterval  = null;
+  let currentMsgIdx = 0;
+  let currentProg   = 0;
+
+  const msgEl    = document.getElementById("hcoMessage");
+  const subEl    = document.getElementById("hcoSubMsg");
+  const barEl    = document.getElementById("hcoProgressBar");
+  const labelEl  = document.getElementById("hcoProgressLabel");
+
+  const cycleMessage = () => {
+    if (!msgEl) return;
+    msgEl.classList.add("fading");
+    setTimeout(() => {
+      currentMsgIdx = (currentMsgIdx + 1) % HERO_CREATION_MESSAGES.length;
+      const { main, sub } = HERO_CREATION_MESSAGES[currentMsgIdx];
+      msgEl.textContent = main;
+      if (subEl) subEl.textContent = sub;
+      msgEl.classList.remove("fading");
+    }, 300);
+  };
+
+  const tickProgress = () => {
+    // Fake progress: crawls fast early, slows near 95%
+    if (currentProg < 30)      currentProg += 3 + Math.random() * 4;
+    else if (currentProg < 60) currentProg += 1.5 + Math.random() * 2.5;
+    else if (currentProg < 85) currentProg += 0.8 + Math.random() * 1.2;
+    else if (currentProg < 95) currentProg += 0.3 + Math.random() * 0.5;
+    // Never reach 100% (server will redirect when done)
+    currentProg = Math.min(currentProg, 95);
+    const pct = Math.round(currentProg);
+    if (barEl)   barEl.style.width = `${pct}%`;
+    if (labelEl) labelEl.textContent = `${pct}%`;
+  };
+
+  const showOverlay = () => {
+    overlay.classList.add("is-visible");
+    overlay.setAttribute("aria-hidden", "false");
+
+    // Start message cycling every 3.5 s
+    msgInterval  = setInterval(cycleMessage, 3500);
+    // Start progress ticking every 1.2 s
+    progInterval = setInterval(tickProgress, 1200);
+
+    // Warn if user tries to leave
+    window.addEventListener("beforeunload", onBeforeUnload);
+  };
+
+  const onBeforeUnload = (e) => {
+    e.preventDefault();
+    e.returnValue = "Your hero is being created! Are you sure you want to leave?";
+  };
+
+  form.addEventListener("submit", (e) => {
+    // Let HTML5 built-in validation run first
+    if (!form.checkValidity()) return;
+
+    // Show overlay after a tiny tick so the browser can show validation UI
+    setTimeout(showOverlay, 10);
+
+    // Disable the submit button to prevent double-submission
+    const submitBtn = document.getElementById("heroSubmitBtn");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "⚡ CREATING... PLEASE WAIT ⚡";
+    }
+  });
+};
+
+
+/* =====================================================
    INIT
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
@@ -200,4 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Sounds
   addReactionAnimations();
   addButtonSounds();
+
+  // Hero creation loading screen
+  initHeroCreationOverlay();
 });

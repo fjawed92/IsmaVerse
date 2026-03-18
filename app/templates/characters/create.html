@@ -5,31 +5,45 @@
 <div class="container py-4" style="max-width: 960px;">
 
   <div class="hero-page-header mb-4">
-    <div class="hero-kicker">CREATE YOUR OWN HERO</div>
-    <h1 class="hero-title">Build a Kid-Friendly Legend</h1>
+    <div class="hero-kicker">⚡ CREATE YOUR OWN HERO ⚡</div>
+    <h1 class="hero-title">Build a Legend!</h1>
     <p class="hero-subtitle mb-0">
-      Dream up a brand-new hero for the Isma Verse. Add your favorite colors, powers,
-      and a super-cool chest symbol, then let the comic magic begin!
+      Dream up a brand-new superhero for the IsmaVerse. Fill in every detail —
+      our AI will generate an <strong>epic full-body illustration</strong> of your hero!
     </p>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <form method="POST" class="comic-form">
-        <div class="row g-3">
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex align-items-center gap-3">
+      <h2 class="panel-title mb-0">🦸 Hero Registration Form</h2>
+      <span class="burst" style="font-size:.85rem;">TOP SECRET!</span>
+    </div>
+    <div class="p-4">
+      <form method="POST" id="heroCreationForm" class="comic-form">
+
+        <!-- Row 1: Identity -->
+        <div class="row g-3 mb-2">
           <div class="col-md-6">
-            <label class="form-label">Superhero Name</label>
-            <input type="text" name="superhero_name" class="form-control" required>
+            <label class="form-label">⚡ Superhero Name</label>
+            <input type="text" name="superhero_name" class="form-control" placeholder="e.g. Blaze Runner" required>
           </div>
           <div class="col-md-3">
-            <label class="form-label">Age</label>
-            <input type="number" name="age" class="form-control" min="4" max="16" required>
+            <label class="form-label">🎂 Age</label>
+            <input type="number" name="age" class="form-control" min="4" max="16" placeholder="8" required>
           </div>
           <div class="col-md-3">
-            <label class="form-label">Hair Color</label>
+            <label class="form-label">💇 Hair Color</label>
             <input type="text" name="hair_color" class="form-control" placeholder="Brown" required>
           </div>
+        </div>
 
+        <!-- Row 2: Costume -->
+        <div class="row g-3 mb-2">
+          <div class="col-12">
+            <div class="hero-section mb-0">
+              <div class="hero-section-title">🎨 Costume Designer</div>
+            </div>
+          </div>
           <div class="col-md-4">
             <label class="form-label">Costume Color</label>
             <input type="text" name="costume_color" class="form-control" placeholder="Blue" required>
@@ -42,42 +56,110 @@
             <label class="form-label">Gloves Color</label>
             <input type="text" name="gloves_color" class="form-control" placeholder="Yellow" required>
           </div>
+        </div>
 
-          <div class="col-md-6">
-            <label class="form-label">Hero Chest Symbol</label>
+        <!-- Row 3: Mask / Cape / Symbol -->
+        <div class="row g-3 mb-2">
+          <div class="col-md-5">
+            <label class="form-label">🛡️ Chest Symbol</label>
             <input type="text" name="chest_symbol" class="form-control" placeholder="Lightning bolt" required>
           </div>
           <div class="col-md-3">
-            <label class="form-label">Eye Mask Color</label>
+            <label class="form-label">👁️ Eye Mask Color</label>
             <input type="text" name="eye_mask_color" class="form-control" placeholder="Black" required>
           </div>
-          <div class="col-md-3">
-            <label class="form-label">Cape Color</label>
+          <div class="col-md-4">
+            <label class="form-label">🦸 Cape Color</label>
             <input type="text" name="cape_color" class="form-control" placeholder="Purple" required>
-          </div>
-
-          <div class="col-12">
-            <label class="form-label">Powers</label>
-            <textarea name="powers" class="form-control" rows="3" placeholder="Example: Super speed, bubble shield, talking to animals." required></textarea>
-          </div>
-
-          <div class="col-12">
-            <label class="form-label">Weakness</label>
-            <textarea name="weakness" class="form-control" rows="3" placeholder="Example: Gets sleepy during rainy weather." required></textarea>
-          </div>
-
-          <div class="col-12">
-            <label class="form-label">Hero Origin</label>
-            <textarea name="hero_origin" class="form-control" rows="4" placeholder="Tell us how your hero got their powers." required></textarea>
           </div>
         </div>
 
-        <div class="d-flex gap-2 mt-4">
-          <button type="submit" class="btn btn-primary">Create Hero</button>
-          <a class="btn btn-outline-secondary" href="{{ url_for('characters.list_characters') }}">Back to Heroes</a>
+        <!-- Powers & Weakness -->
+        <div class="row g-3 mb-2">
+          <div class="col-12">
+            <label class="form-label">⚡ Superpowers</label>
+            <textarea name="powers" class="form-control" rows="2"
+              placeholder="e.g. Super speed, electric blasts, can control lightning storms." required></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">😰 Weakness</label>
+            <textarea name="weakness" class="form-control" rows="2"
+              placeholder="e.g. Gets dizzy in very loud places. Loses power in water." required></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">📖 Hero Origin Story</label>
+            <textarea name="hero_origin" class="form-control" rows="3"
+              placeholder="Tell us how your hero got their powers! The AI will make it even more epic..." required></textarea>
+          </div>
+        </div>
+
+        <!-- Tip box -->
+        <div class="power-editor-tip mb-3">
+          ⏱️ <strong>Heads up!</strong> After you click the button below, our AI will create your hero's image.
+          This takes about <strong>20–40 seconds</strong> — a loading screen will appear.
+          Don't go back or refresh — your hero is being born!
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <button type="submit" class="btn hero-create-submit" id="heroSubmitBtn">
+            ⚡ CREATE MY HERO! ⚡
+          </button>
+          <a class="btn btn-outline-dark fw-bold comic-outline-btn"
+             href="{{ url_for('characters.list_characters') }}">← Back to Heroes</a>
         </div>
       </form>
     </div>
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     EPIC HERO CREATION LOADING OVERLAY
+===================================================== -->
+<div id="heroCreationOverlay" class="hero-creation-overlay" aria-hidden="true" role="alertdialog"
+     aria-label="Creating your hero — please wait">
+
+  <!-- Corner lightning bolts -->
+  <span class="hco-bolt" aria-hidden="true">⚡</span>
+  <span class="hco-bolt" aria-hidden="true">⚡</span>
+  <span class="hco-bolt" aria-hidden="true">⚡</span>
+  <span class="hco-bolt" aria-hidden="true">⚡</span>
+
+  <!-- Star field (JS will populate with .hco-star spans) -->
+  <div class="hco-stars" id="hcoStars" aria-hidden="true"></div>
+
+  <!-- Main title -->
+  <div class="hco-title">YOUR HERO IS BEING BORN! ⚡</div>
+
+  <!-- Comic panel -->
+  <div class="hco-panel">
+    <div class="hco-panel-bg" aria-hidden="true"></div>
+    <div class="hco-panel-inner">
+
+      <!-- Animated icons -->
+      <div class="hco-icons" aria-hidden="true">
+        <span class="hco-icon">✨</span>
+        <span class="hco-icon">🦸</span>
+        <span class="hco-icon">💥</span>
+      </div>
+
+      <!-- Cycling message -->
+      <div class="hco-message" id="hcoMessage">ASSEMBLING COSTUME...</div>
+      <div class="hco-submsg" id="hcoSubMsg">The AI is working its magic right now!</div>
+
+      <!-- Progress bar -->
+      <div class="hco-progress-wrap">
+        <div class="hco-progress-bar" id="hcoProgressBar"></div>
+      </div>
+      <div class="hco-progress-label" id="hcoProgressLabel">0%</div>
+
+    </div>
+  </div>
+
+  <!-- Warning -->
+  <div class="hco-warning" role="status">
+    ⚠️ DON'T GO BACK — YOUR HERO IS ALMOST READY! (~30 SECONDS)
   </div>
 
 </div>
