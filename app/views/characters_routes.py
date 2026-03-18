@@ -18,27 +18,67 @@ from ..services.badges import record_badge_progress
 characters_bp = Blueprint("characters", __name__, url_prefix="/characters")
 
 STYLE_PROMPT = """
-Overall Comic Style:
-- Kid-friendly cartoon comic
-- Thick black outlines
-- Simple, rounded shapes
-- Slightly exaggerated proportions (big heads, expressive eyes)
-- Easy-to-read layouts
-- Clear action and emotions
-- Playful, energetic, hand-drawn feel
+ART STYLE:
+- Premium animated comic book illustration — think DC Animated Series meets modern Marvel comics
+- Clean, bold ink outlines with confident line weight variation (thicker on outer edges, thinner inside)
+- Vivid, highly saturated colours with strong contrast — this image should POP off the page
+- Dramatic cel-shading with clear highlight and shadow areas
+- The finished image should look like professional, print-quality comic book art
 
-Tone:
-- Fun and adventurous
-- Curious and exciting, never scary
-- Mysterious but friendly
-- Heroic in a way kids immediately understand
+COMPOSITION:
+- FULL BODY illustration — show the entire hero from head to boots in a dynamic three-quarter angle
+- Heroic power stance: legs shoulder-width apart, chest forward, one fist raised or energy crackling from hands
+- If the hero has a cape, it billows dramatically behind them as if caught by the wind
+- Background: bold radial speed lines (like a classic comic splash page) on a vibrant gradient — no complex scenes
+- Dramatic rim/back-lighting that creates a glowing aura silhouette around the hero
 
-Motion & Effects:
-- Squiggly energy lines
-- Floating objects when powers activate
-- Big, playful sound effects
-- Action feels bouncy and dynamic, not violent
+POWER VISUALISATION:
+- The hero's powers MUST be visually shown in the image
+- Energy powers → crackling electricity or light around the fists/body
+- Flight powers → wind streaks and upward motion blur
+- Strength powers → glowing muscles, cracked ground beneath feet
+- Animal powers → ghostly animal silhouette behind hero
+- Make the power effect vibrant and unmistakable
+
+TONE:
+- Kid-friendly and age-appropriate — heroic but never scary or violent
+- Determined, confident expression on the hero's face (eyes visible if mask allows)
+- Fun, exciting, adventurous energy — this kid is AWESOME and they know it
+- Proportions can be slightly stylised/heroic but still clearly child-aged
 """.strip()
+
+
+def build_image_prompt(hero_data: dict) -> str:
+    powers_str = hero_data["powers"]
+    name = hero_data["superhero_name"]
+    age = hero_data["age"]
+
+    prompt_lines = [
+        f"SUPERHERO CHARACTER ILLUSTRATION: {name}",
+        "",
+        "=== CHARACTER DETAILS ===",
+        f"Name: {name}",
+        f"Age: {age} years old — this is a CHILD superhero. They look young, brave, and full of energy.",
+        "",
+        "=== COSTUME (render every detail accurately) ===",
+        f"Main costume colour: {hero_data['costume_color']} — the dominant colour of their suit",
+        f"Boots: {hero_data['boots_color']} boots, knee-high or ankle-high",
+        f"Gloves: {hero_data['gloves_color']} gloves or gauntlets",
+        f"Chest emblem: A LARGE, BOLD '{hero_data['chest_symbol']}' symbol prominently displayed on the chest — make it iconic and clearly visible",
+        f"Eye mask: {hero_data['eye_mask_color']} mask across the eyes",
+        f"Cape: {hero_data['cape_color']} cape — billowing dramatically, adds to the heroic silhouette",
+        f"Hair: {hero_data['hair_color']} hair",
+        "",
+        "=== POWERS (MUST be visually shown in the image) ===",
+        f"{powers_str}",
+        "",
+        "=== ORIGIN / PERSONALITY ===",
+        f"{hero_data['origin_story'][:200]}",
+        "",
+        "=== STYLE REQUIREMENTS ===",
+        STYLE_PROMPT,
+    ]
+    return "\n".join(prompt_lines)
 
 MIN_HERO_AGE = 4
 MAX_HERO_AGE = 16
@@ -52,26 +92,6 @@ def normalize_color(value: str) -> str:
     return normalize_text(value).lower()
 
 
-def build_image_prompt(hero_data: dict) -> str:
-    prompt_lines = [
-        "Create a single kid superhero character portrait.",
-        "The hero should look like a child and feel friendly, brave, and fun.",
-        f"Superhero name: {hero_data['superhero_name']}",
-        f"Age: {hero_data['age']} (child hero)",
-        f"Costume color: {hero_data['costume_color']}",
-        f"Boots color: {hero_data['boots_color']}",
-        f"Gloves color: {hero_data['gloves_color']}",
-        f"Chest symbol: {hero_data['chest_symbol']}",
-        f"Eye mask color: {hero_data['eye_mask_color']}",
-        f"Cape color: {hero_data['cape_color']}",
-        f"Hair color: {hero_data['hair_color']}",
-        f"Powers: {hero_data['powers']}",
-        f"Weakness: {hero_data['weakness']}",
-        f"Origin story: {hero_data['origin_story']}",
-        "",
-        STYLE_PROMPT,
-    ]
-    return "\n".join(prompt_lines)
 
 
 def save_generated_image_bytes(image_bytes: bytes) -> str:

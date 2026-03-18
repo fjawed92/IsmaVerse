@@ -1,9 +1,8 @@
 /* =====================================================
-   ISMAVERSE — COMIC THEME (Organized)
-   Style goals:
-   - Bold ink outlines, paper background, playful bursts
-   - Dog Man / Captain Underpants vibe
-   - Keep Bootstrap defaults where helpful
+   ISMAVERSE — EPIC SUPERHERO COMIC UNIVERSE v2.0
+   Major visual upgrade: more cinematic, more awesome.
+   All original class names preserved for compatibility.
+   NEW: Hero creation loading screen
 ===================================================== */
 
 
@@ -14,16 +13,26 @@
   --ink: #111111;
   --paper: #fff7e6;
 
-  /* Dog Man / Captain Underpants palette */
-  --comic-blue: #1e6bff;
+  /* Core comic palette */
+  --comic-blue:   #1e6bff;
   --comic-yellow: #ffd400;
-  --comic-red: #ff2d2d;
-  --comic-green: #22ff66;
-  --comic-pink: #ff5ad6;
+  --comic-red:    #ff2d2d;
+  --comic-green:  #22ff66;
+  --comic-pink:   #ff5ad6;
 
-  --shadow: 4px 4px 0 var(--ink);
-  --shadow-lg: 8px 8px 0 var(--ink);
+  /* Glow / aura variants */
+  --glow-blue:   rgba(30,  107, 255, 0.45);
+  --glow-yellow: rgba(255, 212,   0, 0.45);
+  --glow-red:    rgba(255,  45,  45, 0.45);
+  --glow-green:  rgba( 34, 255, 102, 0.45);
+  --glow-pink:   rgba(255,  90, 214, 0.45);
 
+  /* Shadows */
+  --shadow:    4px  4px 0 var(--ink);
+  --shadow-lg: 8px  8px 0 var(--ink);
+  --shadow-xl: 14px 14px 0 var(--ink);
+
+  /* Border radius */
   --radius-md: 18px;
   --radius-lg: 22px;
 }
@@ -34,7 +43,7 @@
 ===================================================== */
 body {
   background:
-    radial-gradient(circle at 1px 1px, rgba(0,0,0,.12) 1px, transparent 1.8px) 0 0/14px 14px,
+    radial-gradient(circle at 1px 1px, rgba(0,0,0,.11) 1px, transparent 1.9px) 0 0/14px 14px,
     var(--paper);
   font-family: "Comic Neue", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color: var(--ink);
@@ -62,19 +71,16 @@ button:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   .lightning,
   .isma-ultra-wrapper::before,
-  .hero-origin-wrap {
+  .hero-origin-wrap,
+  .btn-comic-cta::after,
+  .burst,
+  .hero-creation-overlay * {
     animation: none !important;
+    transition: none !important;
   }
-
   .hero-origin-wrap {
     opacity: 1 !important;
     transform: none !important;
-  }
-
-  .hero-card,
-  .btn-comic-cta,
-  .comic-tile-link {
-    transition: none !important;
   }
 }
 
@@ -82,103 +88,100 @@ button:focus-visible,
 /* =====================================================
    4) NAVBAR — Superhero Comic Book Edition
 ===================================================== */
-
-/* --- Base nav container ---
-   CRITICAL: NO overflow:hidden here — it clips dropdown menus.
-   The decorative backdrop is a child div instead of ::before/::after. */
 .comic-nav {
   position: relative;
-  background: #0d0d20;
+  background: #0a0a1a;
   border-bottom: 5px solid var(--comic-yellow);
-  box-shadow: 0 5px 0 var(--ink), 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 5px 0 var(--ink), 0 8px 40px rgba(255,212,0,.15);
   padding: 0.35rem 0;
   z-index: 1030;
 }
 
-/* Decorative halftone + glow backdrop (child div, not pseudo — preserves overflow:visible) */
 .comic-nav-backdrop {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 8% 50%, rgba(30, 107, 255, 0.25) 0%, transparent 55%),
-    radial-gradient(circle at 92% 50%, rgba(255, 45, 45, 0.2) 0%, transparent 55%),
-    radial-gradient(circle at 50% 50%, rgba(255, 212, 0, 0.06) 0%, transparent 70%),
-    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1px, transparent 2px) 0 0/16px 16px;
+    radial-gradient(circle at 8%  50%, rgba(30,107,255,.28) 0%, transparent 52%),
+    radial-gradient(circle at 92% 50%, rgba(255,45,45,.22)  0%, transparent 52%),
+    radial-gradient(circle at 50% 50%, rgba(255,212,0,.07)  0%, transparent 65%),
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,.06) 1px, transparent 2px) 0 0/16px 16px;
   pointer-events: none;
   z-index: 0;
 }
 
-/* All direct children of container sit above backdrop */
 .comic-nav .container {
   position: relative;
   z-index: 1;
 }
 
-/* --- Brand / Logo --- */
+/* --- Brand --- */
 .comic-brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   text-decoration: none;
 }
 
 .comic-badge {
   display: inline-block;
-  background: radial-gradient(circle at 30% 30%, #fff9b0 0%, var(--comic-yellow) 60%, #e6a800 100%);
+  background: radial-gradient(circle at 30% 30%, #fff9b0 0%, var(--comic-yellow) 55%, #c98800 100%);
   border: 3px solid var(--ink);
   border-radius: 4px;
-  padding: 0.15rem 0.55rem;
+  padding: .15rem .6rem;
   font-family: "Bangers", cursive;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 900;
   letter-spacing: 1.5px;
   color: var(--ink);
-  text-shadow: none;
   box-shadow: 3px 3px 0 var(--ink);
   transform: rotate(-5deg);
-  transition: transform 0.2s ease;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .comic-brand:hover .comic-badge {
-  transform: rotate(5deg) scale(1.05);
+  transform: rotate(5deg) scale(1.08);
+  box-shadow: 4px 4px 0 var(--ink);
 }
 
 .brand-title {
   font-family: "Bangers", cursive;
-  font-size: 1.75rem;
-  letter-spacing: 2px;
+  font-size: 1.85rem;
+  letter-spacing: 2.5px;
   color: #ffffff;
-  /* layered shadow: red offset + dark depth — no double-text since it's the brand only */
-  text-shadow: 2px 2px 0 var(--comic-red), 4px 4px 0 rgba(0, 0, 0, 0.4);
-  transition: text-shadow 0.2s ease;
+  text-shadow:
+    2px  2px 0 var(--comic-red),
+    4px  4px 0 rgba(0,0,0,.5),
+    0 0 20px rgba(255,212,0,.3);
+  transition: text-shadow .2s ease;
 }
 
 .comic-brand:hover .brand-title {
-  text-shadow: 2px 2px 0 var(--comic-yellow), 4px 4px 0 rgba(0, 0, 0, 0.4);
+  text-shadow:
+    2px  2px 0 var(--comic-yellow),
+    4px  4px 0 rgba(0,0,0,.5),
+    0 0 30px rgba(255,212,0,.6);
 }
 
-/* --- Nav list --- */
+/* --- Nav links --- */
 .comic-nav .navbar-nav {
-  gap: 0.15rem;
+  gap: .15rem;
   align-items: stretch;
 }
 
-/* --- Individual nav links ---
-   text-shadow intentionally NONE to prevent the double-text hover bug */
 .comic-link {
   font-family: "Bangers", cursive;
   font-size: 1.05rem;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: #d8d8ff !important;
-  text-shadow: none;                    /* NO shadow = NO double-text bug */
+  text-shadow: none;
   background: transparent;
   border: 2px solid transparent;
   border-radius: 4px;
-  padding: 0.4rem 0.75rem !important;
-  transition: background 0.15s ease, color 0.15s ease,
-              box-shadow 0.15s ease, transform 0.15s ease,
-              border-color 0.15s ease;
+  padding: .4rem .75rem !important;
+  transition: background .15s ease, color .15s ease,
+              box-shadow .15s ease, transform .15s ease,
+              border-color .15s ease;
   white-space: nowrap;
 }
 
@@ -186,29 +189,27 @@ button:focus-visible,
 .comic-link:focus-visible {
   background: var(--comic-yellow);
   color: var(--ink) !important;
-  text-shadow: none;                    /* Explicitly none — kills any inherited shadow */
+  text-shadow: none;
   border-color: var(--ink);
   box-shadow: 3px 3px 0 var(--ink);
   transform: translateY(-2px);
   outline: none;
 }
 
-/* Show item is active / open */
 .comic-link.show,
 .nav-item.show > .comic-link {
-  background: rgba(255, 212, 0, 0.15);
+  background: rgba(255,212,0,.18);
   border-color: var(--comic-yellow);
   color: var(--comic-yellow) !important;
   text-shadow: none;
 }
 
-/* Dropdown caret colour fix */
 .comic-link.dropdown-toggle::after {
   border-top-color: currentColor;
-  vertical-align: 0.18em;
+  vertical-align: .18em;
 }
 
-/* Separator dots between items (desktop only) */
+/* Star separators */
 .comic-nav .nav-item {
   position: relative;
 }
@@ -219,7 +220,7 @@ button:focus-visible,
   left: -4px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 0.5rem;
+  font-size: .5rem;
   color: var(--comic-pink);
   pointer-events: none;
   line-height: 1;
@@ -229,18 +230,17 @@ button:focus-visible,
 .comic-dropdown {
   background: #ffffff;
   border: 3px solid var(--ink);
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 10px 10px;
   border-top: 4px solid var(--comic-yellow);
-  box-shadow: 5px 5px 0 var(--ink);
-  padding: 0.4rem 0;
+  box-shadow: 6px 6px 0 var(--ink);
+  padding: .4rem 0;
   min-width: 210px;
-  /* z-index above sticky nav */
   z-index: 1050 !important;
-  animation: dropIn 0.15s ease forwards;
+  animation: dropIn .15s ease forwards;
 }
 
 @keyframes dropIn {
-  from { opacity: 0; transform: translateY(-6px); }
+  from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -250,9 +250,9 @@ button:focus-visible,
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--ink);
-  padding: 0.5rem 1.2rem;
+  padding: .5rem 1.2rem;
   border-left: 4px solid transparent;
-  transition: background 0.1s ease, border-color 0.1s ease;
+  transition: background .1s ease, border-color .1s ease;
 }
 
 .comic-dropdown .dropdown-item:hover,
@@ -264,30 +264,51 @@ button:focus-visible,
 }
 
 .comic-dropdown .dropdown-divider {
-  border-color: rgba(17, 17, 17, 0.2);
-  margin: 0.3rem 0.8rem;
+  border-color: rgba(17,17,17,.2);
+  margin: .3rem .8rem;
 }
 
 /* --- CTA button --- */
 .comic-cta-item {
-  margin-left: 0.5rem;
+  margin-left: .5rem;
 }
 
 .btn-comic-cta {
+  position: relative;
+  overflow: hidden;
   font-family: "Bangers", cursive;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   letter-spacing: 2px;
   text-transform: uppercase;
   background: var(--comic-red);
   color: #ffffff !important;
-  text-shadow: none;                    /* No double-text */
+  text-shadow: 1px 1px 0 rgba(0,0,0,.35);
   border: 3px solid var(--ink);
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 var(--ink);
-  padding: 0.35rem 1.1rem;
-  transition: background 0.15s ease, color 0.15s ease,
-              box-shadow 0.15s ease, transform 0.15s ease;
+  border-radius: 6px;
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: .38rem 1.15rem;
+  transition: background .15s ease, color .15s ease,
+              box-shadow .15s ease, transform .15s ease;
   display: inline-block;
+}
+
+/* Shimmer sweep */
+.btn-comic-cta::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -80%;
+  width: 55%;
+  height: 200%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,.45), transparent);
+  transform: skewX(-20deg);
+  animation: shimmerSweep 3.5s infinite;
+}
+
+@keyframes shimmerSweep {
+  0%   { left: -80%; }
+  60%  { left: 150%; }
+  100% { left: 150%; }
 }
 
 .btn-comic-cta:hover,
@@ -307,7 +328,7 @@ button:focus-visible,
   border-radius: 4px;
   box-shadow: 2px 2px 0 var(--ink);
   padding: 6px 10px;
-  transition: border-color 0.2s;
+  transition: border-color .2s;
 }
 
 .comic-toggler:focus-visible {
@@ -328,14 +349,13 @@ button:focus-visible,
   display: block;
   height: 3px;
   border-radius: 2px;
-  transition: transform 0.25s ease, opacity 0.2s ease, width 0.2s ease, background 0.2s ease;
+  transition: transform .25s ease, opacity .2s ease, width .2s ease, background .2s ease;
 }
 
 .comic-burger span:nth-child(1) { background: var(--comic-yellow); width: 100%; }
 .comic-burger span:nth-child(2) { background: var(--comic-pink);   width: 72%; }
 .comic-burger span:nth-child(3) { background: var(--comic-green);  width: 48%; }
 
-/* X state when menu is open */
 .comic-toggler[aria-expanded="true"] {
   border-color: var(--comic-red);
 }
@@ -359,88 +379,56 @@ button:focus-visible,
 
 /* --- Mobile collapse panel --- */
 @media (max-width: 991.98px) {
-  /* Hide star separators on mobile */
-  .comic-nav .nav-item + .nav-item::before {
-    display: none;
-  }
+  .comic-nav .nav-item + .nav-item::before { display: none; }
 
   .comic-nav .navbar-collapse {
     background: #0f0f25;
     border: 3px solid var(--comic-yellow);
     border-top: none;
-    box-shadow: 4px 8px 0 var(--ink);
-    padding: 0.75rem 1rem 1rem;
+    box-shadow: 4px 10px 0 var(--ink);
+    padding: .75rem 1rem 1rem;
     margin-top: 4px;
   }
 
-  .comic-nav .navbar-nav {
-    gap: 0.3rem;
-  }
+  .comic-nav .navbar-nav { gap: .3rem; }
 
   .comic-link {
-    padding: 0.55rem 1rem !important;
-    border: 2px solid rgba(255, 255, 255, 0.12);
+    padding: .55rem 1rem !important;
+    border: 2px solid rgba(255,255,255,.12);
     border-radius: 4px;
     color: #e8e8ff !important;
   }
 
-  .comic-link:hover {
-    transform: none;
-  }
+  .comic-link:hover { transform: none; }
 
-  /* Dropdowns go inline / static on mobile */
   .comic-nav .dropdown-menu {
     position: static !important;
     float: none;
     box-shadow: none;
-    border: 2px solid rgba(255, 212, 0, 0.3);
+    border: 2px solid rgba(255,212,0,.3);
     border-top: 2px solid var(--comic-yellow);
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255,255,255,.05);
     border-radius: 4px;
     margin: 4px 0 4px 1rem;
     animation: none;
   }
 
-  .comic-nav .dropdown-menu .dropdown-item {
-    color: #d8d8ff;
-    font-size: 0.95rem;
-  }
+  .comic-nav .dropdown-menu .dropdown-item { color: #d8d8ff; font-size: .95rem; }
+  .comic-nav .dropdown-menu .dropdown-item:hover { background: var(--comic-yellow); color: var(--ink); }
 
-  .comic-nav .dropdown-menu .dropdown-item:hover {
-    background: var(--comic-yellow);
-    color: var(--ink);
-  }
+  .comic-cta-item { margin-left: 0; margin-top: .5rem; }
 
-  .comic-cta-item {
-    margin-left: 0;
-    margin-top: 0.5rem;
-  }
-
-  .btn-comic-cta {
-    width: 100%;
-    text-align: center;
-    display: block;
-  }
+  .btn-comic-cta { width: 100%; text-align: center; display: block; }
 }
 
 /* --- Desktop tweaks --- */
 @media (min-width: 992px) {
-  .comic-nav .navbar-nav {
-    flex-wrap: nowrap;
-    gap: 0.1rem;
-  }
-
-  .comic-link {
-    padding-left: 0.65rem !important;
-    padding-right: 0.65rem !important;
-  }
+  .comic-nav .navbar-nav { flex-wrap: nowrap; gap: .1rem; }
+  .comic-link { padding-left: .65rem !important; padding-right: .65rem !important; }
 }
 
 @media (min-width: 1200px) {
-  .comic-link {
-    padding-left: 0.8rem !important;
-    padding-right: 0.8rem !important;
-  }
+  .comic-link { padding-left: .8rem !important; padding-right: .8rem !important; }
 }
 
 
@@ -456,18 +444,36 @@ button:focus-visible,
 }
 
 .panel-header {
-  background: linear-gradient(90deg, var(--comic-red), #ff6a6a);
+  background: linear-gradient(135deg, #c8001a 0%, var(--comic-red) 45%, #ff6a6a 100%);
   color: #ffffff;
   border-bottom: 4px solid var(--ink);
-  padding: 1rem;
+  padding: 1.1rem 1.2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Speed-line overlay on panel headers */
+.panel-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -55deg,
+    transparent,
+    transparent 12px,
+    rgba(255,255,255,.055) 12px,
+    rgba(255,255,255,.055) 13px
+  );
+  pointer-events: none;
 }
 
 .panel-title {
   font-family: "Bangers", cursive;
-  font-size: 2rem;
-  letter-spacing: 1px;
+  font-size: 2.2rem;
+  letter-spacing: 2px;
   margin: 0;
-  text-shadow: 1px 1px 0 rgba(0,0,0,.4);
+  text-shadow: 2px 2px 0 rgba(0,0,0,.4);
+  position: relative;
 }
 
 
@@ -478,7 +484,7 @@ button:focus-visible,
   background: #ffffff;
   border: 4px solid var(--ink);
   border-radius: var(--radius-lg);
-  padding: 1.2rem;
+  padding: 1.3rem;
   box-shadow: var(--shadow);
   position: relative;
 }
@@ -487,8 +493,8 @@ button:focus-visible,
   content: "";
   position: absolute;
   left: 30px;
-  bottom: -18px;
-  border: 18px solid transparent;
+  bottom: -19px;
+  border: 19px solid transparent;
   border-top-color: var(--ink);
 }
 
@@ -509,11 +515,18 @@ button:focus-visible,
   display: inline-block;
   background: var(--comic-yellow);
   border: 4px solid var(--ink);
-  padding: .4rem .75rem;
+  padding: .4rem .8rem;
   font-family: "Bangers", cursive;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   box-shadow: var(--shadow);
   transform: rotate(6deg);
+  animation: burstWiggle 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes burstWiggle {
+  0%,100% { transform: rotate(6deg) scale(1); }
+  50%      { transform: rotate(8deg) scale(1.04); }
 }
 
 .burst.burst-blue {
@@ -539,10 +552,6 @@ button:focus-visible,
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.hero-origin-wrap:hover {
-  transform: translateY(0) scale(1.03);
-}
-
 
 /* =====================================================
    9) TILES (HOME BOTTOM)
@@ -552,7 +561,7 @@ button:focus-visible,
   border: 4px solid var(--ink);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
-  padding: 1rem;
+  padding: 1.1rem;
 }
 
 .comic-tile h3,
@@ -563,17 +572,17 @@ button:focus-visible,
 }
 
 .comic-tile-link {
-  transition: transform .15s ease, box-shadow .15s ease;
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
 .comic-tile-link:hover {
-  transform: translateY(-2px) rotate(-0.5deg);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px) rotate(-0.6deg);
+  box-shadow: var(--shadow-xl);
 }
 
 
 /* =====================================================
-   10) BADGE STRIP (HOME)
+   10) BADGE STRIP
 ===================================================== */
 .badge-panel {
   background: #ffffff;
@@ -584,7 +593,7 @@ button:focus-visible,
 }
 
 .badge-panel .panel-header {
-  background: linear-gradient(90deg, var(--comic-blue), #6fd6ff);
+  background: linear-gradient(135deg, #1230c0 0%, var(--comic-blue) 45%, #6fd6ff 100%);
 }
 
 .badge-strip {
@@ -608,6 +617,7 @@ button:focus-visible,
   width: 120px;
   height: 120px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-family: "Bangers", cursive;
@@ -623,22 +633,18 @@ button:focus-visible,
     50% 100%, 40% 88%, 22% 94%, 22% 76%, 6% 80%, 12% 62%,
     0% 50%, 12% 38%, 6% 20%, 22% 24%, 22% 6%, 40% 12%
   );
+  transition: transform .2s ease, filter .2s ease;
 }
 
-.badge-sticker--yellow {
-  background: radial-gradient(circle at top, #fff9b8, var(--comic-yellow) 70%);
+.badge-item:not(.is-locked) .badge-sticker:hover {
+  transform: scale(1.08) rotate(5deg);
 }
 
-.badge-sticker--green {
-  background: radial-gradient(circle at top, #d6ffea, var(--comic-green) 70%);
-}
-
-.badge-sticker--pink {
-  background: radial-gradient(circle at top, #ffd1f2, var(--comic-pink) 70%);
-}
-
-.badge-sticker--blue {
-  background: radial-gradient(circle at top, #cce8ff, var(--comic-blue) 70%);
+.badge-sticker--yellow { background: radial-gradient(circle at 30% 30%, #fff9b8, var(--comic-yellow) 70%); }
+.badge-sticker--green  { background: radial-gradient(circle at 30% 30%, #d6ffea, var(--comic-green) 70%); }
+.badge-sticker--pink   { background: radial-gradient(circle at 30% 30%, #ffd1f2, var(--comic-pink) 70%); }
+.badge-sticker--blue   {
+  background: radial-gradient(circle at 30% 30%, #cce8ff, var(--comic-blue) 70%);
   color: #ffffff;
   text-shadow: 2px 2px 0 var(--ink);
 }
@@ -650,8 +656,8 @@ button:focus-visible,
 
 .badge-item.is-locked .badge-sticker {
   filter: grayscale(1);
-  opacity: .55;
-  transform: scale(.96);
+  opacity: .5;
+  transform: scale(.95);
 }
 
 .badge-item.is-locked .badge-status::after {
@@ -662,19 +668,7 @@ button:focus-visible,
 /* =====================================================
    11) BUTTONS
 ===================================================== */
-.btn-comic-cta {
-  background: var(--comic-yellow);
-  color: var(--ink);
-  border: 3px solid var(--ink);
-  font-weight: 900;
-  box-shadow: var(--shadow);
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-
-.btn-comic-cta:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 6px 6px 0 var(--ink);
-}
+/* btn-comic-cta is defined in section 4 above (navbar CTA) */
 
 .comic-outline-btn {
   border-width: 3px;
@@ -683,7 +677,7 @@ button:focus-visible,
 
 
 /* =====================================================
-   11) COMMENT PANELS
+   12) COMMENT PANELS
 ===================================================== */
 .comment-form {
   background: #fffdf6;
@@ -748,7 +742,7 @@ button:focus-visible,
 
 .comment-body {
   font-weight: 700;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 
@@ -756,7 +750,7 @@ button:focus-visible,
    13) ADMIN PAGES
 ===================================================== */
 .admin-hero {
-  background: linear-gradient(135deg, var(--comic-yellow), #ffe89c);
+  background: linear-gradient(135deg, #fff0a0, var(--comic-yellow), #ffe89c);
   border: 4px solid var(--ink);
   border-radius: var(--radius-md);
   padding: 1.5rem;
@@ -769,7 +763,7 @@ button:focus-visible,
   content: "";
   position: absolute;
   inset: 12px;
-  border: 2px dashed rgba(0,0,0,.25);
+  border: 2px dashed rgba(0,0,0,.22);
   border-radius: var(--radius-md);
   pointer-events: none;
 }
@@ -788,14 +782,12 @@ button:focus-visible,
 
 .admin-hero-title {
   font-family: "Bangers", cursive;
-  font-size: 2.6rem;
+  font-size: 2.8rem;
   margin: .75rem 0 .25rem;
-  text-shadow: 1px 1px 0 rgba(0,0,0,.35);
+  text-shadow: 2px 2px 0 rgba(0,0,0,.3);
 }
 
-.admin-hero-title.no-shadow {
-  text-shadow: none;
-}
+.admin-hero-title.no-shadow { text-shadow: none; }
 
 .admin-hero-subtitle {
   max-width: 720px;
@@ -803,7 +795,7 @@ button:focus-visible,
 }
 
 .admin-panel .panel-header {
-  background: linear-gradient(90deg, var(--comic-blue), #6aa7ff);
+  background: linear-gradient(135deg, #0e3fa0 0%, var(--comic-blue) 50%, #6aa7ff 100%);
 }
 
 .admin-count {
@@ -812,25 +804,10 @@ button:focus-visible,
   font-weight: 800;
 }
 
-.comic-table {
-  border-color: var(--ink);
-  border-width: 3px;
-}
-
-.comic-table thead {
-  background: var(--comic-yellow);
-}
-
-.comic-table th {
-  border-color: var(--ink);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-
-.comic-table td {
-  border-color: var(--ink);
-}
+.comic-table { border-color: var(--ink); border-width: 3px; }
+.comic-table thead { background: var(--comic-yellow); }
+.comic-table th { border-color: var(--ink); font-weight: 900; text-transform: uppercase; letter-spacing: .5px; }
+.comic-table td { border-color: var(--ink); }
 
 .admin-role-pill {
   display: inline-block;
@@ -846,7 +823,8 @@ button:focus-visible,
 .comic-form .form-control {
   border: 3px solid var(--ink);
   border-radius: 14px;
-  box-shadow: var(--shadow);
+  box-shadow: 3px 3px 0 rgba(0,0,0,.1);
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
 
 .comic-form .form-control:focus {
@@ -862,7 +840,7 @@ button:focus-visible,
 
 
 /* =====================================================
-   11) ISMA ULTRA IMAGE + GREEN GLOW
+   14) ISMA ULTRA IMAGE + GREEN GLOW
 ===================================================== */
 .isma-ultra-wrapper {
   position: relative;
@@ -873,31 +851,32 @@ button:focus-visible,
 .isma-ultra-wrapper::before {
   content: "";
   position: absolute;
-  inset: -20px;
+  inset: -22px;
   background:
     radial-gradient(circle at 20% 30%, rgba(34,255,102,.9), transparent 45%),
     radial-gradient(circle at 80% 60%, rgba(34,255,102,.8), transparent 50%),
     radial-gradient(circle at 50% 90%, rgba(34,255,102,.7), transparent 55%);
-  filter: blur(20px);
+  filter: blur(22px);
   z-index: -1;
   animation: pulseGlow 2.5s infinite ease-in-out;
 }
 
 @keyframes pulseGlow {
-  0%   { opacity: .6; transform: scale(1); }
-  50%  { opacity: 1;  transform: scale(1.06); }
-  100% { opacity: .6; transform: scale(1); }
+  0%   { opacity: .55; transform: scale(1); }
+  50%  { opacity: 1;   transform: scale(1.07); }
+  100% { opacity: .55; transform: scale(1); }
 }
 
 .comic-hero-img {
   border: 5px solid var(--ink);
   box-shadow: var(--shadow-lg);
   background: #ffffff;
+  border-radius: 12px;
 }
 
 
 /* =====================================================
-   12) LIGHTNING EFFECT (OPTIONAL)
+   15) LIGHTNING EFFECT
 ===================================================== */
 .lightning {
   position: absolute;
@@ -905,14 +884,10 @@ button:focus-visible,
   height: 220px;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.95),
-    rgba(34,255,102,0.95)
-  );
+  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(34,255,102,.95));
   filter:
-    drop-shadow(0 0 12px rgba(34,255,102,0.95))
-    drop-shadow(0 0 22px rgba(34,255,102,0.75));
+    drop-shadow(0 0 12px rgba(34,255,102,.95))
+    drop-shadow(0 0 22px rgba(34,255,102,.75));
   clip-path: polygon(
     45% 0%, 60% 12%, 52% 18%, 68% 30%, 54% 36%,
     72% 50%, 50% 58%, 64% 72%, 44% 78%, 56% 92%,
@@ -935,7 +910,7 @@ button:focus-visible,
 
 
 /* =====================================================
-   13) PDF VIEWER
+   16) PDF VIEWER
 ===================================================== */
 .comic-pdf-frame {
   width: 100%;
@@ -948,195 +923,102 @@ button:focus-visible,
 
 
 /* =====================================================
-   15) RESPONSIVE / MOBILE TWEAKS
-   - Smaller typography on narrow screens
-   - Friendlier navbar collapse behavior
-   - Cozy padding for panels + speech bubbles
+   17) RESPONSIVE / MOBILE TWEAKS
 ===================================================== */
 @media (max-width: 991.98px) {
-  .panel-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: .35rem;
-  }
+  .panel-header { flex-direction: column; align-items: flex-start; gap: .35rem; }
+  .panel-title  { font-size: 1.6rem; text-align: left; }
+  .panel-header .burst { align-self: flex-start; }
 
-  .panel-title {
-    font-size: 1.55rem;
-    text-align: left;
-  }
+  .speech, .comic-panel > .p-4 { padding: 1rem; }
+  .brand-title { font-size: 1.4rem; }
 
-  .panel-header .burst {
-    align-self: flex-start;
-  }
+  .comic-nav .navbar-nav { align-items: stretch; gap: .25rem; }
+  .comic-nav .nav-item  { width: 100%; }
+  .comic-nav .nav-item::after { display: none; }
+  .comic-nav .nav-link, .comic-nav .btn { width: 100%; text-align: center; }
+  .comic-nav .btn { margin-top: .25rem; }
 
-  .speech,
-  .comic-panel > .p-4 {
-    padding: 1rem;
-  }
+  .hero-page-header { text-align: center; padding: 1rem; }
+  .hero-title { font-size: 1.65rem; }
+  .hero-subtitle { font-size: .95rem; }
 
-  .brand-title {
-    font-size: 1.35rem;
-  }
+  .hero-card-footer { flex-direction: column; gap: .45rem; align-items: flex-start; }
+  .hero-card-header { padding: .85rem; }
+  .hero-section { padding: .6rem .75rem; }
+  .comic-tile  { padding: .85rem; }
 
-  .comic-nav .navbar-nav {
-    align-items: stretch;
-    gap: .25rem;
-  }
+  .btn-comic-cta, .comic-outline-btn { width: 100%; justify-content: center; }
 
-  .comic-nav .nav-item {
-    width: 100%;
-  }
-
-  .comic-nav .nav-item::after {
-    display: none;
-  }
-
-  .comic-nav .nav-link,
-  .comic-nav .btn {
-    width: 100%;
-    text-align: center;
-  }
-
-  .comic-nav .btn {
-    margin-top: .25rem;
-  }
-
-  .hero-page-header {
-    text-align: center;
-    padding: 1rem;
-  }
-
-  .hero-title {
-    font-size: 1.6rem;
-  }
-
-  .hero-subtitle {
-    font-size: .95rem;
-  }
-
-  .hero-card-footer {
-    flex-direction: column;
-    gap: .45rem;
-    align-items: flex-start;
-  }
-
-  .hero-card-header {
-    padding: .85rem;
-  }
-
-  .hero-section {
-    padding: .6rem .75rem;
-  }
-
-  .comic-tile {
-    padding: .85rem;
-  }
-
-  .btn-comic-cta,
-  .comic-outline-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .admin-hero {
-    text-align: center;
-    padding: 1.1rem;
-  }
-
-  .admin-hero-label {
-    margin: 0 auto .35rem auto;
-    display: inline-block;
-  }
-
-  .admin-hero-title {
-    font-size: 2rem;
-  }
-
-  .admin-hero-subtitle {
-    max-width: 480px;
-    margin: 0 auto;
-  }
-
-  .comic-pdf-frame {
-    height: 70vh;
-  }
+  .admin-hero { text-align: center; padding: 1.1rem; }
+  .admin-hero-label  { margin: 0 auto .35rem auto; display: inline-block; }
+  .admin-hero-title  { font-size: 2rem; }
+  .admin-hero-subtitle { max-width: 480px; margin: 0 auto; }
+  .comic-pdf-frame  { height: 70vh; }
 }
 
 @media (max-width: 575.98px) {
-  body {
-    font-size: .97rem;
-  }
-
-  .panel-title {
-    font-size: 1.35rem;
-  }
-
-  .brand-title {
-    font-size: 1.2rem;
-  }
-
-  .hero-name {
-    font-size: 1.1rem;
-  }
-
-  .hero-section-title {
-    font-size: .8rem;
-  }
-
-  .hero-section-text {
-    font-size: .95rem;
-  }
-
-  .hero-burst {
-    top: 10px;
-    right: 8px;
-  }
-
-  .hero-card-footer {
-    align-items: stretch;
-  }
-
-  .hero-footer-note {
-    text-align: left;
-  }
+  body { font-size: .97rem; }
+  .panel-title { font-size: 1.35rem; }
+  .brand-title { font-size: 1.2rem; }
+  .hero-name { font-size: 1.1rem; }
+  .hero-section-title { font-size: .8rem; }
+  .hero-section-text  { font-size: .95rem; }
+  .hero-burst { top: 10px; right: 8px; }
+  .hero-card-footer { align-items: stretch; }
+  .hero-footer-note { text-align: left; }
 }
 
 
 /* =====================================================
-   14) CHARACTERS PAGE — HERO CARDS (Dog Man style)
+   18) CHARACTERS PAGE — EPIC HERO CARDS
 ===================================================== */
 .hero-page-header {
-  padding: 1.25rem;
+  padding: 1.4rem;
   border: 4px solid var(--ink);
   border-radius: var(--radius-md);
-  background: #fff;
-  box-shadow: 6px 6px 0 var(--ink);
+  background: linear-gradient(135deg, #ffffff 60%, #fff9d0 100%);
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle speed lines in page header */
+.hero-page-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -60deg, transparent, transparent 18px,
+    rgba(0,0,0,.025) 18px, rgba(0,0,0,.025) 19px
+  );
+  pointer-events: none;
 }
 
 .hero-kicker {
   display: inline-block;
-  font-weight: 900;
-  letter-spacing: 1px;
-  font-size: .85rem;
-  padding: .25rem .6rem;
+  font-family: "Bangers", cursive;
+  font-size: .95rem;
+  letter-spacing: 2px;
+  padding: .3rem .8rem;
   border: 3px solid var(--ink);
   border-radius: 999px;
   background: var(--comic-yellow);
+  box-shadow: 3px 3px 0 var(--ink);
 }
 
 .hero-title {
+  font-family: "Bangers", cursive;
+  font-size: 2.6rem;
+  letter-spacing: 2px;
   margin: .6rem 0 .25rem;
-  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  text-shadow: 3px 3px 0 rgba(0,0,0,.12);
 }
 
-.hero-subtitle {
-  color: #222;
-  font-weight: 600;
-}
+.hero-subtitle { color: #222; font-weight: 600; }
 
-/* Card */
+/* ---- The Card ---- */
 .hero-card {
   position: relative;
   border: 4px solid var(--ink);
@@ -1145,34 +1027,34 @@ button:focus-visible,
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   transform: rotate(-0.4deg);
-  transition: transform .15s ease, box-shadow .15s ease;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .hero-card:hover {
-  transform: rotate(0deg) translateY(-2px);
-  box-shadow: 10px 10px 0 var(--ink);
+  transform: rotate(0deg) translateY(-6px);
+  box-shadow:
+    0 0 0 3px var(--comic-yellow),
+    var(--shadow-xl);
 }
 
-/* Image */
-/* Image frame (keeps consistent card layout) */
+/* Image frame */
 .hero-avatar-wrap {
   padding: 14px;
-  background: #fff;
+  background: linear-gradient(145deg, #f0f8ff, #e8f4ff, #ffffff);
   border-bottom: 4px solid var(--ink);
 }
 
 .hero-avatar {
   width: 100%;
-  height: 260px;            /* a bit taller so full body fits better */
-  object-fit: contain;      /* IMPORTANT: show whole image (no crop) */
-  object-position: center;  /* center it */
+  height: 280px;
+  object-fit: contain;
+  object-position: center;
   border: 4px solid var(--ink);
   border-radius: 16px;
-  box-shadow: 5px 5px 0 var(--ink);
-  background: #ffffff;      /* prevents ugly empty space */
-  padding: 8px;             /* “zoom out” feel inside the frame */
+  box-shadow: 6px 6px 0 var(--ink);
+  background: #ffffff;
+  padding: 6px;
 }
-
 
 .hero-avatar-placeholder {
   height: 220px;
@@ -1182,11 +1064,7 @@ button:focus-visible,
   font-family: "Bangers", cursive;
   letter-spacing: 1px;
   background: repeating-linear-gradient(
-    45deg,
-    #eee,
-    #eee 10px,
-    #ddd 10px,
-    #ddd 20px
+    45deg, #eee, #eee 10px, #ddd 10px, #ddd 20px
   );
   border-bottom: 4px solid var(--ink);
 }
@@ -1198,21 +1076,24 @@ button:focus-visible,
   box-shadow: 3px 3px 0 var(--ink);
 }
 
-/* Header stripe */
+/* Card header with halftone pattern */
 .hero-card-header {
   padding: 1rem 1rem .75rem;
   background:
-    radial-gradient(circle at 2px 2px, rgba(0,0,0,.10) 2px, transparent 3px) 0 0/10px 10px,
-    linear-gradient(135deg, #B7F7FF 0%, #FFFFFF 55%);
+    radial-gradient(circle at 2px 2px, rgba(0,0,0,.08) 2px, transparent 3px) 0 0/10px 10px,
+    linear-gradient(135deg, #c5f0ff 0%, #e8faff 45%, #ffffff 100%);
   border-bottom: 4px solid var(--ink);
 }
 
 .hero-name {
   margin: 0;
+  font-family: "Bangers", cursive;
+  font-size: 1.55rem;
   font-weight: 900;
-  letter-spacing: .5px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
   line-height: 1.1;
+  text-shadow: 2px 2px 0 rgba(0,0,0,.1);
 }
 
 /* Burst label */
@@ -1223,24 +1104,24 @@ button:focus-visible,
   padding: .4rem .7rem;
   border: 3px solid var(--ink);
   background: var(--comic-pink);
+  font-family: "Bangers", cursive;
+  letter-spacing: 1px;
   font-weight: 900;
   transform: rotate(10deg);
   border-radius: 12px;
   box-shadow: 3px 3px 0 var(--ink);
+  animation: burstWiggle 3s ease-in-out infinite;
 }
 
-/* Stickers */
-.hero-stickers {
-  margin-top: .4rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: .4rem;
-}
+/* Sticker badges */
+.hero-stickers { margin-top: .4rem; display: flex; flex-wrap: wrap; gap: .4rem; }
 
 .hero-sticker {
   display: inline-block;
   font-weight: 900;
-  font-size: .75rem;
+  font-family: "Bangers", cursive;
+  letter-spacing: 1px;
+  font-size: .8rem;
   padding: .25rem .55rem;
   border: 3px solid var(--ink);
   border-radius: 999px;
@@ -1251,11 +1132,8 @@ button:focus-visible,
 .hero-sticker-warn { background: #FFB703; }
 .hero-sticker-muted { background: #E9ECEF; }
 
-/* Body */
-.hero-card-body {
-  padding: 1rem;
-  background: #fff;
-}
+/* Card body */
+.hero-card-body { padding: 1rem; background: #fff; }
 
 .hero-section {
   border: 3px solid var(--ink);
@@ -1267,11 +1145,11 @@ button:focus-visible,
 }
 
 .hero-section-title {
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  font-size: .85rem;
+  font-family: "Bangers", cursive;
+  letter-spacing: 1px;
+  font-size: .9rem;
   margin-bottom: .25rem;
+  text-transform: uppercase;
 }
 
 .hero-section-text {
@@ -1280,23 +1158,17 @@ button:focus-visible,
   white-space: pre-wrap;
 }
 
-.hero-detail-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
+.hero-detail-list { list-style: none; padding-left: 0; margin: 0; }
 
 .hero-detail-list li {
   display: flex;
   justify-content: space-between;
   gap: .5rem;
-  padding: .2rem 0;
-  border-bottom: 2px dashed rgba(0, 0, 0, 0.12);
+  padding: .25rem 0;
+  border-bottom: 2px dashed rgba(0,0,0,.12);
 }
 
-.hero-detail-list li:last-child {
-  border-bottom: none;
-}
+.hero-detail-list li:last-child { border-bottom: none; }
 
 .hero-detail-list span {
   font-weight: 800;
@@ -1304,118 +1176,134 @@ button:focus-visible,
   letter-spacing: .4px;
 }
 
-.hero-muted {
-  color: #555;
-  font-weight: 700;
-  font-style: italic;
-}
+.hero-muted { color: #555; font-weight: 700; font-style: italic; }
 
-/* Footer */
+/* Card footer — shimmer foil effect */
 .hero-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: .75rem 1rem;
   border-top: 4px solid var(--ink);
-  background: var(--comic-yellow);
+  background: linear-gradient(90deg, var(--comic-yellow), #ffe033, #ffd400, #ffe880, var(--comic-yellow));
+  background-size: 200% 100%;
+  animation: foilShimmer 4s linear infinite;
+}
+
+@keyframes foilShimmer {
+  0%   { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .hero-id {
-  font-weight: 900;
+  font-family: "Bangers", cursive;
+  letter-spacing: 1px;
   border: 3px solid var(--ink);
   border-radius: 999px;
-  padding: .2rem .6rem;
+  padding: .2rem .7rem;
   background: #fff;
+  box-shadow: 2px 2px 0 var(--ink);
 }
 
 .hero-footer-note {
-  font-weight: 900;
-  letter-spacing: .5px;
+  font-family: "Bangers", cursive;
+  font-size: 1rem;
+  letter-spacing: 1px;
 }
 
 
-
 /* =====================================================
-   17) POWER BAR
+   19) POWER BAR
 ===================================================== */
 .power-bar-track {
   width: 100%;
-  height: 14px;
-  background: #e8e8e8;
+  height: 16px;
+  background: #e0e0e0;
   border: 3px solid var(--ink);
   border-radius: 999px;
   overflow: hidden;
-  box-shadow: 2px 2px 0 var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
 }
 
 .power-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--comic-blue), var(--comic-green));
+  background: linear-gradient(90deg, var(--comic-blue) 0%, var(--comic-green) 60%, #00ffdd 100%);
   border-radius: 999px;
-  transition: width .4s ease;
+  transition: width .5s ease;
+  position: relative;
+}
+
+/* Pulse glow at the fill end */
+.power-bar-fill::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 8px 4px var(--comic-green);
+  animation: powerPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes powerPulse {
+  0%,100% { opacity: .7; transform: translateY(-50%) scale(1); }
+  50%      { opacity: 1;  transform: translateY(-50%) scale(1.4); }
 }
 
 
 /* =====================================================
-   18) REACTIONS
+   20) REACTIONS
 ===================================================== */
 .reaction-btn {
-  transition: transform .1s ease, box-shadow .1s ease;
+  transition: transform .12s ease, box-shadow .12s ease;
   border-radius: 12px !important;
 }
 
 .reaction-btn:hover {
-  transform: scale(1.1) rotate(-2deg);
+  transform: scale(1.12) rotate(-3deg);
   box-shadow: 5px 5px 0 var(--ink) !important;
 }
 
-.reaction-btn--used {
-  opacity: .6;
-  filter: grayscale(30%);
-}
-
-.reaction-btn--used:hover {
-  transform: none;
-}
+.reaction-btn--used { opacity: .6; filter: grayscale(30%); }
+.reaction-btn--used:hover { transform: none; }
 
 
 /* =====================================================
-   19) BATTLE ARENA
+   21) BATTLE ARENA
 ===================================================== */
-.vs-badge {
-  text-align: center;
-  padding: 1rem;
-}
+.vs-badge { text-align: center; padding: 1rem; }
 
 .battle-hero-card {
   transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .battle-hero-card:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 12px 12px 0 var(--ink);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 14px 14px 0 var(--ink);
 }
 
 
 /* =====================================================
-   20) VILLAIN CARDS
+   22) VILLAIN CARDS
 ===================================================== */
 .villain-card {
   border-color: var(--comic-red) !important;
   background: linear-gradient(180deg, #fff 0%, #fff8f8 100%);
 }
 
-.villain-burst {
-  background: var(--comic-red) !important;
-  color: #fff !important;
-}
+.villain-burst { background: var(--comic-red) !important; color: #fff !important; }
 
 .villain-card-header {
   background: linear-gradient(135deg, #ffd0d0 0%, #fff 60%) !important;
 }
 
 .villain-card-footer {
-  background: #ffe0e0 !important;
+  background: linear-gradient(90deg, #ff8888, #ffaaaa, #ff8888) !important;
+  background-size: 200% 100% !important;
+  animation: foilShimmer 4s linear infinite !important;
 }
 
 .villain-placeholder {
@@ -1426,27 +1314,20 @@ button:focus-visible,
 
 
 /* =====================================================
-   21) TIMELINE
+   23) TIMELINE
 ===================================================== */
-.timeline {
-  position: relative;
-  padding-left: 2.5rem;
-}
+.timeline { position: relative; padding-left: 2.5rem; }
 
 .timeline::before {
   content: "";
   position: absolute;
-  left: 16px;
-  top: 0;
-  bottom: 0;
+  left: 16px; top: 0; bottom: 0;
   width: 4px;
-  background: var(--ink);
+  background: linear-gradient(180deg, var(--comic-yellow), var(--comic-red), var(--comic-blue));
   border-radius: 2px;
 }
 
-.timeline-era {
-  margin: 2rem 0 1rem;
-}
+.timeline-era { margin: 2rem 0 1rem; }
 
 .timeline-era-label {
   display: inline-block;
@@ -1469,15 +1350,15 @@ button:focus-visible,
 
 .timeline-dot {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 3px solid var(--ink);
   margin-top: .25rem;
-  box-shadow: 2px 2px 0 var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
   position: relative;
   z-index: 1;
-  margin-left: -2.85rem;
+  margin-left: -2.9rem;
 }
 
 .timeline-content {
@@ -1487,75 +1368,53 @@ button:focus-visible,
   padding: .85rem 1rem;
   box-shadow: var(--shadow);
   flex: 1;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
 
-.timeline-date {
-  font-size: .8rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  color: #555;
-  margin-bottom: .2rem;
+.timeline-content:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-lg);
 }
 
-[data-theme="dark"] .timeline-date { color: #aaa; }
-
-.timeline-title {
-  font-family: "Bangers", cursive;
-  font-size: 1.3rem;
-  letter-spacing: .5px;
-  margin-bottom: .35rem;
-}
-
-.timeline-desc {
-  font-weight: 600;
-  line-height: 1.5;
-}
+.timeline-date { font-size: .8rem; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: #555; margin-bottom: .2rem; }
+.timeline-title { font-family: "Bangers", cursive; font-size: 1.35rem; letter-spacing: .5px; margin-bottom: .35rem; }
+.timeline-desc { font-weight: 600; line-height: 1.5; }
 
 
 /* =====================================================
-   22) NAVBAR DROPDOWN — styles now in section 4 above
-===================================================== */
-
-
-/* =====================================================
-   23) BADGE EXTRAS (new colors)
+   24) BADGE EXTRAS (colors)
 ===================================================== */
 .badge-sticker--red {
-  background: radial-gradient(circle at top, #ffd0d0, var(--comic-red) 70%);
+  background: radial-gradient(circle at 30% 30%, #ffd0d0, var(--comic-red) 70%);
   color: #fff;
   text-shadow: 1px 1px 0 var(--ink);
 }
 
 .badge-sticker--purple {
-  background: radial-gradient(circle at top, #e8d0ff, #9b59b6 70%);
+  background: radial-gradient(circle at 30% 30%, #e8d0ff, #9b59b6 70%);
   color: #fff;
   text-shadow: 1px 1px 0 var(--ink);
 }
 
 
 /* =====================================================
-   24) PRINT STYLES — Hero Trading Cards
+   25) PRINT STYLES — Hero Trading Cards
 ===================================================== */
 @media print {
   body { background: white !important; }
-
-  nav, footer,
-  .comic-nav,
+  nav, footer, .comic-nav,
   .container > *:not(.print-hero-card),
   main > *:not(.print-hero-card) { display: none !important; }
 
   .print-hero-card {
     display: block !important;
-    width: 3.5in;
-    height: 5in;
+    width: 3.5in; height: 5in;
     margin: 0 auto;
     page-break-inside: avoid;
   }
 
   .print-card-inner {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     border: 4px solid #111;
     border-radius: 16px;
     overflow: hidden;
@@ -1579,15 +1438,10 @@ button:focus-visible,
     text-shadow: 2px 2px 0 #111;
   }
 
-  .print-card-id {
-    font-size: .7rem;
-    font-weight: 700;
-    opacity: .85;
-  }
+  .print-card-id { font-size: .7rem; font-weight: 700; opacity: .85; }
 
   .print-card-img {
-    width: 100%;
-    height: 2in;
+    width: 100%; height: 2in;
     object-fit: contain;
     background: #fff;
     border-bottom: 3px solid #111;
@@ -1615,49 +1469,40 @@ button:focus-visible,
 
 
 /* =====================================================
-   25) QUIZ PAGE
+   26) QUIZ PAGE
 ===================================================== */
-.quiz-option {
-  transition: background .12s, transform .1s;
-}
-
-.quiz-option:hover {
-  background: #fff9e0 !important;
-  transform: translateX(4px);
-}
-
-.quiz-option:has(input:checked) {
-  background: var(--comic-yellow) !important;
-  border-color: var(--comic-blue) !important;
-}
+.quiz-option { transition: background .12s, transform .1s; }
+.quiz-option:hover { background: #fff9e0 !important; transform: translateX(5px); }
+.quiz-option:has(input:checked) { background: var(--comic-yellow) !important; border-color: var(--comic-blue) !important; }
 
 
 /* =====================================================
-   26) SOUND BURST + BADGE ANIMATIONS
+   27) SOUND BURST + BADGE ANIMATIONS
 ===================================================== */
 .comic-sound-burst {
   position: absolute;
-  top: -30px;
+  top: -34px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--comic-yellow);
   color: var(--ink);
   border: 3px solid var(--ink);
   font-family: "Bangers", cursive;
-  font-size: 1rem;
-  padding: .2rem .5rem;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  padding: .25rem .55rem;
   border-radius: 8px;
   box-shadow: var(--shadow);
   pointer-events: none;
-  animation: soundBurstPop 0.7s ease-out forwards;
+  animation: soundBurstPop .7s ease-out forwards;
   z-index: 999;
   white-space: nowrap;
 }
 
 @keyframes soundBurstPop {
-  0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(0.6); }
-  50%  { opacity: 1; transform: translateX(-50%) translateY(-12px) scale(1.15); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-22px) scale(1); }
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(.6); }
+  50%  { opacity: 1; transform: translateX(-50%) translateY(-14px) scale(1.18); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-26px) scale(1); }
 }
 
 .badge-just-unlocked .badge-sticker {
@@ -1666,9 +1511,9 @@ button:focus-visible,
 
 @keyframes badgeUnlock {
   0%   { transform: scale(1); }
-  30%  { transform: scale(1.4) rotate(15deg); }
-  60%  { transform: scale(1.2) rotate(-8deg); }
-  100% { transform: scale(1) rotate(0deg); }
+  30%  { transform: scale(1.5) rotate(18deg); }
+  60%  { transform: scale(1.2) rotate(-10deg); }
+  100% { transform: scale(1)   rotate(0deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1676,8 +1521,9 @@ button:focus-visible,
   .badge-just-unlocked .badge-sticker { animation: none !important; }
 }
 
+
 /* =====================================================
-   ADMIN: POWER LEVEL EDITOR PANEL
+   28) ADMIN: POWER LEVEL EDITOR
 ===================================================== */
 .power-editor-panel {
   border: 4px solid var(--ink);
@@ -1690,14 +1536,14 @@ button:focus-visible,
 .power-editor-header {
   background: linear-gradient(135deg, var(--comic-blue) 0%, #7b2fff 100%);
   color: #fff;
-  font-family: 'Comic Neue', 'Bangers', cursive;
+  font-family: "Comic Neue", "Bangers", cursive;
   font-size: 1.25rem;
   font-weight: 900;
   letter-spacing: 2px;
   text-align: center;
   padding: 10px 16px;
   border-bottom: 4px solid var(--ink);
-  text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+  text-shadow: 2px 2px 0 rgba(0,0,0,.4);
 }
 
 .power-editor-bolt {
@@ -1707,28 +1553,24 @@ button:focus-visible,
 }
 
 @keyframes boltPulse {
-  from { opacity: 0.7; transform: scale(0.9); }
-  to   { opacity: 1;   transform: scale(1.15); }
+  from { opacity: .7; transform: scale(.9); }
+  to   { opacity: 1;  transform: scale(1.15); }
 }
 
-.power-editor-body {
-  padding: 20px 24px;
-}
+.power-editor-body { padding: 20px 24px; }
 
-/* Big animated number */
 .power-big-number {
-  font-family: 'Bangers', 'Comic Neue', cursive;
+  font-family: "Bangers", "Comic Neue", cursive;
   font-size: 5rem;
   line-height: 1;
   color: var(--comic-blue);
   text-shadow: 4px 4px 0 var(--ink);
-  transition: color 0.3s ease;
+  transition: color .3s ease;
 }
 
-/* Tier badge above the number */
 .power-tier-badge {
   display: inline-block;
-  font-family: 'Comic Neue', cursive;
+  font-family: "Comic Neue", cursive;
   font-weight: 900;
   font-size: 1rem;
   letter-spacing: 1px;
@@ -1737,26 +1579,21 @@ button:focus-visible,
   border: 3px solid var(--ink);
   margin-bottom: 6px;
   text-transform: uppercase;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background .3s ease, color .3s ease;
 }
+
 .power-tier-badge.tier-rookie   { background: #aaa; color: #fff; }
-.power-tier-badge.tier-fighter  { background: var(--comic-red); color: #fff; }
-.power-tier-badge.tier-hero     { background: var(--comic-blue); color: #fff; }
-.power-tier-badge.tier-champion { background: var(--comic-pink); color: #fff; }
+.power-tier-badge.tier-fighter  { background: var(--comic-red);    color: #fff; }
+.power-tier-badge.tier-hero     { background: var(--comic-blue);   color: #fff; }
+.power-tier-badge.tier-champion { background: var(--comic-pink);   color: #fff; }
 .power-tier-badge.tier-legend   { background: var(--comic-yellow); color: var(--ink); }
 
-/* Tier key row */
-.power-tier-key {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
+.power-tier-key  { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
 
 .tier-pip {
-  font-family: 'Comic Neue', cursive;
+  font-family: "Comic Neue", cursive;
   font-weight: 700;
-  font-size: 0.62rem;
+  font-size: .62rem;
   text-align: center;
   padding: 4px 8px;
   border-radius: 8px;
@@ -1765,17 +1602,14 @@ button:focus-visible,
   min-width: 56px;
 }
 .tier-pip.tier-rookie   { background: #aaa; color: #fff; }
-.tier-pip.tier-fighter  { background: var(--comic-red); color: #fff; }
-.tier-pip.tier-hero     { background: var(--comic-blue); color: #fff; }
-.tier-pip.tier-champion { background: var(--comic-pink); color: #fff; }
+.tier-pip.tier-fighter  { background: var(--comic-red);    color: #fff; }
+.tier-pip.tier-hero     { background: var(--comic-blue);   color: #fff; }
+.tier-pip.tier-champion { background: var(--comic-pink);   color: #fff; }
 .tier-pip.tier-legend   { background: var(--comic-yellow); color: var(--ink); }
 
-/* Comic-styled range slider */
 .power-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 18px;
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 18px;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--comic-red) 0%, var(--comic-yellow) 40%, var(--comic-green) 80%, #00d4ff 100%);
   border: 3px solid var(--ink);
@@ -1784,24 +1618,18 @@ button:focus-visible,
   cursor: pointer;
 }
 .power-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 36px;
-  height: 36px;
+  -webkit-appearance: none; appearance: none;
+  width: 36px; height: 36px;
   border-radius: 50%;
   background: var(--comic-yellow);
   border: 4px solid var(--ink);
   box-shadow: 3px 3px 0 var(--ink);
   cursor: grab;
-  transition: transform 0.15s ease;
+  transition: transform .15s ease;
 }
-.power-slider::-webkit-slider-thumb:active {
-  cursor: grabbing;
-  transform: scale(1.2);
-}
+.power-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.2); }
 .power-slider::-moz-range-thumb {
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   border-radius: 50%;
   background: var(--comic-yellow);
   border: 4px solid var(--ink);
@@ -1809,47 +1637,324 @@ button:focus-visible,
   cursor: grab;
 }
 
-/* Action buttons */
-.btn-power-set,
-.btn-power-reset {
-  font-family: 'Comic Neue', 'Bangers', cursive;
+.btn-power-set, .btn-power-reset {
+  font-family: "Comic Neue", "Bangers", cursive;
   font-weight: 900;
-  font-size: 0.95rem;
+  font-size: .95rem;
   letter-spacing: 1px;
   padding: 10px 18px;
   border: 3px solid var(--ink);
   border-radius: 8px;
   cursor: pointer;
   box-shadow: 4px 4px 0 var(--ink);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform .1s ease, box-shadow .1s ease;
   text-transform: uppercase;
 }
-.btn-power-set {
-  background: var(--comic-blue);
-  color: #fff;
-}
-.btn-power-reset {
-  background: #e8e8e8;
-  color: var(--ink);
-}
-.btn-power-set:hover,
-.btn-power-reset:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 var(--ink);
-}
-.btn-power-set:active,
-.btn-power-reset:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--ink);
-}
+.btn-power-set   { background: var(--comic-blue); color: #fff; }
+.btn-power-reset { background: #e8e8e8; color: var(--ink); }
+.btn-power-set:hover, .btn-power-reset:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+.btn-power-set:active, .btn-power-reset:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--ink); }
 
-/* Tip box */
 .power-editor-tip {
   background: #fffbe6;
   border: 2px dashed var(--comic-yellow);
   border-radius: 8px;
   padding: 10px 14px;
-  font-size: 0.82rem;
+  font-size: .82rem;
   color: #555;
-  font-family: 'Comic Neue', cursive;
+  font-family: "Comic Neue", cursive;
+}
+
+
+/* =====================================================
+   29) HERO CREATION FORM — Epic Styling
+===================================================== */
+#heroCreationForm .form-label {
+  font-family: "Bangers", cursive;
+  font-size: 1rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+#heroCreationForm .form-control {
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 rgba(0,0,0,.12);
+  background: #fffef8;
+  font-weight: 700;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+#heroCreationForm .form-control:focus {
+  border-color: var(--comic-blue);
+  box-shadow: 3px 3px 0 var(--comic-blue);
+  background: #ffffff;
+}
+
+.hero-create-submit {
+  font-family: "Bangers", cursive !important;
+  font-size: 1.4rem !important;
+  letter-spacing: 3px !important;
+  padding: .65rem 2rem !important;
+  border: 4px solid var(--ink) !important;
+  border-radius: 8px !important;
+  background: var(--comic-red) !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-lg) !important;
+  text-transform: uppercase;
+  transition: transform .12s ease, box-shadow .12s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-create-submit:hover:not(:disabled) {
+  transform: translate(-2px,-2px);
+  box-shadow: var(--shadow-xl) !important;
+  background: #e00020 !important;
+}
+
+.hero-create-submit:active:not(:disabled) {
+  transform: translate(2px,2px);
+  box-shadow: var(--shadow) !important;
+}
+
+.hero-create-submit:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+
+/* =====================================================
+   30) HERO CREATION LOADING SCREEN — EPIC OVERLAY
+===================================================== */
+.hero-creation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 35%, #1a2e5a 0%, #060d20 55%, #000000 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .4s ease;
+  overflow: hidden;
+  padding: 1.5rem;
+}
+
+.hero-creation-overlay.is-visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Animated star particles */
+.hco-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hco-star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #fff;
+  border-radius: 50%;
+  animation: starFloat linear infinite;
+  opacity: 0;
+}
+
+@keyframes starFloat {
+  0%   { opacity: 0; transform: translateY(100vh) scale(.5); }
+  10%  { opacity: .8; }
+  90%  { opacity: .6; }
+  100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+}
+
+/* Title */
+.hco-title {
+  font-family: "Bangers", cursive;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  letter-spacing: 4px;
+  color: var(--comic-yellow);
+  text-shadow:
+    3px 3px 0 var(--comic-red),
+    6px 6px 0 rgba(0,0,0,.5),
+    0 0 40px rgba(255,212,0,.5);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  animation: titlePulse 2s ease-in-out infinite;
+  position: relative;
+}
+
+@keyframes titlePulse {
+  0%,100% { text-shadow: 3px 3px 0 var(--comic-red), 6px 6px 0 rgba(0,0,0,.5), 0 0 40px rgba(255,212,0,.5); }
+  50%      { text-shadow: 3px 3px 0 var(--comic-red), 6px 6px 0 rgba(0,0,0,.5), 0 0 80px rgba(255,212,0,.9); }
+}
+
+/* Comic panel in center */
+.hco-panel {
+  background: #ffffff;
+  border: 5px solid var(--comic-yellow);
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    10px 10px 0 rgba(255,212,0,.25),
+    0 0 60px rgba(255,212,0,.2);
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Speed lines inside the panel */
+.hco-panel-bg {
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(255,212,0,.06) 0deg, rgba(255,212,0,.06) 2deg,
+    transparent 2deg, transparent 8deg
+  );
+  pointer-events: none;
+}
+
+.hco-panel-inner {
+  position: relative;
+  padding: 1.8rem 1.5rem;
+  text-align: center;
+  background: radial-gradient(circle at 50% 50%, #fff9f0 40%, #fff5d6 100%);
+}
+
+/* Animated superhero icons */
+.hco-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hco-icon {
+  display: inline-block;
+  animation: iconBounce 1.4s ease-in-out infinite;
+}
+
+.hco-icon:nth-child(1) { animation-delay: 0s; }
+.hco-icon:nth-child(2) { animation-delay: .2s; font-size: 3.8rem; }
+.hco-icon:nth-child(3) { animation-delay: .4s; }
+
+@keyframes iconBounce {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-12px) scale(1.15); }
+}
+
+/* Cycling message */
+.hco-message {
+  font-family: "Bangers", cursive;
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+  letter-spacing: 2px;
+  color: var(--ink);
+  text-align: center;
+  min-height: 2.5rem;
+  margin-bottom: .75rem;
+  transition: opacity .3s ease;
+}
+
+.hco-message.fading { opacity: 0; }
+
+/* Sub-message */
+.hco-submsg {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #444;
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+/* Progress bar */
+.hco-progress-wrap {
+  background: #e0e0e0;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  height: 18px;
+  overflow: hidden;
+  box-shadow: 3px 3px 0 var(--ink);
+  margin-bottom: .6rem;
+}
+
+.hco-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--comic-blue), var(--comic-green), var(--comic-yellow));
+  border-radius: 999px;
+  width: 0%;
+  transition: width 1.2s cubic-bezier(.25,.46,.45,.94);
+  background-size: 200% 100%;
+  animation: progressGlow 1s linear infinite;
+}
+
+@keyframes progressGlow {
+  0%   { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.hco-progress-label {
+  font-family: "Bangers", cursive;
+  font-size: .9rem;
+  letter-spacing: 1px;
+  color: #666;
+  text-align: right;
+}
+
+/* Warning message */
+.hco-warning {
+  margin-top: 1.4rem;
+  background: rgba(255,45,45,.15);
+  border: 3px solid var(--comic-red);
+  border-radius: 12px;
+  padding: .75rem 1.2rem;
+  color: #ffbbbb;
+  font-family: "Bangers", cursive;
+  font-size: 1.1rem;
+  letter-spacing: 1.5px;
+  text-align: center;
+  text-shadow: 1px 1px 0 rgba(0,0,0,.5);
+  animation: warningBlink 2s ease-in-out infinite;
+}
+
+@keyframes warningBlink {
+  0%,100% { border-color: var(--comic-red); background: rgba(255,45,45,.12); }
+  50%      { border-color: var(--comic-yellow); background: rgba(255,212,0,.1); }
+}
+
+/* Lightning bolts in the overlay corners */
+.hco-bolt {
+  position: absolute;
+  font-size: 4rem;
+  opacity: .2;
+  pointer-events: none;
+  animation: boltFlash 1.8s ease-in-out infinite;
+}
+
+.hco-bolt:nth-child(1) { top: 5%;  left: 5%;  animation-delay: 0s;    transform: rotate(-20deg); }
+.hco-bolt:nth-child(2) { top: 5%;  right: 5%; animation-delay: .6s;   transform: rotate(20deg); }
+.hco-bolt:nth-child(3) { bottom: 5%; left: 5%; animation-delay: 1.2s; transform: rotate(-10deg); }
+.hco-bolt:nth-child(4) { bottom: 5%; right: 5%; animation-delay: .3s; transform: rotate(15deg); }
+
+@keyframes boltFlash {
+  0%,100% { opacity: .15; transform: scale(1) rotate(-20deg); }
+  50%      { opacity: .45; transform: scale(1.2) rotate(-20deg); }
+}
+
+@media (max-width: 575.98px) {
+  .hco-title     { font-size: 1.8rem; }
+  .hco-icons     { font-size: 2.2rem; gap: .75rem; }
+  .hco-icon:nth-child(2) { font-size: 3rem; }
+  .hco-message   { font-size: 1.1rem; }
+  .hco-panel-inner { padding: 1.2rem 1rem; }
 }
