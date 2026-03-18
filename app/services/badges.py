@@ -4,25 +4,112 @@ from ..extensions import db
 from ..models.badge import Badge, UserBadge
 
 BADGE_DEFINITIONS = {
+    # Original 4
     "comic-reader": {
         "name": "Read 3 Comics",
         "description": "Read three comics.",
         "unlock_count": 3,
+        "color": "yellow",
+        "emoji": "📖",
     },
     "character-explorer": {
-        "name": "Visited Characters",
+        "name": "Hero Explorer",
         "description": "Visited the Characters page.",
         "unlock_count": 1,
+        "color": "green",
+        "emoji": "🦸",
     },
     "hero-maker": {
-        "name": "Created a Hero",
+        "name": "Hero Creator",
         "description": "Created a new hero.",
         "unlock_count": 1,
+        "color": "pink",
+        "emoji": "✨",
     },
     "secret-visitor": {
         "name": "Secret Badge",
         "description": "Visited IsmaVerse multiple times.",
         "unlock_count": 5,
+        "color": "blue",
+        "emoji": "🔮",
+    },
+    # New badges
+    "super-reader": {
+        "name": "Super Reader",
+        "description": "Read 10 comics total!",
+        "unlock_count": 10,
+        "color": "red",
+        "emoji": "🚀",
+    },
+    "villain-maker": {
+        "name": "Villain Creator",
+        "description": "Created a fearsome villain.",
+        "unlock_count": 1,
+        "color": "purple",
+        "emoji": "😈",
+    },
+    "team-player": {
+        "name": "Team Player",
+        "description": "Built a hero team.",
+        "unlock_count": 1,
+        "color": "blue",
+        "emoji": "🤝",
+    },
+    "reactor": {
+        "name": "Reactor",
+        "description": "Reacted to 5 heroes.",
+        "unlock_count": 5,
+        "color": "yellow",
+        "emoji": "💥",
+    },
+    "commentator": {
+        "name": "Commentator",
+        "description": "Left a comment on a hero.",
+        "unlock_count": 1,
+        "color": "green",
+        "emoji": "💬",
+    },
+    "battle-voter": {
+        "name": "Battle Voter",
+        "description": "Voted in 3 hero battles.",
+        "unlock_count": 3,
+        "color": "red",
+        "emoji": "⚔️",
+    },
+    "fan-artist": {
+        "name": "Fan Artist",
+        "description": "Uploaded fan art to the gallery.",
+        "unlock_count": 1,
+        "color": "pink",
+        "emoji": "🎨",
+    },
+    "quiz-master": {
+        "name": "Quiz Champ",
+        "description": "Completed the superpower quiz.",
+        "unlock_count": 1,
+        "color": "yellow",
+        "emoji": "🏆",
+    },
+    "mission-ace": {
+        "name": "Mission Ace",
+        "description": "Checked in 5 daily missions.",
+        "unlock_count": 5,
+        "color": "green",
+        "emoji": "🎯",
+    },
+    "true-fan": {
+        "name": "True Fan",
+        "description": "Visited IsmaVerse 20 times!",
+        "unlock_count": 20,
+        "color": "blue",
+        "emoji": "⭐",
+    },
+    "power-up": {
+        "name": "Power Up!",
+        "description": "Created 3 heroes.",
+        "unlock_count": 3,
+        "color": "red",
+        "emoji": "💪",
     },
 }
 
@@ -55,6 +142,8 @@ def _get_badge(slug: str) -> Badge:
 
 
 def record_badge_progress(user, slug: str, increment: int = 1) -> None:
+    if slug not in BADGE_DEFINITIONS:
+        return
     badge = _get_badge(slug)
     unlock_target = BADGE_DEFINITIONS[slug]["unlock_count"]
 
@@ -86,3 +175,7 @@ def get_user_badge_states(user) -> dict:
         user_badge = user_badges.get(badge.id)
         states[badge.slug] = bool(user_badge and user_badge.unlocked_at)
     return states
+
+
+def get_badge_meta() -> dict:
+    return BADGE_DEFINITIONS

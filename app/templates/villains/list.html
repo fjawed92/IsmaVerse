@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Villain Lair – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="hero-page-header mb-4" style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-color: var(--comic-red);">
+    <div class="hero-kicker" style="background: var(--comic-red); color:#fff;">THE VILLAIN LAIR</div>
+    <h1 class="hero-title" style="color: var(--comic-yellow);">Meet the Villains!</h1>
+    <p class="hero-subtitle mb-0" style="color:#ccc;">These baddies are up to no good. Can any hero stop them?</p>
+    <div class="mt-3">
+      <a class="btn btn-comic-cta" href="{{ url_for('villains.create_villain') }}" style="background:var(--comic-red); color:#fff;">
+        Create a Villain 😈
+      </a>
+    </div>
+  </div>
+
+  {% if villains %}
+  <div class="row g-4">
+    {% for v in villains %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <article class="hero-card villain-card">
+        <div class="hero-burst villain-burst">VILLAIN!</div>
+
+        {% if v.image_file %}
+        <div class="hero-avatar-wrap">
+          <img
+            src="{{ url_for('static', filename='uploads/villains/' ~ v.image_file) }}"
+            alt="{{ v.villain_name }}"
+            class="hero-avatar"
+          >
+        </div>
+        {% else %}
+        <div class="hero-avatar-wrap hero-avatar-placeholder villain-placeholder">
+          <span>VILLAIN UNSEEN</span>
+        </div>
+        {% endif %}
+
+        <header class="hero-card-header villain-card-header">
+          <h2 class="hero-name">{{ v.villain_name }}</h2>
+          <div class="hero-stickers mt-1">
+            <span class="hero-sticker" style="background:var(--comic-red); color:#fff;">EVIL</span>
+            {% if v.lair_location %}<span class="hero-sticker hero-sticker-muted">{{ v.lair_location|truncate(20) }}</span>{% endif %}
+          </div>
+        </header>
+
+        <div class="hero-card-body">
+          <section class="hero-section">
+            <div class="hero-section-title">Evil Powers</div>
+            <div class="hero-section-text">{{ v.powers or "???" }}</div>
+          </section>
+          <section class="hero-section">
+            <div class="hero-section-title">Evil Plan</div>
+            <div class="hero-section-text">{{ v.evil_plan or "Top secret." }}</div>
+          </section>
+          {% if v.weakness %}
+          <section class="hero-section">
+            <div class="hero-section-title">Weakness</div>
+            <div class="hero-section-text">{{ v.weakness }}</div>
+          </section>
+          {% endif %}
+        </div>
+
+        <footer class="hero-card-footer villain-card-footer">
+          <span class="hero-id">#V{{ "%03d"|format(v.id) }}</span>
+          <span class="hero-footer-note" style="color:var(--comic-red);">BEWARE!</span>
+        </footer>
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="speech text-center py-4">
+    <p class="fw-bold mb-2">No villains yet! The world is safe... for now.</p>
+    <a href="{{ url_for('villains.create_villain') }}" class="btn btn-comic-cta" style="background:var(--comic-red); color:#fff;">
+      Create the First Villain 😈
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

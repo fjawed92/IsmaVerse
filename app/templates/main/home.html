@@ -18,28 +18,96 @@
         <div class="speech">
           <h2 class="h5 fw-bold mb-2">New comics drop here!</h2>
           <p class="mb-3 text-muted">
-            Heroes, jokes, adventures, and brand-new comic pages straight from Ismael’s imagination.
+            Heroes, jokes, adventures, and brand-new comic pages straight from Ismael's imagination.
           </p>
-
           <div class="d-flex flex-wrap gap-2">
             <a class="btn btn-comic-cta" href="{{ url_for('comics.list_comics') }}">Browse Comics →</a>
-            <a class="btn btn-outline-dark fw-bold comic-outline-btn"
-               href="{{ url_for('comics.list_comics') }}">Latest Release</a>
+            <a class="btn btn-outline-dark fw-bold comic-outline-btn" href="{{ url_for('characters.random_character') }}">🎲 Random Hero</a>
           </div>
         </div>
       </div>
 
       <div class="col-12 col-lg-5">
         <div class="comic-tile h-100">
-          <h3>Start Here</h3>
+          <h3>What's New?</h3>
           <ul class="mb-0">
-            <li><strong>Read</strong> the newest comics</li>
-            <li><strong>Meet</strong> the characters</li>
-            <li><strong>Laugh</strong> at the goofy moments</li>
+            <li>⚔️ <strong>Battle Arena</strong> — vote hero vs hero!</li>
+            <li>😈 <strong>Villain Creator</strong> — make baddies!</li>
+            <li>🎨 <strong>Fan Art Wall</strong> — share your art!</li>
+            <li>🧠 <strong>Superpower Quiz</strong> — find your power!</li>
           </ul>
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- =====================
+     HERO SPOTLIGHT
+===================== -->
+{% if spotlight %}
+<div class="comic-panel mb-4" style="border-color: var(--comic-yellow);">
+  <div class="panel-header d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, var(--comic-yellow), #ffe89c);">
+    <h2 class="panel-title" style="color:var(--ink);">⭐ Hero Spotlight!</h2>
+    <span class="burst" style="transform:rotate(-6deg);">TODAY'S HERO</span>
+  </div>
+  <div class="p-4">
+    <div class="row g-3 align-items-center">
+      <div class="col-12 col-md-3 text-center">
+        {% if spotlight.image_file %}
+        <img
+          src="{{ url_for('static', filename='uploads/characters/' ~ spotlight.image_file) }}"
+          alt="{{ spotlight.superhero_name }}"
+          class="img-fluid comic-hero-img"
+          style="max-height:160px; object-fit:contain;"
+        >
+        {% else %}
+        <div class="hero-avatar-placeholder" style="height:120px; border-radius:16px;">
+          <span>{{ spotlight.superhero_name[0] }}</span>
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-12 col-md-9">
+        <h3 class="fw-900 mb-1" style="font-family:'Bangers',cursive; font-size:2rem; letter-spacing:1px;">
+          {{ spotlight.superhero_name }}
+        </h3>
+        <!-- Power bar -->
+        <div class="mb-2">
+          <span class="fw-bold text-uppercase" style="font-size:.8rem;">Power Level: {{ spotlight.power_level }}/100</span>
+          <div class="power-bar-track mt-1">
+            <div class="power-bar-fill" style="width:{{ spotlight.power_level }}%; background: var(--comic-yellow); border-color: var(--ink);"></div>
+          </div>
+        </div>
+        {% if spotlight.powers %}
+        <p class="fw-bold mb-2">⚡ {{ spotlight.powers|truncate(120) }}</p>
+        {% endif %}
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('characters.character_detail', character_id=spotlight.id) }}" class="btn btn-comic-cta">
+            Meet {{ spotlight.superhero_name }}!
+          </a>
+          <a href="{{ url_for('battle.arena', hero1=spotlight.id) }}" class="btn btn-outline-dark fw-bold comic-outline-btn">
+            ⚔️ Battle This Hero!
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- =====================
+     DAILY MISSION TEASER
+===================== -->
+<div class="comic-panel mb-4" style="border-color: var(--comic-green);">
+  <div class="panel-header d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, var(--comic-green), #a0ffcc);">
+    <h2 class="panel-title" style="color:var(--ink);">🎯 Daily Mission!</h2>
+    <span class="burst" style="background:var(--ink); color:var(--comic-green);">NEW!</span>
+  </div>
+  <div class="p-4 text-center">
+    <p class="fw-bold mb-3">A new creative challenge every day. Draw, imagine, create!</p>
+    <a href="{{ url_for('extras.daily_mission') }}" class="btn btn-comic-cta" style="background:var(--comic-green); color:var(--ink); border-color:var(--ink);">
+      See Today's Mission →
+    </a>
   </div>
 </div>
 
@@ -49,45 +117,35 @@
 <div class="badge-panel mb-4">
   <div class="panel-header d-flex justify-content-between align-items-center">
     <h2 class="panel-title">Hero Badge Wall</h2>
-    <span class="burst burst-blue">COLLECT!</span>
+    <span class="burst burst-blue">COLLECT ALL {{ badge_meta|length }}!</span>
   </div>
 
   <div class="p-4">
-    {% set badge_states = badge_states or {} %}
     {% set badge_source = "server" if current_user.is_authenticated else "local" %}
     <p class="mb-3 fw-bold">
-      Earn stickers as you explore IsmaVerse.
+      Earn stickers as you explore IsmaVerse — now with <strong>{{ badge_meta|length }} badges</strong> to collect!
       {% if current_user.is_authenticated %}
         Your progress is saved to your account!
       {% else %}
-        Your progress is saved on this device!
+        <a href="{{ url_for('auth.login') }}">Login</a> to save your badge progress!
       {% endif %}
     </p>
+
+    {% set badge_colors = {"yellow": "badge-sticker--yellow", "green": "badge-sticker--green", "pink": "badge-sticker--pink", "blue": "badge-sticker--blue", "red": "badge-sticker--red", "purple": "badge-sticker--purple"} %}
+
     <ul class="badge-strip" aria-live="polite" data-badge-source="{{ badge_source }}">
-      <li class="badge-item {% if not badge_states.get('comic-reader') %}is-locked{% endif %}" data-badge-id="comic-reader">
-        <span class="badge-sticker badge-sticker--yellow">Read 3 Comics</span>
+      {% for slug, meta in badge_meta.items() %}
+      {% set is_unlocked = badge_states.get(slug, False) %}
+      <li class="badge-item {% if not is_unlocked %}is-locked{% endif %}" data-badge-id="{{ slug }}">
+        <span class="badge-sticker {{ badge_colors.get(meta.color, 'badge-sticker--yellow') }}" title="{{ meta.description }}">
+          <span style="font-size:1.4rem; display:block;">{{ meta.emoji }}</span>
+          {{ meta.name }}
+        </span>
         <span class="badge-status">
-          {% if badge_states.get('comic-reader') %}Unlocked!{% else %}Locked{% endif %}
+          {% if is_unlocked %}Unlocked!{% else %}Locked{% endif %}
         </span>
       </li>
-      <li class="badge-item {% if not badge_states.get('character-explorer') %}is-locked{% endif %}" data-badge-id="character-explorer">
-        <span class="badge-sticker badge-sticker--green">Visited Characters</span>
-        <span class="badge-status">
-          {% if badge_states.get('character-explorer') %}Unlocked!{% else %}Locked{% endif %}
-        </span>
-      </li>
-      <li class="badge-item {% if not badge_states.get('hero-maker') %}is-locked{% endif %}" data-badge-id="hero-maker">
-        <span class="badge-sticker badge-sticker--pink">Created a Hero</span>
-        <span class="badge-status">
-          {% if badge_states.get('hero-maker') %}Unlocked!{% else %}Locked{% endif %}
-        </span>
-      </li>
-      <li class="badge-item {% if not badge_states.get('secret-visitor') %}is-locked{% endif %}" data-badge-id="secret-visitor">
-        <span class="badge-sticker badge-sticker--blue">Secret Badge</span>
-        <span class="badge-status">
-          {% if badge_states.get('secret-visitor') %}Unlocked!{% else %}Locked{% endif %}
-        </span>
-      </li>
+      {% endfor %}
     </ul>
   </div>
 </div>
@@ -104,8 +162,6 @@
 
   <div class="p-4">
     <div class="row g-4 align-items-center">
-
-      <!-- IMAGE + GLOW -->
       <div class="col-12 col-md-5 text-center">
         <div class="isma-ultra-wrapper">
           <img
@@ -115,37 +171,21 @@
           >
         </div>
       </div>
-
-      <!-- TEXT -->
       <div class="col-12 col-md-7">
         <div class="speech">
-
-          <!-- HERO ORIGIN moved ABOVE Ismael details + animated wrapper -->
           <div class="mb-3 hero-origin-wrap">
             <span class="burst">HERO ORIGIN</span>
           </div>
-
-          <p class="fw-bold mb-2">
-            Hi! I’m Ismael — creator of IsmaVerse.
-          </p>
-
-          <p>
-            I’m 9 years old, and I love making comics.
-          </p>
-
-          <p>
-            Most of my comics are handmade and short, so instead of publishing them, I decided to build my own comic universe right here.
-          </p>
-
+          <p class="fw-bold mb-2">Hi! I'm Ismael — creator of IsmaVerse.</p>
+          <p>I'm 9 years old, and I love making comics.</p>
+          <p>Most of my comics are handmade and short, so instead of publishing them, I decided to build my own comic universe right here.</p>
           <p class="mb-0">
-            Some of these comics were drawn when I was only 4 years old — so yeah, a few pages might be messy… but that’s part of the fun!
+            Some of these comics were drawn when I was only 4 years old — so yeah, a few pages might be messy… but that's part of the fun!
             <br><br>
-            <strong>Jump in, read the comics, and meet all the characters I’ve created!</strong>
+            <strong>Jump in, read the comics, and meet all the characters I've created!</strong>
           </p>
-
         </div>
       </div>
-
     </div>
   </div>
 </div>
@@ -153,42 +193,72 @@
 <hr class="comic-divider">
 
 <!-- =====================
-     BOTTOM SECTIONS
+     BOTTOM FEATURE TILES
 ===================== -->
-<div class="row g-3">
+<div class="row g-3 mb-3">
   <div class="col-12 col-md-4">
-    <a href="{{ url_for('characters.list_characters') }}"
-       class="text-decoration-none text-reset d-block h-100">
-
+    <a href="{{ url_for('characters.list_characters') }}" class="text-decoration-none text-reset d-block h-100">
       <div class="comic-tile h-100 comic-tile-link">
-        <h3>Characters</h3>
-
-        <p class="text-muted">
-          Heroes, villains, and silly sidekicks.
-        </p>
-
-        <div class="mt-2">
-          <span class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">
-            Meet the Heroes →
-          </span>
-        </div>
+        <h3>🦸 Heroes</h3>
+        <p class="text-muted">Meet all the heroes of IsmaVerse.</p>
+        <span class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">Meet the Heroes →</span>
       </div>
-
     </a>
   </div>
 
   <div class="col-12 col-md-4">
-    <div class="comic-tile h-100">
-      <h3>Comic Library</h3>
-      <p class="text-muted mb-0">Every issue in one place.</p>
-    </div>
+    <a href="{{ url_for('villains.list_villains') }}" class="text-decoration-none text-reset d-block h-100">
+      <div class="comic-tile h-100 comic-tile-link" style="border-color: var(--comic-red);">
+        <h3>😈 Villains</h3>
+        <p class="text-muted">Meet the baddies causing trouble!</p>
+        <span class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">Enter the Lair →</span>
+      </div>
+    </a>
   </div>
 
   <div class="col-12 col-md-4">
-    <div class="comic-tile h-100">
-      <h3>Coming Soon</h3>
-      <p class="text-muted mb-0">New pages. New powers. Bigger laughs.</p>
-    </div>
+    <a href="{{ url_for('battle.arena') }}" class="text-decoration-none text-reset d-block h-100">
+      <div class="comic-tile h-100 comic-tile-link" style="border-color: var(--comic-blue);">
+        <h3>⚔️ Battle Arena</h3>
+        <p class="text-muted">Vote hero vs hero — who would win?</p>
+        <span class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">Enter Arena →</span>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-md-3">
+    <a href="{{ url_for('teams.list_teams') }}" class="text-decoration-none text-reset d-block h-100">
+      <div class="comic-tile h-100 comic-tile-link" style="border-color: var(--comic-green);">
+        <h3>🤝 Teams</h3>
+        <p class="text-muted mb-0">Build hero squads!</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-3">
+    <a href="{{ url_for('extras.superpower_quiz') }}" class="text-decoration-none text-reset d-block h-100">
+      <div class="comic-tile h-100 comic-tile-link" style="border-color: var(--comic-pink);">
+        <h3>🧠 Quiz</h3>
+        <p class="text-muted mb-0">Find your superpower!</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-3">
+    <a href="{{ url_for('extras.fanart_wall') }}" class="text-decoration-none text-reset d-block h-100">
+      <div class="comic-tile h-100 comic-tile-link" style="border-color: var(--comic-pink);">
+        <h3>🎨 Fan Art</h3>
+        <p class="text-muted mb-0">Share your drawings!</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-3">
+    <a href="{{ url_for('extras.timeline') }}" class="text-decoration-none text-reset d-block h-100">
+      <div class="comic-tile h-100 comic-tile-link" style="border-color: var(--comic-blue);">
+        <h3>📅 Timeline</h3>
+        <p class="text-muted mb-0">The full IsmaVerse history!</p>
+      </div>
+    </a>
   </div>
 </div>
 

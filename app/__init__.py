@@ -18,11 +18,22 @@ def create_app():
     from .views.comics_routes import comics_bp
     from .views.admin_routes import admin_bp
     from .views.characters_routes import characters_bp
+    from .views.villain_routes import villains_bp
+    from .views.battle_routes import battle_bp
+    from .views.team_routes import team_bp
+    from .views.extras_routes import extras_bp
 
     app.register_blueprint(characters_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(comics_bp, url_prefix="/comics")
+    app.register_blueprint(villains_bp)
+    app.register_blueprint(battle_bp)
+    app.register_blueprint(team_bp)
+    app.register_blueprint(extras_bp)
+
+    # Add enumerate as a Jinja2 global
+    app.jinja_env.globals["enumerate"] = enumerate
 
     return app

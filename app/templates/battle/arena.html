@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Battle Arena – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- HEADER -->
+  <div class="comic-panel mb-4" style="overflow:visible;">
+    <div class="panel-header text-center" style="background: linear-gradient(90deg, var(--comic-red), var(--comic-blue));">
+      <h1 class="panel-title">⚔️ Hero Battle Arena!</h1>
+    </div>
+    <div class="p-4 text-center">
+      <p class="fw-bold mb-3">Who would win in a fight? You decide! Vote for your hero!</p>
+
+      {% if characters|length >= 2 %}
+      <!-- Matchup picker -->
+      <form method="GET" class="d-flex flex-wrap justify-content-center gap-2 align-items-center mb-2">
+        <select name="hero1" class="form-select" style="max-width:200px; border:3px solid var(--ink); font-weight:700; box-shadow:3px 3px 0 var(--ink);">
+          {% for c in characters %}
+          <option value="{{ c.id }}" {% if hero1 and c.id == hero1.id %}selected{% endif %}>{{ c.superhero_name }}</option>
+          {% endfor %}
+        </select>
+        <span class="burst" style="font-size:1.2rem;">VS</span>
+        <select name="hero2" class="form-select" style="max-width:200px; border:3px solid var(--ink); font-weight:700; box-shadow:3px 3px 0 var(--ink);">
+          {% for c in characters %}
+          <option value="{{ c.id }}" {% if hero2 and c.id == hero2.id %}selected{% endif %}>{{ c.superhero_name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-comic-cta">Set Battle!</button>
+      </form>
+      <a href="{{ url_for('battle.arena') }}" class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">🎲 Random Battle!</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if hero1 and hero2 %}
+  <!-- BATTLE -->
+  <div class="row g-4 align-items-stretch mb-4">
+
+    <!-- HERO 1 -->
+    <div class="col-12 col-md-5">
+      <div class="hero-card battle-hero-card text-center" style="border-color: var(--comic-blue);">
+        {% if hero1.image_file %}
+        <div class="hero-avatar-wrap">
+          <img src="{{ url_for('static', filename='uploads/characters/' ~ hero1.image_file) }}" class="hero-avatar" alt="{{ hero1.superhero_name }}">
+        </div>
+        {% else %}
+        <div class="hero-avatar-wrap hero-avatar-placeholder"><span>{{ hero1.superhero_name[0] }}</span></div>
+        {% endif %}
+        <div class="hero-card-header">
+          <h2 class="hero-name">{{ hero1.superhero_name }}</h2>
+          <div class="mt-1">
+            <span class="burst" style="font-size:.8rem; background:var(--comic-blue); color:#fff;">PWR: {{ hero1.power_level }}</span>
+          </div>
+        </div>
+        <div class="hero-card-body">
+          <div class="hero-section">
+            <div class="hero-section-title">Powers</div>
+            <div class="hero-section-text">{{ hero1.powers or "???" }}</div>
+          </div>
+        </div>
+
+        <!-- VOTE BAR -->
+        <div class="px-3 pb-2">
+          <div class="d-flex justify-content-between mb-1">
+            <small class="fw-bold">Votes</small>
+            <small class="fw-bold">{{ vote_counts[hero1.id] }} ({{ hero1_pct }}%)</small>
+          </div>
+          <div class="power-bar-track">
+            <div class="power-bar-fill" style="width:{{ hero1_pct }}%; background: var(--comic-blue);"></div>
+          </div>
+        </div>
+
+        <div class="hero-card-footer" style="justify-content:center; background: #d0e8ff;">
+          <form method="POST" action="{{ url_for('battle.vote') }}">
+            <input type="hidden" name="hero1_id" value="{{ hero1.id }}">
+            <input type="hidden" name="hero2_id" value="{{ hero2.id }}">
+            <input type="hidden" name="winner_id" value="{{ hero1.id }}">
+            <button type="submit" class="btn btn-comic-cta" style="background:var(--comic-blue); color:#fff; font-size:1.1rem;">
+              Vote for {{ hero1.superhero_name }}!
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- VS BADGE -->
+    <div class="col-12 col-md-2 d-flex align-items-center justify-content-center">
+      <div class="vs-badge">
+        <div style="font-family:'Bangers',cursive; font-size:3rem; text-shadow: 4px 4px 0 var(--ink); color:var(--comic-red);">VS</div>
+        <div class="fw-bold" style="font-size:.85rem;">{{ total_votes }} votes cast</div>
+      </div>
+    </div>
+
+    <!-- HERO 2 -->
+    <div class="col-12 col-md-5">
+      <div class="hero-card battle-hero-card text-center" style="border-color: var(--comic-red);">
+        {% if hero2.image_file %}
+        <div class="hero-avatar-wrap">
+          <img src="{{ url_for('static', filename='uploads/characters/' ~ hero2.image_file) }}" class="hero-avatar" alt="{{ hero2.superhero_name }}">
+        </div>
+        {% else %}
+        <div class="hero-avatar-wrap hero-avatar-placeholder"><span>{{ hero2.superhero_name[0] }}</span></div>
+        {% endif %}
+        <div class="hero-card-header">
+          <h2 class="hero-name">{{ hero2.superhero_name }}</h2>
+          <div class="mt-1">
+            <span class="burst" style="font-size:.8rem; background:var(--comic-red); color:#fff;">PWR: {{ hero2.power_level }}</span>
+          </div>
+        </div>
+        <div class="hero-card-body">
+          <div class="hero-section">
+            <div class="hero-section-title">Powers</div>
+            <div class="hero-section-text">{{ hero2.powers or "???" }}</div>
+          </div>
+        </div>
+
+        <!-- VOTE BAR -->
+        <div class="px-3 pb-2">
+          <div class="d-flex justify-content-between mb-1">
+            <small class="fw-bold">Votes</small>
+            <small class="fw-bold">{{ vote_counts[hero2.id] }} ({{ hero2_pct }}%)</small>
+          </div>
+          <div class="power-bar-track">
+            <div class="power-bar-fill" style="width:{{ hero2_pct }}%; background: var(--comic-red);"></div>
+          </div>
+        </div>
+
+        <div class="hero-card-footer" style="justify-content:center; background: #ffd0d0;">
+          <form method="POST" action="{{ url_for('battle.vote') }}">
+            <input type="hidden" name="hero1_id" value="{{ hero1.id }}">
+            <input type="hidden" name="hero2_id" value="{{ hero2.id }}">
+            <input type="hidden" name="winner_id" value="{{ hero2.id }}">
+            <button type="submit" class="btn btn-comic-cta" style="background:var(--comic-red); color:#fff; font-size:1.1rem;">
+              Vote for {{ hero2.superhero_name }}!
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {% elif characters|length < 2 %}
+  <div class="speech text-center">
+    <p class="fw-bold">Need at least 2 heroes to battle! <a href="{{ url_for('characters.create_character') }}">Create more heroes first!</a></p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

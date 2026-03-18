@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,54 +31,71 @@
     </a>
 
     <!-- MOBILE TOGGLER -->
-    <button class="navbar-toggler comic-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+    <div class="d-flex align-items-center gap-2 d-lg-none">
+      <!-- Dark mode toggle (mobile) -->
+      <button id="dark-toggle-mobile" class="btn btn-sm dark-mode-btn" title="Toggle Night Mode" aria-label="Toggle dark mode">🌙</button>
+      <button class="navbar-toggler comic-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
 
     <!-- NAV LINKS -->
     <div class="collapse navbar-collapse" id="nav">
-      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
 
         <li class="nav-item">
-          <a class="nav-link comic-link" href="{{ url_for('main.home') }}">
-            Home
-          </a>
+          <a class="nav-link comic-link" href="{{ url_for('main.home') }}">Home</a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link comic-link" href="{{ url_for('comics.list_comics') }}">
-            Comics
-          </a>
+          <a class="nav-link comic-link" href="{{ url_for('comics.list_comics') }}">Comics</a>
         </li>
 
-        <!-- CHARACTERS LINK -->
-        <li class="nav-item">
-          <a class="nav-link comic-link" href="{{ url_for('characters.list_characters') }}">
-            Characters
+        <!-- HEROES DROPDOWN -->
+        <li class="nav-item dropdown">
+          <a class="nav-link comic-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            Heroes
           </a>
+          <ul class="dropdown-menu comic-dropdown">
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('characters.list_characters') }}">All Heroes</a></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('characters.create_character') }}">Create a Hero ✨</a></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('characters.random_character') }}">Random Hero 🎲</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('villains.list_villains') }}">Villains 😈</a></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('villains.create_villain') }}">Create Villain</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('teams.list_teams') }}">Teams 🤝</a></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('teams.create_team') }}">Build a Team</a></li>
+          </ul>
         </li>
+
+        <!-- ARENA -->
         <li class="nav-item">
-          <a class="nav-link comic-link comic-link-highlight" href="{{ url_for('characters.create_character') }}">
-            Create Your Hero
+          <a class="nav-link comic-link" href="{{ url_for('battle.arena') }}">⚔️ Arena</a>
+        </li>
+
+        <!-- EXTRAS DROPDOWN -->
+        <li class="nav-item dropdown">
+          <a class="nav-link comic-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            Fun Stuff
           </a>
+          <ul class="dropdown-menu comic-dropdown">
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('extras.daily_mission') }}">🎯 Daily Mission</a></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('extras.superpower_quiz') }}">🧠 Superpower Quiz</a></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('extras.fanart_wall') }}">🎨 Fan Art Wall</a></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('extras.timeline') }}">📅 Universe Timeline</a></li>
+          </ul>
         </li>
 
         {% if current_user.is_authenticated %}
         {% if current_user.is_admin %}
-        <li class="nav-item">
-          <a class="nav-link comic-link" href="{{ url_for('admin.admin_users_list') }}">
-            Manage Users
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link comic-link" href="{{ url_for('admin.admin_comics_list') }}">
-            Manage Comics
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link comic-link" href="{{ url_for('admin.admin_characters_list') }}">
-            Manage Characters
-          </a>
+        <li class="nav-item dropdown">
+          <a class="nav-link comic-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Admin</a>
+          <ul class="dropdown-menu comic-dropdown">
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.admin_users_list') }}">Users</a></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.admin_comics_list') }}">Comics</a></li>
+            <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.admin_characters_list') }}">Characters</a></li>
+          </ul>
         </li>
         {% endif %}
         <li class="nav-item">
@@ -92,6 +109,11 @@
           <a class="nav-link comic-link" href="{{ url_for('auth.register') }}">Register</a>
         </li>
         {% endif %}
+
+        <!-- Dark mode toggle (desktop) -->
+        <li class="nav-item d-none d-lg-flex align-items-center">
+          <button id="dark-toggle" class="btn btn-sm dark-mode-btn ms-1" title="Toggle Night Mode" aria-label="Toggle dark mode">🌙</button>
+        </li>
 
         <!-- PRIMARY CTA -->
         <li class="nav-item mt-2 mt-lg-0">

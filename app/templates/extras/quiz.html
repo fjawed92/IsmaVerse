@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Superpower Quiz – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:700px;">
+
+  <div class="comic-panel mb-4">
+    <div class="panel-header text-center" style="background: linear-gradient(90deg, var(--comic-pink), var(--comic-blue));">
+      <h1 class="panel-title">🧠 What's Your Superpower?</h1>
+    </div>
+    <div class="p-3 text-center">
+      <p class="fw-bold">Answer 5 questions and discover your superhero power!</p>
+    </div>
+  </div>
+
+  {% if result %}
+  <!-- RESULT -->
+  {% set result_bg = {"blue": "var(--comic-blue)", "red": "var(--comic-red)", "green": "var(--comic-green)", "yellow": "var(--comic-yellow)", "purple": "#9b59b6"} %}
+  {% set rbg = result_bg.get(result.color, "var(--comic-blue)") %}
+  <div class="comic-panel mb-4 text-center" style="border-color: {{ rbg }};">
+    <div class="panel-header" style="background: linear-gradient(90deg, {{ rbg }}, #cccccc44);">
+      <h2 class="panel-title" style="{% if result.color in ['yellow'] %}color:var(--ink);{% else %}color:#fff;{% endif %}">
+        {{ result.emoji }} Your Power: {{ result.name }}!
+      </h2>
+    </div>
+    <div class="p-4">
+      <div class="speech mb-4" style="font-size:1.15rem; font-weight:700;">
+        {{ result.description }}
+      </div>
+      <div class="burst mb-3">YOU GOT: {{ result.name|upper }}!</div>
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <a href="{{ url_for('extras.superpower_quiz') }}" class="btn btn-comic-cta">Take Quiz Again!</a>
+        <a href="{{ url_for('characters.create_character') }}" class="btn btn-outline-dark fw-bold comic-outline-btn">Create a Hero with This Power!</a>
+      </div>
+      {% if current_user.is_authenticated %}
+      <p class="text-success fw-bold mt-3">🏆 Quiz Champ badge progress updated!</p>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <!-- QUESTIONS -->
+  <form method="POST">
+    {% for i, q in questions|enumerate %}
+    <div class="comic-panel mb-3">
+      <div class="panel-header" style="background: linear-gradient(90deg, var(--comic-blue), #6fd6ff);">
+        <h2 class="panel-title" style="font-size:1.3rem;">Question {{ i + 1 }}</h2>
+      </div>
+      <div class="p-3">
+        <p class="fw-bold mb-3" style="font-size:1.05rem;">{{ q.question }}</p>
+        <div class="d-flex flex-column gap-2">
+          {% for j, answer in q.answers|enumerate %}
+          <label class="quiz-option d-flex align-items-center gap-2 p-2 fw-bold" style="cursor:pointer; border:3px solid var(--ink); border-radius:12px; background:#fff; box-shadow:2px 2px 0 var(--ink);">
+            <input type="radio" name="q{{ i }}" value="{{ j }}" required>
+            {{ answer.text }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="text-center mt-4">
+      <button type="submit" class="btn btn-comic-cta" style="font-size:1.2rem; padding:.75rem 2rem;">
+        Reveal My Superpower! 🌟
+      </button>
+    </div>
+  </form>
+  {% endif %}
+
+</div>
+{% endblock %}

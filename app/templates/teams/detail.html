@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ team.name }} – IsmaVerse{% endblock %}
+
+{% block content %}
+{% set team_colors = {"blue": "var(--comic-blue)", "red": "var(--comic-red)", "green": "var(--comic-green)", "yellow": "var(--comic-yellow)", "pink": "var(--comic-pink)", "purple": "#9b59b6"} %}
+{% set tc = team_colors.get(team.color, "var(--comic-blue)") %}
+
+<div class="container py-4">
+
+  <div class="mb-3">
+    <a href="{{ url_for('teams.list_teams') }}" class="fw-bold text-decoration-none">← All Teams</a>
+  </div>
+
+  <!-- TEAM HEADER -->
+  <div class="comic-panel mb-4">
+    <div class="panel-header text-center" style="background: linear-gradient(90deg, {{ tc }}, #cccccc44 99%);">
+      <h1 class="panel-title" style="{% if team.color in ['yellow', 'green'] %}color:var(--ink);{% else %}color:#fff;{% endif %}">
+        {{ team.name }}
+      </h1>
+      {% if team.slogan %}
+      <p class="mb-0 fw-bold mt-1" style="font-style:italic; {% if team.color not in ['yellow', 'green'] %}color:#fff;{% endif %}">"{{ team.slogan }}"</p>
+      {% endif %}
+    </div>
+    <div class="p-3 text-center">
+      <span class="burst">{{ team.members|length }} HEROES STRONG</span>
+    </div>
+  </div>
+
+  <!-- MEMBERS -->
+  <div class="row g-4">
+    {% for member in team.members %}
+    <div class="col-6 col-md-4 col-lg-3">
+      <a href="{{ url_for('characters.character_detail', character_id=member.id) }}" class="text-decoration-none text-reset">
+        <div class="hero-card comic-tile-link text-center" style="border-color: {{ tc }};">
+          {% if member.image_file %}
+          <div class="hero-avatar-wrap">
+            <img src="{{ url_for('static', filename='uploads/characters/' ~ member.image_file) }}" class="hero-avatar" alt="{{ member.superhero_name }}" style="height:150px;">
+          </div>
+          {% else %}
+          <div class="hero-avatar-wrap hero-avatar-placeholder" style="height:100px;"><span>{{ member.superhero_name[0] }}</span></div>
+          {% endif %}
+          <div class="hero-card-header" style="border-top: 4px solid {{ tc }};">
+            <h2 class="hero-name" style="font-size:.95rem;">{{ member.superhero_name }}</h2>
+            <small class="fw-bold text-muted">PWR: {{ member.power_level }}</small>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-4 text-center">
+    <a href="{{ url_for('teams.create_team') }}" class="btn btn-comic-cta">Build Another Team</a>
+    <a href="{{ url_for('teams.list_teams') }}" class="btn btn-outline-dark fw-bold comic-outline-btn ms-2">All Teams</a>
+  </div>
+
+</div>
+{% endblock %}

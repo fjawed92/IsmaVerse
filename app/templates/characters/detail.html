@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}{{ character.superhero_name }} – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- BREADCRUMB -->
+  <div class="mb-3">
+    <a href="{{ url_for('characters.list_characters') }}" class="fw-bold text-decoration-none">← All Heroes</a>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- LEFT: Hero Card -->
+    <div class="col-12 col-lg-5">
+      <article class="hero-card">
+        <div class="hero-burst">HERO FILE</div>
+
+        {% if character.image_file %}
+        <div class="hero-avatar-wrap">
+          <img
+            src="{{ url_for('static', filename='uploads/characters/' ~ character.image_file) }}"
+            alt="{{ character.superhero_name }}"
+            class="hero-avatar"
+          >
+        </div>
+        {% else %}
+        <div class="hero-avatar-wrap hero-avatar-placeholder"><span>NO IMAGE</span></div>
+        {% endif %}
+
+        <header class="hero-card-header">
+          <h1 class="hero-name">{{ character.superhero_name }}</h1>
+          <div class="hero-stickers mt-1">
+            <span class="hero-sticker hero-sticker-good">POWERED</span>
+            {% if character.weakness %}<span class="hero-sticker hero-sticker-warn">WEAK SPOT</span>{% endif %}
+          </div>
+        </header>
+
+        <!-- POWER LEVEL BAR -->
+        <div class="px-3 py-2" style="border-bottom: 3px solid var(--ink); background: #fff9e8;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-900 text-uppercase" style="font-size:.8rem; letter-spacing:.5px;">Power Level</span>
+            <span class="fw-900" style="font-family: 'Bangers', cursive; font-size:1.2rem;">{{ character.power_level }}/100</span>
+          </div>
+          <div class="power-bar-track">
+            <div class="power-bar-fill" style="width:{{ character.power_level }}%"></div>
+          </div>
+        </div>
+
+        <div class="hero-card-body">
+          <section class="hero-section">
+            <div class="hero-section-title">Powers</div>
+            <div class="hero-section-text">{{ character.powers or "Not revealed yet…" }}</div>
+          </section>
+          <section class="hero-section">
+            <div class="hero-section-title">Weakness</div>
+            <div class="hero-section-text">{{ character.weakness or "Top secret." }}</div>
+          </section>
+          <section class="hero-section">
+            <div class="hero-section-title">Origin Story</div>
+            <div class="hero-section-text">{{ character.origins or "Origin story loading…" }}</div>
+          </section>
+
+          {% if character.costume_color or character.age %}
+          <section class="hero-section">
+            <div class="hero-section-title">Hero Details</div>
+            <ul class="hero-detail-list">
+              {% if character.age %}<li><span>Age</span> {{ character.age }}</li>{% endif %}
+              {% if character.hair_color %}<li><span>Hair</span> {{ character.hair_color|title }}</li>{% endif %}
+              {% if character.costume_color %}<li><span>Costume</span> {{ character.costume_color|title }}</li>{% endif %}
+              {% if character.cape_color %}<li><span>Cape</span> {{ character.cape_color|title }}</li>{% endif %}
+              {% if character.chest_symbol %}<li><span>Symbol</span> {{ character.chest_symbol }}</li>{% endif %}
+            </ul>
+          </section>
+          {% endif %}
+        </div>
+
+        <footer class="hero-card-footer">
+          <span class="hero-id">#{{ "%03d"|format(character.id) }}</span>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('characters.random_character') }}" class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">
+              Random Hero 🎲
+            </a>
+            <a href="{{ url_for('characters.list_characters') }}" class="btn btn-sm btn-comic-cta">
+              All Heroes
+            </a>
+          </div>
+        </footer>
+      </article>
+
+      <!-- PRINT CARD BUTTON -->
+      <div class="mt-3 text-center">
+        <button onclick="window.print()" class="btn btn-outline-dark fw-bold comic-outline-btn">
+          🖨️ Print Hero Card
+        </button>
+        <a href="{{ url_for('battle.arena', hero1=character.id) }}" class="btn btn-comic-cta ms-2">
+          ⚔️ Battle This Hero!
+        </a>
+      </div>
+    </div>
+
+    <!-- RIGHT: Reactions + Comments -->
+    <div class="col-12 col-lg-7">
+
+      <!-- REACTIONS -->
+      <div class="comic-panel mb-4">
+        <div class="panel-header d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, var(--comic-pink), #ff9fe8);">
+          <h2 class="panel-title">Reactions</h2>
+          <span class="burst">POW!</span>
+        </div>
+        <div class="p-3">
+          <p class="fw-bold mb-3">React to this hero with comic stamps!</p>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            {% set reaction_labels = {"boom": "💥 BOOM!", "pow": "👊 POW!", "amazing": "🌟 AMAZING!", "wow": "😮 WOW!", "cool": "😎 COOL!"} %}
+            {% set reaction_colors = {"boom": "var(--comic-red)", "pow": "var(--comic-blue)", "amazing": "var(--comic-yellow)", "wow": "var(--comic-green)", "cool": "var(--comic-pink)"} %}
+            {% for rtype in reaction_types %}
+            <form method="POST" action="{{ url_for('characters.react_to_hero', character_id=character.id) }}" class="d-inline">
+              <input type="hidden" name="reaction_type" value="{{ rtype }}">
+              <button
+                type="submit"
+                class="btn reaction-btn {% if rtype in already_reacted %}reaction-btn--used{% endif %}"
+                style="background: {{ reaction_colors[rtype] }}; border: 3px solid var(--ink); font-weight:900; box-shadow: 3px 3px 0 var(--ink); font-size:1rem;"
+                {% if rtype in already_reacted %}title="Already reacted!"{% endif %}
+              >
+                {{ reaction_labels[rtype] }}
+                <span class="ms-1 badge-count">({{ character.reaction_counts[rtype] }})</span>
+              </button>
+            </form>
+            {% endfor %}
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            {% for rtype, count in character.reaction_counts.items() %}
+            <span class="hero-sticker" style="background: {{ reaction_colors[rtype] }}; border:3px solid var(--ink); box-shadow:2px 2px 0 var(--ink);">
+              {{ reaction_labels[rtype] }} {{ count }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- COMMENTS -->
+      <div class="comic-panel mb-4">
+        <div class="panel-header d-flex justify-content-between align-items-center">
+          <h2 class="panel-title">Hero Comments</h2>
+          <span class="burst burst-blue">{{ character.hero_comments|length }}</span>
+        </div>
+        <div class="p-3">
+          {% if current_user.is_authenticated %}
+          <form method="POST" action="{{ url_for('characters.comment_on_hero', character_id=character.id) }}" class="comment-form mb-4">
+            <label class="fw-bold text-uppercase mb-1" style="letter-spacing:.5px;">Leave a comment about {{ character.superhero_name }}!</label>
+            <textarea name="body" class="form-control comic-textarea mb-2" rows="3" placeholder="This hero is awesome because..." maxlength="500" required></textarea>
+            <button type="submit" class="btn btn-comic-cta">Post Comment</button>
+          </form>
+          {% else %}
+          <div class="speech mb-4">
+            <p class="mb-1 fw-bold">Want to leave a comment?</p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-comic-cta btn-sm">Login</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-sm btn-outline-dark fw-bold ms-2">Register</a>
+          </div>
+          {% endif %}
+
+          {% if character.hero_comments %}
+          <div class="comment-list">
+            {% for comment in character.hero_comments|sort(attribute='created_at', reverse=True) %}
+            <div class="comment-card">
+              <div class="comment-meta">
+                <span class="comment-author">{{ comment.author.username }}</span>
+                <span class="comment-date">{{ comment.created_at.strftime('%b %d, %Y') }}</span>
+              </div>
+              <div class="comment-body">{{ comment.body }}</div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted fw-bold text-center py-2">No comments yet. Be the first!</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- OTHER HEROES -->
+      {% if all_characters|length > 1 %}
+      <div class="comic-panel">
+        <div class="panel-header" style="background: linear-gradient(90deg, var(--comic-green), #a0ffcc);">
+          <h2 class="panel-title" style="color:var(--ink);">More Heroes</h2>
+        </div>
+        <div class="p-3">
+          <div class="d-flex flex-wrap gap-2">
+            {% for c in all_characters %}
+            {% if c.id != character.id %}
+            <a href="{{ url_for('characters.character_detail', character_id=c.id) }}" class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">
+              {{ c.superhero_name }}
+            </a>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<!-- PRINT ONLY: Hero Card -->
+<div class="print-hero-card d-none">
+  <div class="print-card-inner">
+    <div class="print-card-header">
+      <div class="print-card-title">{{ character.superhero_name }}</div>
+      <div class="print-card-id">#{{ "%03d"|format(character.id) }} · IsmaVerse</div>
+    </div>
+    {% if character.image_file %}
+    <img src="{{ url_for('static', filename='uploads/characters/' ~ character.image_file) }}" class="print-card-img" alt="{{ character.superhero_name }}">
+    {% endif %}
+    <div class="print-card-section"><strong>POWERS:</strong> {{ character.powers or "Unknown" }}</div>
+    <div class="print-card-section"><strong>WEAKNESS:</strong> {{ character.weakness or "Unknown" }}</div>
+    <div class="print-card-section"><strong>POWER LEVEL:</strong> {{ character.power_level }}/100</div>
+    <div class="print-card-footer">IsmaVerse.com · Collect them all!</div>
+  </div>
+</div>
+{% endblock %}
