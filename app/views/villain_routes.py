@@ -87,7 +87,10 @@ def generate_villain_image(prompt: str) -> str | None:
         with urllib.request.urlopen(req) as response:
             body = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        current_app.logger.error("OpenAI villain image failed: %s", exc.read().decode())
+        current_app.logger.error("OpenAI villain image HTTP error: %s", exc.read().decode())
+        return None
+    except urllib.error.URLError as exc:
+        current_app.logger.error("OpenAI villain image network error: %s", exc.reason)
         return None
 
     image_data = body["data"][0]
@@ -154,10 +157,12 @@ def create_villain():
 
     prompt = build_villain_image_prompt(villain_data)
     image_filename = None
+    image_error = None
     try:
         image_filename = generate_villain_image(prompt)
     except Exception:
         current_app.logger.exception("Failed to generate villain image.")
+        image_error = "unexpected"
 
     villain = Villain(
         villain_name=villain_name,
@@ -180,7 +185,9 @@ def create_villain():
 
     if image_filename:
         flash("Villain unleashed! They've arrived in IsmaVerse. Watch out, heroes!", "success")
+    elif not current_app.config.get("OPENAI_API_KEY"):
+        flash("Villain created! Set OPENAI_API_KEY to enable villain portraits.", "warning")
     else:
-        flash("Villain created! Image generation needs OpenAI key to be configured.", "warning")
+        flash("Villain created! Image generation failed — check the server logs for details.", "warning")
 
     return redirect(url_for("villains.list_villains"))

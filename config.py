@@ -4,17 +4,14 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-# Load .env file
-load_dotenv()
+# Load .env file from the project root (works regardless of working directory)
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "Isma-Ultra-Rules")
 
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-    if not OPENAI_API_KEY:
-        raise RuntimeError("OPENAI_API_KEY is missing from environment")
 
     # Always store sqlite DB inside the project /instance folder
     DB_PATH = os.path.join(BASE_DIR, "instance", "app.db")
