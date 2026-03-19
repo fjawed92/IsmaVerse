@@ -13,9 +13,6 @@ class Config:
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-    if not OPENAI_API_KEY:
-        raise RuntimeError("OPENAI_API_KEY is missing from environment")
-
     # Always store sqlite DB inside the project /instance folder
     DB_PATH = os.path.join(BASE_DIR, "instance", "app.db")
 
