@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-# Load .env file
-load_dotenv()
+# Load .env file from the project root (works regardless of working directory)
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "Isma-Ultra-Rules")
