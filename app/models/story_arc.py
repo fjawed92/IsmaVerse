@@ -46,6 +46,7 @@ class ComicIssue(db.Model):
     issue_number = db.Column(db.Integer, nullable=False, default=1)
     title = db.Column(db.String(200), nullable=False)
     summary = db.Column(db.Text, nullable=True)
+    story_text = db.Column(db.Text, nullable=True)  # full prose narrative shown in reader
     cover_image = db.Column(db.String(255), nullable=True)  # AI-generated cover
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 

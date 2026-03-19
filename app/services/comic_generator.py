@@ -170,27 +170,46 @@ def generate_arc_cover(arc_title: str, heroes: list, villains: list, save_dir: s
 # ---------------------------------------------------------------------------
 
 def generate_issue_plan(arc_summary: str, issue_number: int, total_issues: int,
-                        heroes: list, villains: list) -> dict:
+                        heroes: list, villains: list,
+                        previous_summaries: list | None = None) -> dict:
     """
     Generate the plot for one issue within the arc.
-    Returns dict with keys: title, summary, panels (list of {description, dialogue})
+    Returns dict with keys: title, summary, story_text, panels (list of {description, dialogue})
+    previous_summaries: list of short summaries from all prior issues, used to maintain continuity.
     """
     hero_names = ", ".join(h.superhero_name for h in heroes) if heroes else "the heroes"
     villain_names = ", ".join(v.villain_name for v in villains) if villains else "the villain"
 
+    # Build continuity context from previous issues
+    continuity_block = ""
+    if previous_summaries:
+        summaries_text = "\n".join(
+            f"  Issue {i+1}: {s}" for i, s in enumerate(previous_summaries)
+        )
+        continuity_block = (
+            f"\nPrevious issues in this arc (use these to maintain continuity and build on the story):\n"
+            f"{summaries_text}\n"
+        )
+
     system = (
-        "You are a kid-friendly comic book writer (ages 6-12). "
-        "Content is fun, adventurous, and teaches positive values. "
+        "You are a creative comic book writer for children aged 6-12. "
+        "Stories are adventurous, fun, and teach positive values like teamwork and courage. "
+        "Content is never scary or violent. "
+        "Maintain continuity with previous issues — build on what came before. "
         "Respond ONLY with valid JSON — no markdown, no code fences."
     )
     user = (
         f"Arc summary: {arc_summary}\n"
+        f"{continuity_block}"
         f"Write issue {issue_number} of {total_issues} in this arc.\n"
         f"Heroes: {hero_names}. Villains: {villain_names}.\n\n"
         "Return JSON with exactly these keys:\n"
         '  "title": issue title (max 6 words)\n'
-        '  "summary": 2-3 sentences describing this issue\n'
-        '  "panels": array of 6 objects, each with:\n'
+        '  "summary": 2-3 sentences describing this issue (used as a teaser on the arc page)\n'
+        '  "story_text": a fun, engaging prose narrative of the full issue story (3-5 paragraphs, '
+        'written for kids aged 6-12, using vivid descriptions and exciting action — this is the '
+        'full story text displayed alongside the comic panels)\n'
+        '  "panels": array of EXACTLY 4 objects, each with:\n'
         '      "description": vivid scene description for image generation (1-2 sentences)\n'
         '      "dialogue": caption or speech bubble text shown to readers (1-2 sentences, fun and snappy)\n'
         "No markdown — raw JSON only."
@@ -198,16 +217,19 @@ def generate_issue_plan(arc_summary: str, issue_number: int, total_issues: int,
 
     raw = _chat(
         [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        max_tokens=800,
+        max_tokens=1200,
     )
     if not raw:
         return _fallback_issue(issue_number, hero_names, villain_names)
 
     try:
         data = json.loads(raw)
-        # ensure panels exist
+        # ensure panels exist and are trimmed/padded to exactly 4
         if "panels" not in data or not isinstance(data["panels"], list):
             data["panels"] = _default_panels(hero_names, villain_names)
+        data["panels"] = data["panels"][:4]
+        while len(data["panels"]) < 4:
+            data["panels"].append(_default_panels(hero_names, villain_names)[len(data["panels"])])
         return data
     except json.JSONDecodeError:
         return _fallback_issue(issue_number, hero_names, villain_names)
@@ -217,6 +239,13 @@ def _fallback_issue(issue_number: int, hero_names: str, villain_names: str) -> d
     return {
         "title": f"Issue {issue_number}",
         "summary": f"{hero_names} face a new challenge from {villain_names}.",
+        "story_text": (
+            f"In this thrilling issue, {hero_names} discover that {villain_names} is up to no good! "
+            f"Using their amazing powers and the strength of teamwork, our heroes spring into action. "
+            f"The battle is tough, but {hero_names} never give up. "
+            f"With a clever plan and lots of courage, they outsmart {villain_names} and save the day. "
+            f"IsmaVerse is safe — for now!"
+        ),
         "panels": _default_panels(hero_names, villain_names),
     }
 
@@ -226,8 +255,6 @@ def _default_panels(hero_names: str, villain_names: str) -> list:
         {"description": f"{hero_names} discover a mysterious clue.", "dialogue": "Something strange is going on..."},
         {"description": f"{villain_names} reveals their dastardly plan.", "dialogue": "You'll never stop me!"},
         {"description": f"{hero_names} team up and use their powers.", "dialogue": "Together we're unstoppable!"},
-        {"description": "An epic showdown begins.", "dialogue": "POW! BOOM! ZAP!"},
-        {"description": f"{hero_names} outsmart the villain with teamwork.", "dialogue": "Gotcha!"},
         {"description": "The day is saved and heroes celebrate.", "dialogue": "IsmaVerse is safe — for now!"},
     ]
 

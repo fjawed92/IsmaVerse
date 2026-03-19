@@ -128,13 +128,17 @@ def new_issue(arc_id):
     issue_number = len(arc.issues) + 1
     total_planned = 6  # arc has up to 6 issues by default
 
-    # AI generates the issue plot + 6 panel descriptions
+    # Collect summaries from all previous issues to maintain story continuity
+    previous_summaries = [iss.summary for iss in arc.issues if iss.summary]
+
+    # AI generates the issue plot + 4 panel descriptions + story narrative
     plan = generate_issue_plan(
         arc_summary=arc.summary or arc.title,
         issue_number=issue_number,
         total_issues=total_planned,
         heroes=arc.heroes,
         villains=arc.villains,
+        previous_summaries=previous_summaries or None,
     )
 
     issue = ComicIssue(
@@ -142,6 +146,7 @@ def new_issue(arc_id):
         issue_number=issue_number,
         title=plan.get("title", f"Issue {issue_number}"),
         summary=plan.get("summary", ""),
+        story_text=plan.get("story_text", ""),
     )
     db.session.add(issue)
     db.session.flush()  # need issue.id

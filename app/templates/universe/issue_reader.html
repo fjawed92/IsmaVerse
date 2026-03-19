@@ -19,13 +19,13 @@
   </div>
 
   {% if issue.summary %}
-  <div class="p-4 pb-2">
-    <p style="font-weight:700;" class="mb-0">{{ issue.summary }}</p>
+  <div class="px-4 pt-3 pb-1">
+    <p style="font-weight:700; font-style:italic; font-size:1.05rem;" class="mb-0">{{ issue.summary }}</p>
   </div>
   {% endif %}
 
   <!-- Cast bar -->
-  <div class="px-4 pb-3 d-flex flex-wrap gap-1 align-items-center">
+  <div class="px-4 pb-3 pt-2 d-flex flex-wrap gap-1 align-items-center">
     <span class="fw-bold me-1">Starring:</span>
     {% for h in arc.heroes %}
       <a href="{{ url_for('characters.character_detail', character_id=h.id) }}"
@@ -39,55 +39,80 @@
   </div>
 </div>
 
+<!-- STORY NARRATIVE -->
+{% if issue.story_text %}
+<div class="comic-panel mb-4">
+  <div class="panel-header d-flex align-items-center gap-2">
+    <h2 class="panel-title mb-0" style="font-size:1.3rem;">📖 The Story</h2>
+  </div>
+  <div class="p-4">
+    <div style="font-size:1.05rem; line-height:1.8; font-weight:600; color:#222;">
+      {% for paragraph in issue.story_text.split('\n') %}
+        {% if paragraph.strip() %}
+          <p class="mb-3">{{ paragraph.strip() }}</p>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <!-- COMIC PANELS -->
 {% if issue.panels %}
-  <div class="row g-4 mb-4">
-    {% for panel in issue.panels %}
-    <div class="col-12 col-md-6">
-      <div class="comic-tile h-100 d-flex flex-column">
+  <div class="comic-panel mb-4">
+    <div class="panel-header">
+      <h2 class="panel-title mb-0" style="font-size:1.3rem;">🎨 Comic Panels</h2>
+    </div>
+    <div class="p-4">
+      <div class="row g-4">
+        {% for panel in issue.panels %}
+        <div class="col-12 col-md-6">
+          <div class="comic-tile h-100 d-flex flex-column">
 
-        <!-- Panel image -->
-        {% if panel.image_file %}
-          <div class="mb-3" style="position:relative;">
-            <img
-              src="{{ url_for('static', filename='uploads/panels/' ~ panel.image_file) }}"
-              alt="Panel {{ panel.panel_number }}"
-              class="img-fluid w-100"
-              style="border-radius:10px; border:3px solid #222; object-fit:cover;"
-            >
-            <span class="comic-badge"
-                  style="position:absolute; top:10px; left:10px; font-size:.7rem;">
-              PANEL {{ panel.panel_number }}
-            </span>
+            <!-- Panel image -->
+            {% if panel.image_file %}
+              <div class="mb-3" style="position:relative;">
+                <img
+                  src="{{ url_for('static', filename='uploads/panels/' ~ panel.image_file) }}"
+                  alt="Panel {{ panel.panel_number }}"
+                  class="img-fluid w-100"
+                  style="border-radius:10px; border:3px solid #222; object-fit:cover;"
+                >
+                <span class="comic-badge"
+                      style="position:absolute; top:10px; left:10px; font-size:.7rem;">
+                  PANEL {{ panel.panel_number }}
+                </span>
+              </div>
+            {% else %}
+              <div class="text-center mb-3 p-4"
+                   style="border:3px dashed #ccc; border-radius:10px; background:#f8f8f8;">
+                <span style="font-size:3rem;">🎨</span>
+                <p class="text-muted fw-bold mb-0" style="font-size:.8rem;">Image generating…</p>
+              </div>
+            {% endif %}
+
+            <!-- Scene description -->
+            {% if panel.description %}
+              <p class="text-muted mb-2" style="font-weight:700; font-size:.85rem; font-style:italic;">
+                {{ panel.description }}
+              </p>
+            {% endif %}
+
+            <!-- Dialogue / caption -->
+            {% if panel.dialogue %}
+              <div class="mt-auto p-3"
+                   style="background:#ffe066; border-radius:10px; border:2px solid #222;">
+                <p class="mb-0" style="font-weight:800; font-size:1rem;">
+                  💬 {{ panel.dialogue }}
+                </p>
+              </div>
+            {% endif %}
+
           </div>
-        {% else %}
-          <div class="text-center mb-3 p-4"
-               style="border:3px dashed #ccc; border-radius:10px; background:#f8f8f8;">
-            <span style="font-size:3rem;">🎨</span>
-            <p class="text-muted fw-bold mb-0" style="font-size:.8rem;">Image generating…</p>
-          </div>
-        {% endif %}
-
-        <!-- Scene description -->
-        {% if panel.description %}
-          <p class="text-muted mb-2" style="font-weight:700; font-size:.85rem; font-style:italic;">
-            {{ panel.description }}
-          </p>
-        {% endif %}
-
-        <!-- Dialogue / caption -->
-        {% if panel.dialogue %}
-          <div class="mt-auto p-3"
-               style="background:#ffe066; border-radius:10px; border:2px solid #222;">
-            <p class="mb-0" style="font-weight:800; font-size:1rem;">
-              💬 {{ panel.dialogue }}
-            </p>
-          </div>
-        {% endif %}
-
+        </div>
+        {% endfor %}
       </div>
     </div>
-    {% endfor %}
   </div>
 {% else %}
   <div class="comic-panel mb-4">
