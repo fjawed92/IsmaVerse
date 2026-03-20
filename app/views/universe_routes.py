@@ -97,14 +97,19 @@ def new_arc():
     )
     arc.heroes = selected_heroes
     arc.villains = selected_villains
-    db.session.add(arc)
-    db.session.flush()  # get arc.id before generating cover
+    try:
+        db.session.add(arc)
+        db.session.flush()  # get arc.id before generating cover
 
-    # AI generates arc cover image
-    cover_filename = generate_arc_cover(arc.title, selected_heroes, selected_villains, _covers_dir())
-    arc.cover_image = cover_filename
+        # AI generates arc cover image
+        cover_filename = generate_arc_cover(arc.title, selected_heroes, selected_villains, _covers_dir())
+        arc.cover_image = cover_filename
 
-    db.session.commit()
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash("Something went wrong creating the story arc. Please try again.", "danger")
+        return redirect(url_for("universe.new_arc"))
     flash(f'Story Arc "{arc.title}" has been created! Now generate the first issue.', "success")
     return redirect(url_for("universe.arc_detail", arc_id=arc.id))
 
@@ -148,44 +153,49 @@ def new_issue(arc_id):
         summary=plan.get("summary", ""),
         story_text=plan.get("story_text", ""),
     )
-    db.session.add(issue)
-    db.session.flush()  # need issue.id
+    try:
+        db.session.add(issue)
+        db.session.flush()  # need issue.id
 
-    # Generate cover for issue
-    cover_filename = generate_issue_cover(issue.title, arc.title, arc.heroes, _covers_dir())
-    issue.cover_image = cover_filename
+        # Generate cover for issue
+        cover_filename = generate_issue_cover(issue.title, arc.title, arc.heroes, _covers_dir())
+        issue.cover_image = cover_filename
 
-    # Generate panels
-    hero_names = ", ".join(h.superhero_name for h in arc.heroes)
-    villain_names = ", ".join(v.villain_name for v in arc.villains) if arc.villains else "the villain"
+        # Generate panels
+        hero_names = ", ".join(h.superhero_name for h in arc.heroes)
+        villain_names = ", ".join(v.villain_name for v in arc.villains) if arc.villains else "the villain"
 
-    panels_data = plan.get("panels", [])
-    for idx, panel_data in enumerate(panels_data, start=1):
-        description = panel_data.get("description", "")
-        dialogue = panel_data.get("dialogue", "")
+        panels_data = plan.get("panels", [])
+        for idx, panel_data in enumerate(panels_data, start=1):
+            description = panel_data.get("description", "")
+            dialogue = panel_data.get("dialogue", "")
 
-        img_file, img_prompt = generate_panel_image(
-            panel_description=description,
-            hero_names=hero_names,
-            villain_names=villain_names,
-            save_dir=_panels_dir(),
-        )
+            img_file, img_prompt = generate_panel_image(
+                panel_description=description,
+                hero_names=hero_names,
+                villain_names=villain_names,
+                save_dir=_panels_dir(),
+            )
 
-        panel = ComicPanel(
-            issue_id=issue.id,
-            panel_number=idx,
-            description=description,
-            dialogue=dialogue,
-            image_file=img_file,
-            image_prompt=img_prompt,
-        )
-        db.session.add(panel)
+            panel = ComicPanel(
+                issue_id=issue.id,
+                panel_number=idx,
+                description=description,
+                dialogue=dialogue,
+                image_file=img_file,
+                image_prompt=img_prompt,
+            )
+            db.session.add(panel)
 
-    # Mark arc complete if we've hit 6 issues
-    if issue_number >= total_planned:
-        arc.status = "complete"
+        # Mark arc complete if we've hit 6 issues
+        if issue_number >= total_planned:
+            arc.status = "complete"
 
-    db.session.commit()
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash("Something went wrong generating the issue. Please try again.", "danger")
+        return redirect(url_for("universe.arc_detail", arc_id=arc_id))
     flash(f'Issue #{issue_number} "{issue.title}" has been generated!', "success")
     return redirect(url_for("universe.issue_reader", issue_id=issue.id))
 

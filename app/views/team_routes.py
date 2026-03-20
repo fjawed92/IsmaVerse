@@ -49,8 +49,13 @@ def create_team():
         created_by=current_user.id if current_user.is_authenticated else None,
     )
     team.members = members
-    db.session.add(team)
-    db.session.commit()
+    try:
+        db.session.add(team)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash("Something went wrong saving your team. Please try again.", "danger")
+        return redirect(url_for("teams.create_team"))
 
     if current_user.is_authenticated:
         record_badge_progress(current_user, "team-player")
