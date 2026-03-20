@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ villain.villain_name }} – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 700px;">
+
+  <div class="admin-hero mb-4" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+    <div class="admin-hero-label" style="background: var(--comic-red);">EDIT VILLAIN</div>
+    <h1 class="admin-hero-title" style="color: var(--comic-yellow); font-size:2.2rem;">Update {{ villain.villain_name }}!</h1>
+    <p class="admin-hero-subtitle" style="color:#ccc;">
+      Change the details of this villain. Their portrait stays the same.
+    </p>
+  </div>
+
+  <div class="comic-panel">
+    <div class="panel-header" style="background: linear-gradient(90deg, var(--comic-red), #ff6a6a);">
+      <h2 class="panel-title">Villain Details</h2>
+    </div>
+    <div class="p-4">
+      <form method="POST" class="comic-form">
+
+        <div class="mb-3">
+          <label class="form-label">Villain Name *</label>
+          <input type="text" name="villain_name" class="form-control"
+                 value="{{ villain.villain_name }}"
+                 placeholder="e.g. Dr. Slimeface, Captain Chaos" required maxlength="120">
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <label class="form-label">Age (optional)</label>
+            <input type="number" name="age" class="form-control"
+                   value="{{ villain.age or '' }}"
+                   placeholder="e.g. 40" min="1" max="999">
+          </div>
+          <div class="col-6">
+            <label class="form-label">Hair Color</label>
+            <input type="text" name="hair_color" class="form-control"
+                   value="{{ villain.hair_color or '' }}"
+                   placeholder="e.g. fiery red">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Costume Color *</label>
+          <input type="text" name="costume_color" class="form-control"
+                 value="{{ villain.costume_color }}"
+                 placeholder="e.g. dark purple with lightning bolts" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Evil Powers *</label>
+          <textarea name="powers" class="form-control comic-textarea" rows="2"
+                    placeholder="e.g. can turn anything to slime, controls darkness"
+                    required maxlength="300">{{ villain.powers or '' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Evil Plan *</label>
+          <textarea name="evil_plan" class="form-control comic-textarea" rows="2"
+                    placeholder="e.g. steal all the candy in the world!"
+                    required maxlength="300">{{ villain.evil_plan or '' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Weakness *</label>
+          <input type="text" name="weakness" class="form-control"
+                 value="{{ villain.weakness or '' }}"
+                 placeholder="e.g. tickling, the color pink" required maxlength="200">
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Villain Lair Location (optional)</label>
+          <input type="text" name="lair_location" class="form-control"
+                 value="{{ villain.lair_location or '' }}"
+                 placeholder="e.g. inside a volcano, under the school cafeteria" maxlength="120">
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <button type="submit" class="btn btn-comic-cta" style="background:var(--comic-red); color:#fff; font-size:1.1rem;">
+            Save Changes 😈
+          </button>
+          <a href="{{ url_for('villains.list_villains') }}" class="btn btn-outline-dark fw-bold comic-outline-btn">
+            ← Cancel
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  {% if villain.image_file %}
+  <div class="comic-panel mt-4">
+    <div class="panel-header" style="background: linear-gradient(90deg, #333, #555);">
+      <h2 class="panel-title">Current Portrait</h2>
+    </div>
+    <div class="p-4 text-center">
+      <img src="{{ url_for('static', filename='uploads/villains/' ~ villain.image_file) }}"
+           alt="{{ villain.villain_name }}"
+           style="max-width: 260px; width:100%; border: 4px solid var(--comic-red); border-radius: 12px;">
+      <p class="mt-2 text-muted" style="font-size:.85rem;">Portrait is not re-generated on edit.</p>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -17,7 +17,7 @@
       <h2 class="panel-title">Villain Details</h2>
     </div>
     <div class="p-4">
-      <form method="POST" class="comic-form">
+      <form method="POST" id="villainCreationForm" class="comic-form">
 
         <div class="mb-3">
           <label class="form-label">Villain Name *</label>
@@ -66,11 +66,68 @@
           </p>
         </div>
 
-        <button type="submit" class="btn btn-comic-cta w-100" style="background:var(--comic-red); color:#fff; font-size:1.1rem;">
+        <div class="power-editor-tip mb-3">
+          ⏱️ <strong>Heads up!</strong> After you click the button below, our AI will draw your villain.
+          This takes about <strong>20–40 seconds</strong> — a loading screen will appear.
+          Don't go back or refresh — your villain is being born!
+        </div>
+
+        <button type="submit" id="villainSubmitBtn" class="btn btn-comic-cta w-100" style="background:var(--comic-red); color:#fff; font-size:1.1rem;">
           Unleash the Villain! 😈
         </button>
       </form>
     </div>
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     VILLAIN CREATION LOADING OVERLAY
+===================================================== -->
+<div id="villainCreationOverlay" class="hero-creation-overlay villain-creation-overlay" aria-hidden="true" role="alertdialog"
+     aria-label="Creating your villain — please wait">
+
+  <!-- Corner skulls -->
+  <span class="hco-bolt" aria-hidden="true">💀</span>
+  <span class="hco-bolt" aria-hidden="true">💀</span>
+  <span class="hco-bolt" aria-hidden="true">💀</span>
+  <span class="hco-bolt" aria-hidden="true">💀</span>
+
+  <!-- Star field -->
+  <div class="hco-stars" id="vcoStars" aria-hidden="true"></div>
+
+  <!-- Main title -->
+  <div class="hco-title vco-title">YOUR VILLAIN IS RISING! 😈</div>
+
+  <!-- Comic panel -->
+  <div class="hco-panel vco-panel">
+    <div class="hco-panel-bg" aria-hidden="true"></div>
+    <div class="hco-panel-inner">
+
+      <!-- Animated icons -->
+      <div class="hco-icons" aria-hidden="true">
+        <span class="hco-icon">😈</span>
+        <span class="hco-icon">💥</span>
+        <span class="hco-icon">🦹</span>
+      </div>
+
+      <!-- Cycling message -->
+      <div class="hco-message" id="vcoMessage">PLOTTING EVIL PLAN...</div>
+      <div class="hco-submsg" id="vcoSubMsg">The AI is conjuring your villain right now!</div>
+
+      <!-- Progress bar -->
+      <div class="hco-progress-wrap">
+        <div class="hco-progress-bar vco-progress-bar" id="vcoProgressBar"></div>
+      </div>
+      <div class="hco-progress-label" id="vcoProgressLabel">0%</div>
+
+    </div>
+  </div>
+
+  <!-- Warning -->
+  <div class="hco-warning" role="status">
+    ⚠️ DON'T GO BACK — YOUR VILLAIN IS ALMOST READY! (~30 SECONDS)
   </div>
 
 </div>

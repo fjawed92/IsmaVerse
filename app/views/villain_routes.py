@@ -191,3 +191,69 @@ def create_villain():
         flash("Villain created! Image generation failed — check the server logs for details.", "warning")
 
     return redirect(url_for("villains.list_villains"))
+
+
+@villains_bp.route("/<int:villain_id>/edit", methods=["GET", "POST"])
+def edit_villain(villain_id):
+    villain = Villain.query.get_or_404(villain_id)
+
+    if request.method == "GET":
+        return render_template("villains/edit.html", villain=villain)
+
+    villain_name = normalize_text(request.form.get("villain_name", ""))
+    costume_color = normalize_color(request.form.get("costume_color", ""))
+    powers = normalize_text(request.form.get("powers", ""))
+    weakness = normalize_text(request.form.get("weakness", ""))
+    evil_plan = normalize_text(request.form.get("evil_plan", ""))
+    lair_location = normalize_text(request.form.get("lair_location", ""))
+    hair_color = normalize_color(request.form.get("hair_color", ""))
+    age_raw = normalize_text(request.form.get("age", ""))
+
+    required_fields = {
+        "Villain name": villain_name,
+        "Costume color": costume_color,
+        "Evil powers": powers,
+        "Weakness": weakness,
+        "Evil plan": evil_plan,
+    }
+
+    missing = [label for label, value in required_fields.items() if not value]
+    if missing:
+        flash(f"Please fill out: {', '.join(missing)}.", "danger")
+        return redirect(url_for("villains.edit_villain", villain_id=villain_id))
+
+    age = None
+    if age_raw:
+        try:
+            age = int(age_raw)
+        except ValueError:
+            pass
+
+    villain.villain_name = villain_name
+    villain.costume_color = costume_color
+    villain.powers = powers
+    villain.weakness = weakness
+    villain.evil_plan = evil_plan
+    villain.lair_location = lair_location
+    villain.hair_color = hair_color
+    villain.age = age
+
+    db.session.commit()
+    flash(f"{villain_name}'s evil plans have been updated!", "success")
+    return redirect(url_for("villains.list_villains"))
+
+
+@villains_bp.route("/<int:villain_id>/delete", methods=["POST"])
+def delete_villain(villain_id):
+    villain = Villain.query.get_or_404(villain_id)
+    name = villain.villain_name
+
+    if villain.image_file:
+        image_path = os.path.join(current_app.root_path, "static", "uploads", "villains", villain.image_file)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+    db.session.delete(villain)
+    db.session.commit()
+    flash(f"{name} has been defeated and erased from IsmaVerse!", "success")
+    return redirect(url_for("villains.list_villains"))

@@ -1958,3 +1958,37 @@ button:focus-visible,
   .hco-message   { font-size: 1.1rem; }
   .hco-panel-inner { padding: 1.2rem 1rem; }
 }
+
+/* =====================================================
+   VILLAIN CREATION OVERLAY OVERRIDES
+===================================================== */
+.villain-creation-overlay {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 35%, #2e0a0a 0%, #120000 55%, #000000 100%);
+}
+
+.vco-title {
+  color: var(--comic-red);
+  text-shadow:
+    3px 3px 0 #000,
+    6px 6px 0 rgba(0,0,0,.5),
+    0 0 40px rgba(255,45,45,.6);
+  animation: vcoTitlePulse 2s ease-in-out infinite;
+}
+
+@keyframes vcoTitlePulse {
+  0%,100% { text-shadow: 3px 3px 0 #000, 6px 6px 0 rgba(0,0,0,.5), 0 0 40px rgba(255,45,45,.5); }
+  50%      { text-shadow: 3px 3px 0 #000, 6px 6px 0 rgba(0,0,0,.5), 0 0 80px rgba(255,45,45,.9); }
+}
+
+.vco-panel {
+  border-color: var(--comic-red);
+  box-shadow:
+    0 0 0 3px var(--ink),
+    10px 10px 0 rgba(255,45,45,.25),
+    0 0 60px rgba(255,45,45,.2);
+}
+
+.vco-progress-bar {
+  background: linear-gradient(90deg, var(--comic-red), #ff6a6a, var(--comic-yellow));
+}

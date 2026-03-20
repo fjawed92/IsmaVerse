@@ -183,6 +183,100 @@ const checkBadgeUnlocks = () => {
 
 
 /* =====================================================
+   VILLAIN CREATION LOADING SCREEN
+===================================================== */
+const VILLAIN_CREATION_MESSAGES = [
+  { main: "PLOTTING THE EVIL PLAN...",   sub: "Every mastermind needs a scheme!" },
+  { main: "STITCHING THE COSTUME...",    sub: "Picking the most sinister colours!" },
+  { main: "CHARGING UP EVIL POWERS...", sub: "This villain is going to be unstoppable!" },
+  { main: "BUILDING THE SECRET LAIR...", sub: "Location: top secret!" },
+  { main: "DRAWING YOUR VILLAIN...",     sub: "The AI is sketching your bad guy now!" },
+  { main: "ADDING VILLAINOUS DETAILS...", sub: "Those evil eyebrows are looking perfect!" },
+  { main: "INKING THE OUTLINE...",       sub: "Bold lines for a bold villain!" },
+  { main: "FINAL EVIL TOUCHES...",       sub: "Almost ready to cause chaos!" },
+  { main: "UPLOADING TO ISMAVERSE...",   sub: "The world should be very afraid!" },
+];
+
+const initVillainCreationOverlay = () => {
+  const form    = document.getElementById("villainCreationForm");
+  const overlay = document.getElementById("villainCreationOverlay");
+  if (!form || !overlay) return;
+
+  const starsContainer = document.getElementById("vcoStars");
+  if (starsContainer) {
+    for (let i = 0; i < 40; i++) {
+      const star = document.createElement("span");
+      star.className = "hco-star";
+      star.style.left   = `${Math.random() * 100}%`;
+      star.style.width  = `${1 + Math.random() * 3}px`;
+      star.style.height = star.style.width;
+      const dur   = 6 + Math.random() * 10;
+      const delay = Math.random() * 12;
+      star.style.animationDuration = `${dur}s`;
+      star.style.animationDelay    = `-${delay}s`;
+      starsContainer.appendChild(star);
+    }
+  }
+
+  let msgInterval   = null;
+  let progInterval  = null;
+  let currentMsgIdx = 0;
+  let currentProg   = 0;
+
+  const msgEl   = document.getElementById("vcoMessage");
+  const subEl   = document.getElementById("vcoSubMsg");
+  const barEl   = document.getElementById("vcoProgressBar");
+  const labelEl = document.getElementById("vcoProgressLabel");
+
+  const cycleMessage = () => {
+    if (!msgEl) return;
+    msgEl.classList.add("fading");
+    setTimeout(() => {
+      currentMsgIdx = (currentMsgIdx + 1) % VILLAIN_CREATION_MESSAGES.length;
+      const { main, sub } = VILLAIN_CREATION_MESSAGES[currentMsgIdx];
+      msgEl.textContent = main;
+      if (subEl) subEl.textContent = sub;
+      msgEl.classList.remove("fading");
+    }, 300);
+  };
+
+  const tickProgress = () => {
+    if (currentProg < 30)      currentProg += 3 + Math.random() * 4;
+    else if (currentProg < 60) currentProg += 1.5 + Math.random() * 2.5;
+    else if (currentProg < 85) currentProg += 0.8 + Math.random() * 1.2;
+    else if (currentProg < 95) currentProg += 0.3 + Math.random() * 0.5;
+    currentProg = Math.min(currentProg, 95);
+    const pct = Math.round(currentProg);
+    if (barEl)   barEl.style.width = `${pct}%`;
+    if (labelEl) labelEl.textContent = `${pct}%`;
+  };
+
+  const onBeforeUnload = (e) => {
+    e.preventDefault();
+    e.returnValue = "Your villain is being created! Are you sure you want to leave?";
+  };
+
+  const showOverlay = () => {
+    overlay.classList.add("is-visible");
+    overlay.setAttribute("aria-hidden", "false");
+    msgInterval  = setInterval(cycleMessage, 3500);
+    progInterval = setInterval(tickProgress, 1200);
+    window.addEventListener("beforeunload", onBeforeUnload);
+  };
+
+  form.addEventListener("submit", (e) => {
+    if (!form.checkValidity()) return;
+    setTimeout(showOverlay, 10);
+    const submitBtn = document.getElementById("villainSubmitBtn");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "😈 UNLEASHING... PLEASE WAIT 😈";
+    }
+  });
+};
+
+
+/* =====================================================
    HERO CREATION LOADING SCREEN
 ===================================================== */
 const HERO_CREATION_MESSAGES = [
@@ -310,4 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Hero creation loading screen
   initHeroCreationOverlay();
+
+  // Villain creation loading screen
+  initVillainCreationOverlay();
 });

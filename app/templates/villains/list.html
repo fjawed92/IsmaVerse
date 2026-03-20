@@ -65,6 +65,22 @@
           <span class="hero-id">#V{{ "%03d"|format(v.id) }}</span>
           <span class="hero-footer-note" style="color:var(--comic-red);">BEWARE!</span>
         </footer>
+
+        <div class="d-flex gap-2 p-3 pt-0">
+          <a href="{{ url_for('villains.edit_villain', villain_id=v.id) }}"
+             class="btn btn-sm fw-bold w-50"
+             style="background:var(--comic-yellow); color:#000; border:2px solid #000; font-family:'Bangers',cursive; letter-spacing:1px;">
+            ✏️ Edit
+          </a>
+          <form method="POST" action="{{ url_for('villains.delete_villain', villain_id=v.id) }}"
+                class="w-50" onsubmit="return confirm('Defeat {{ v.villain_name|replace("'", "\\'") }} forever? This cannot be undone!');">
+            <button type="submit"
+                    class="btn btn-sm fw-bold w-100"
+                    style="background:var(--comic-red); color:#fff; border:2px solid #000; font-family:'Bangers',cursive; letter-spacing:1px;">
+              💀 Delete
+            </button>
+          </form>
+        </div>
       </article>
     </div>
     {% endfor %}
