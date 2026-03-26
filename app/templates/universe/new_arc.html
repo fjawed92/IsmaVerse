@@ -102,7 +102,7 @@
   </div>
 
   <div class="d-flex gap-3 flex-wrap">
-    <button type="submit" class="btn btn-comic-cta" {% if not heroes %}disabled{% endif %}>
+    <button type="submit" id="arcSubmitBtn" class="btn btn-comic-cta" {% if not heroes %}disabled{% endif %}>
       Generate Story Arc with AI ✨
     </button>
     <a href="{{ url_for('universe.universe_hub') }}" class="btn btn-outline-dark fw-bold comic-outline-btn">
@@ -115,6 +115,76 @@
 
 </form>
 
+<!-- ===== ARC CREATION LOADING OVERLAY ===== -->
+<div id="arcCreationOverlay" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.88);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+">
+  <!-- Corner decorations -->
+  <div style="position:absolute;top:16px;left:16px;font-size:2rem;">🌌</div>
+  <div style="position:absolute;top:16px;right:16px;font-size:2rem;">⚡</div>
+  <div style="position:absolute;bottom:16px;left:16px;font-size:2rem;">✨</div>
+  <div style="position:absolute;bottom:16px;right:16px;font-size:2rem;">🌌</div>
+
+  <!-- Star field -->
+  <div id="arcStars" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;" aria-hidden="true"></div>
+
+  <div style="
+    position: relative;
+    background: #fff;
+    border: 5px solid #000;
+    border-radius: 20px;
+    padding: 2.5rem 3rem;
+    text-align: center;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 10px 10px 0 #000;
+  ">
+    <!-- Title burst -->
+    <div style="
+      background: linear-gradient(135deg, #6c3fff, #e63946);
+      color: #fff;
+      font-family: 'Bangers', cursive;
+      font-size: 1.8rem;
+      letter-spacing: 3px;
+      padding: .6rem 1.4rem;
+      border-radius: 10px;
+      border: 3px solid #000;
+      margin-bottom: 1.2rem;
+      display: inline-block;
+    ">🌌 THE UNIVERSE IS EXPANDING! 🌌</div>
+
+    <!-- Spinning icons -->
+    <div style="font-size: 3rem; margin-bottom: .8rem; animation: arcSpin 1.6s linear infinite;">
+      <span id="arcSpinIcon">✨</span>
+    </div>
+
+    <!-- Progress message -->
+    <p id="arcLoadMsg" style="font-family:'Bangers',cursive; font-size:1.4rem; letter-spacing:2px; color:#222; margin-bottom:.4rem;">
+      WRITING THE STORY...
+    </p>
+    <p style="font-family:'Comic Neue',cursive; font-weight:700; color:#555; font-size:.95rem; margin-bottom:1.2rem;">
+      AI is crafting your story arc and generating the cover art!
+    </p>
+
+    <!-- Progress bar -->
+    <div style="background:#eee; border:2px solid #000; border-radius:8px; overflow:hidden; height:22px; margin-bottom:.5rem;">
+      <div id="arcProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg,#6c3fff,#e63946); transition:width .4s ease; border-radius:6px;"></div>
+    </div>
+    <div id="arcProgressPct" style="font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:1px; color:#555; margin-bottom:1rem;">0%</div>
+
+    <p style="font-family:'Comic Neue',cursive; font-weight:700; color:#e63946; font-size:.85rem; margin:0;">
+      ⚠️ DON&rsquo;T GO BACK — YOUR ARC IS ALMOST READY! (~45 SECONDS)
+    </p>
+  </div>
+</div>
+
 <style>
 .hero-checkbox:checked + .hero-pick-card {
   border-color: #ffe066 !important;
@@ -126,14 +196,79 @@
   background: #fff0f0;
   box-shadow: 0 0 0 3px #e63946;
 }
+@keyframes arcSpin { to { transform: rotate(360deg); } }
 </style>
 
 <script>
 document.querySelectorAll('.hero-checkbox, .villain-checkbox').forEach(function(cb) {
-  cb.addEventListener('change', function() {
-    // visual state handled by CSS :checked sibling selector above
-  });
+  cb.addEventListener('change', function() {});
 });
+
+(function () {
+  const form = document.querySelector('form[action]');
+  const overlay = document.getElementById('arcCreationOverlay');
+  const bar = document.getElementById('arcProgressBar');
+  const pct = document.getElementById('arcProgressPct');
+  const msg = document.getElementById('arcLoadMsg');
+  const icon = document.getElementById('arcSpinIcon');
+
+  const messages = [
+    'WRITING THE STORY...',
+    'DESIGNING THE COVER...',
+    'CHOOSING CHARACTERS...',
+    'BUILDING THE UNIVERSE...',
+    'POWERING UP THE ARC...',
+    'ALMOST THERE...',
+  ];
+  const icons = ['✨', '🌌', '⚡', '💥', '🚀', '🌟'];
+
+  let submitted = false;
+
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      const anyHero = document.querySelector('.hero-checkbox:checked');
+      if (!anyHero) return;
+      if (submitted) { e.preventDefault(); return; }
+      submitted = true;
+
+      overlay.style.display = 'flex';
+
+      // Star field
+      const starContainer = document.getElementById('arcStars');
+      for (let i = 0; i < 60; i++) {
+        const s = document.createElement('div');
+        const size = Math.random() * 3 + 1;
+        s.style.cssText = `position:absolute;width:${size}px;height:${size}px;background:#fff;border-radius:50%;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${Math.random()*.8+.2};animation:twinkle ${Math.random()*2+1}s ease-in-out infinite alternate;`;
+        starContainer.appendChild(s);
+      }
+
+      // Animate progress over ~45 seconds
+      const duration = 45000;
+      const start = Date.now();
+      let msgIdx = 0;
+      let iconIdx = 0;
+
+      function step() {
+        const elapsed = Date.now() - start;
+        const progress = Math.min((elapsed / duration) * 100, 97);
+        bar.style.width = progress + '%';
+        pct.textContent = Math.round(progress) + '%';
+
+        const newMsgIdx = Math.min(Math.floor((progress / 100) * messages.length), messages.length - 1);
+        if (newMsgIdx !== msgIdx) {
+          msgIdx = newMsgIdx;
+          msg.textContent = messages[msgIdx];
+        }
+
+        iconIdx = (iconIdx + 1) % icons.length;
+        if (elapsed % 1200 < 200) icon.textContent = icons[iconIdx];
+
+        if (progress < 97) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+})();
 </script>
 
 {% endblock %}

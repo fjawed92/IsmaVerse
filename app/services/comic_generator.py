@@ -154,14 +154,59 @@ def generate_arc_concept(heroes: list, villains: list, arc_number: int) -> dict:
         }
 
 
+def _hero_appearance(hero) -> str:
+    """Build a compact visual description of a hero from their stored image_prompt or fields."""
+    if hero.image_prompt:
+        # Extract the costume/appearance section from the stored prompt
+        lines = hero.image_prompt.splitlines()
+        appearance_lines = []
+        in_section = False
+        for line in lines:
+            if "COSTUME" in line or "CHARACTER DETAILS" in line:
+                in_section = True
+            if in_section:
+                appearance_lines.append(line)
+            if in_section and "POWERS" in line and line != "=== POWERS (MUST be visually shown in the image) ===":
+                break
+        if appearance_lines:
+            return " ".join(l.strip() for l in appearance_lines[:10] if l.strip())
+    # Fallback: build from fields
+    parts = [f"{hero.superhero_name}"]
+    if hasattr(hero, "costume_color") and hero.costume_color:
+        parts.append(f"wearing {hero.costume_color} costume")
+    if hasattr(hero, "cape_color") and hero.cape_color:
+        parts.append(f"with {hero.cape_color} cape")
+    if hasattr(hero, "hair_color") and hero.hair_color:
+        parts.append(f"{hero.hair_color} hair")
+    return ", ".join(parts)
+
+
+def _villain_appearance(villain) -> str:
+    """Build a compact visual description of a villain from their stored fields."""
+    parts = [f"{villain.villain_name}"]
+    if hasattr(villain, "costume_color") and villain.costume_color:
+        parts.append(f"wearing {villain.costume_color} costume")
+    if hasattr(villain, "hair_color") and villain.hair_color:
+        parts.append(f"{villain.hair_color} hair")
+    if hasattr(villain, "powers") and villain.powers:
+        parts.append(f"with powers: {villain.powers[:80]}")
+    return ", ".join(parts)
+
+
 def generate_arc_cover(arc_title: str, heroes: list, villains: list, save_dir: str) -> str | None:
     hero_names = ", ".join(h.superhero_name for h in heroes) if heroes else "heroes"
     villain_names = ", ".join(v.villain_name for v in villains) if villains else "a villain"
+    hero_appearances = "; ".join(_hero_appearance(h) for h in heroes) if heroes else ""
+    villain_appearances = "; ".join(_villain_appearance(v) for v in villains) if villains else ""
     prompt = (
         f"Comic book cover art for '{arc_title}'. "
         f"Features the heroes {hero_names} facing off against {villain_names}. "
-        "Bold title lettering at the top. Dramatic but kid-friendly composition."
     )
+    if hero_appearances:
+        prompt += f"Hero appearances: {hero_appearances}. "
+    if villain_appearances:
+        prompt += f"Villain appearances: {villain_appearances}. "
+    prompt += "Bold title lettering at the top. Dramatic but kid-friendly composition."
     return _generate_image(prompt, save_dir)
 
 
@@ -259,21 +304,90 @@ def _default_panels(hero_names: str, villain_names: str) -> list:
     ]
 
 
-def generate_panel_image(panel_description: str, hero_names: str, villain_names: str, save_dir: str) -> tuple[str | None, str]:
-    prompt = (
-        f"Comic panel: {panel_description} "
-        f"Characters: {hero_names} and {villain_names}. "
-        "Full-colour comic book illustration, dynamic and expressive."
-    )
+def generate_panel_image(panel_description: str, hero_names: str, villain_names: str, save_dir: str,
+                         heroes: list = None, villains: list = None) -> tuple[str | None, str]:
+    prompt = f"Comic panel: {panel_description} "
+    if heroes:
+        appearances = "; ".join(_hero_appearance(h) for h in heroes)
+        prompt += f"Heroes ({hero_names}) look like: {appearances}. "
+    else:
+        prompt += f"Characters: {hero_names}. "
+    if villains:
+        appearances = "; ".join(_villain_appearance(v) for v in villains)
+        prompt += f"Villains ({villain_names}) look like: {appearances}. "
+    elif villain_names and villain_names != "the villain":
+        prompt += f"Villain: {villain_names}. "
+    prompt += "Full-colour comic book illustration, dynamic and expressive."
     filename = _generate_image(prompt, save_dir)
     return filename, prompt
 
 
+def generate_battle_narration(
+    fighter1_name: str, fighter1_powers: str,
+    fighter2_name: str, fighter2_powers: str,
+    winner_name: str,
+) -> str | None:
+    """Generate a short comic-style narration of a 1v1 battle result."""
+    system = (
+        "You are a comic book announcer for kids aged 6-12. "
+        "Write exciting, fun, and kid-friendly battle narrations. "
+        "Never scary or violent — think cartoon action with lots of POW!, BAM!, ZAP! "
+        "Keep it to 3-4 short punchy sentences. No markdown."
+    )
+    user = (
+        f"{fighter1_name} (powers: {fighter1_powers}) just battled "
+        f"{fighter2_name} (powers: {fighter2_powers}). "
+        f"{winner_name} won the battle! "
+        "Write a fun, exciting 3-4 sentence narration of how the battle went and how the winner triumphed. "
+        "Include at least one comic sound effect like POW! or ZAP!."
+    )
+    return _chat(
+        [{"role": "system", "content": system}, {"role": "user", "content": user}],
+        max_tokens=200,
+        temperature=0.9,
+    )
+
+
+def generate_team_battle_narration(
+    team1_name: str, team1_members: list,
+    team2_name: str, team2_members: list,
+    winning_team_name: str,
+) -> str | None:
+    """Generate a short comic-style narration of a team battle result."""
+    def member_summary(members):
+        return ", ".join(
+            f"{m['name']} ({m.get('powers','???')[:40]})" for m in members
+        )
+
+    system = (
+        "You are a comic book announcer for kids aged 6-12. "
+        "Write exciting, fun, kid-friendly team battle narrations. "
+        "Never scary or violent — think cartoon action. "
+        "Keep it to 4-5 short sentences with comic sound effects. No markdown."
+    )
+    user = (
+        f"Epic team battle!\n"
+        f"{team1_name}: {member_summary(team1_members)}\n"
+        f"{team2_name}: {member_summary(team2_members)}\n"
+        f"{winning_team_name} won! "
+        "Write an exciting 4-5 sentence comic narration of how the team battle went. "
+        "Mention at least 2 team members by name and include comic sound effects like POW!, BOOM!, ZAP!."
+    )
+    return _chat(
+        [{"role": "system", "content": system}, {"role": "user", "content": user}],
+        max_tokens=300,
+        temperature=0.9,
+    )
+
+
 def generate_issue_cover(issue_title: str, arc_title: str, heroes: list, save_dir: str) -> str | None:
     hero_names = ", ".join(h.superhero_name for h in heroes) if heroes else "heroes"
+    hero_appearances = "; ".join(_hero_appearance(h) for h in heroes) if heroes else ""
     prompt = (
         f"Comic book cover for issue titled '{issue_title}' (part of '{arc_title}'). "
         f"Features {hero_names} in a heroic pose. "
-        "Bold lettering, vivid colours, exciting composition."
     )
+    if hero_appearances:
+        prompt += f"Hero appearances: {hero_appearances}. "
+    prompt += "Bold lettering, vivid colours, exciting composition."
     return _generate_image(prompt, save_dir)

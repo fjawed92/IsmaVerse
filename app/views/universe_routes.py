@@ -169,6 +169,8 @@ def new_issue(arc_id):
             hero_names=hero_names,
             villain_names=villain_names,
             save_dir=_panels_dir(),
+            heroes=arc.heroes,
+            villains=arc.villains,
         )
 
         panel = ComicPanel(
@@ -188,6 +190,75 @@ def new_issue(arc_id):
     db.session.commit()
     flash(f'Issue #{issue_number} "{issue.title}" has been generated!', "success")
     return redirect(url_for("universe.issue_reader", issue_id=issue.id))
+
+
+# ─────────────────────────────────────────────
+# DELETE STORY ARC (admin only)
+# ─────────────────────────────────────────────
+@universe_bp.route("/arc/<int:arc_id>/delete", methods=["POST"])
+def delete_arc(arc_id):
+    from flask_login import current_user
+    if not current_user.is_authenticated or not current_user.is_admin:
+        flash("Admin access required.", "danger")
+        return redirect(url_for("universe.universe_hub"))
+
+    arc = StoryArc.query.get_or_404(arc_id)
+    title = arc.title
+
+    # Remove panel images and issue covers
+    for issue in arc.issues:
+        if issue.cover_image:
+            cover_path = os.path.join(_covers_dir(), issue.cover_image)
+            if os.path.exists(cover_path):
+                os.remove(cover_path)
+        for panel in issue.panels:
+            if panel.image_file:
+                panel_path = os.path.join(_panels_dir(), panel.image_file)
+                if os.path.exists(panel_path):
+                    os.remove(panel_path)
+
+    # Remove arc cover
+    if arc.cover_image:
+        arc_cover_path = os.path.join(_covers_dir(), arc.cover_image)
+        if os.path.exists(arc_cover_path):
+            os.remove(arc_cover_path)
+
+    db.session.delete(arc)
+    db.session.commit()
+    flash(f'Story Arc "{title}" has been deleted.', "warning")
+    return redirect(url_for("universe.universe_hub"))
+
+
+# ─────────────────────────────────────────────
+# DELETE ISSUE (admin only)
+# ─────────────────────────────────────────────
+@universe_bp.route("/issue/<int:issue_id>/delete", methods=["POST"])
+def delete_issue(issue_id):
+    from flask_login import current_user
+    if not current_user.is_authenticated or not current_user.is_admin:
+        flash("Admin access required.", "danger")
+        return redirect(url_for("universe.universe_hub"))
+
+    issue = ComicIssue.query.get_or_404(issue_id)
+    arc_id = issue.arc_id
+
+    # Remove cover image
+    if issue.cover_image:
+        cover_path = os.path.join(_covers_dir(), issue.cover_image)
+        if os.path.exists(cover_path):
+            os.remove(cover_path)
+
+    # Remove panel images
+    for panel in issue.panels:
+        if panel.image_file:
+            panel_path = os.path.join(_panels_dir(), panel.image_file)
+            if os.path.exists(panel_path):
+                os.remove(panel_path)
+
+    db.session.delete(issue)
+    db.session.commit()
+    flash(f'Issue "{issue.title}" has been deleted.', "warning")
+    return redirect(url_for("universe.arc_detail", arc_id=arc_id))
 
 
 # ─────────────────────────────────────────────

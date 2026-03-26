@@ -22,5 +22,18 @@ class Villain(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    @property
+    def power_level(self) -> int:
+        score = 50
+        if self.powers:
+            score += min(len(self.powers.split()), 20) * 2
+        if self.weakness:
+            score -= min(len(self.weakness.split()), 10)
+        if self.evil_plan:
+            score += min(len(self.evil_plan.split()), 10)
+        if self.age:
+            score -= max(0, self.age - 30) // 10
+        return max(10, min(score, 100))
+
     def __repr__(self):
         return f"<Villain {self.id} {self.villain_name}>"

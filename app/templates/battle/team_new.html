@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}New Team Battle – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- HEADER -->
+  <div class="hero-page-header mb-4" style="background: linear-gradient(135deg, #1a1a2e, #0f3460); border-color: var(--comic-blue);">
+    <div class="hero-kicker" style="background: linear-gradient(90deg, var(--comic-blue), var(--comic-red)); color:#fff;">
+      🤝 TEAM BATTLE
+    </div>
+    <h1 class="hero-title" style="color: var(--comic-yellow);">Build Your Teams!</h1>
+    <p class="hero-subtitle mb-0" style="color:#ccc;">Pick 2–3 fighters for each team — heroes AND villains can mix!</p>
+  </div>
+
+  <form method="POST" action="{{ url_for('battle.team_new') }}" id="teamForm">
+    <div class="row g-4 mb-4">
+
+      <!-- TEAM 1 -->
+      <div class="col-12 col-md-6">
+        <div class="comic-panel h-100" style="border-color: var(--comic-blue);">
+          <div class="panel-header" style="background: var(--comic-blue);">
+            <h2 class="panel-title" style="font-size:1.4rem; color:#fff;">⚡ Team 1</h2>
+          </div>
+          <div class="p-3">
+            <p class="fw-bold mb-3" style="font-size:.9rem; color:#555;">Pick 2–3 fighters for Team 1</p>
+            <div class="row g-2">
+              {% for hero in heroes %}
+              <div class="col-6 col-lg-4">
+                <label class="d-block" style="cursor:pointer;" title="Add to Team 1">
+                  <input type="checkbox" name="team1" value="hero:{{ hero.id }}"
+                         class="team1-cb d-none" data-key="hero:{{ hero.id }}">
+                  <div class="comic-tile text-center p-2 team-pick-card team1-card" style="border:3px solid transparent; transition:.15s; font-size:.8rem;">
+                    {% if hero.image_file %}
+                    <img src="{{ url_for('static', filename='uploads/characters/' ~ hero.image_file) }}"
+                         style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:2px solid #222;" alt="{{ hero.superhero_name }}">
+                    {% else %}
+                    <div style="font-size:2rem;">🦸</div>
+                    {% endif %}
+                    <div class="fw-bold mt-1" style="font-size:.8rem;">{{ hero.superhero_name }}</div>
+                    <div style="font-size:.7rem; color:var(--comic-blue);">PWR {{ hero.power_level }}</div>
+                  </div>
+                </label>
+              </div>
+              {% endfor %}
+
+              {% for villain in villains %}
+              <div class="col-6 col-lg-4">
+                <label class="d-block" style="cursor:pointer;" title="Add to Team 1">
+                  <input type="checkbox" name="team1" value="villain:{{ villain.id }}"
+                         class="team1-cb d-none" data-key="villain:{{ villain.id }}">
+                  <div class="comic-tile text-center p-2 team-pick-card team1-card" style="border:3px solid transparent; transition:.15s; font-size:.8rem;">
+                    {% if villain.image_file %}
+                    <img src="{{ url_for('static', filename='uploads/villains/' ~ villain.image_file) }}"
+                         style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:2px solid #222;" alt="{{ villain.villain_name }}">
+                    {% else %}
+                    <div style="font-size:2rem;">😈</div>
+                    {% endif %}
+                    <div class="fw-bold mt-1" style="font-size:.8rem;">{{ villain.villain_name }}</div>
+                    <div style="font-size:.7rem; color:var(--comic-red);">PWR {{ villain.power_level }}</div>
+                  </div>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="mt-2" style="font-family:'Bangers',cursive; font-size:1rem; letter-spacing:1px;">
+              Team 1 selected: <span id="t1Count" style="color:var(--comic-blue);">0</span> / 3
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEAM 2 -->
+      <div class="col-12 col-md-6">
+        <div class="comic-panel h-100" style="border-color: var(--comic-red);">
+          <div class="panel-header" style="background: var(--comic-red);">
+            <h2 class="panel-title" style="font-size:1.4rem; color:#fff;">💀 Team 2</h2>
+          </div>
+          <div class="p-3">
+            <p class="fw-bold mb-3" style="font-size:.9rem; color:#555;">Pick 2–3 fighters for Team 2</p>
+            <div class="row g-2">
+              {% for hero in heroes %}
+              <div class="col-6 col-lg-4">
+                <label class="d-block" style="cursor:pointer;" title="Add to Team 2">
+                  <input type="checkbox" name="team2" value="hero:{{ hero.id }}"
+                         class="team2-cb d-none" data-key="hero:{{ hero.id }}">
+                  <div class="comic-tile text-center p-2 team-pick-card team2-card" style="border:3px solid transparent; transition:.15s; font-size:.8rem;">
+                    {% if hero.image_file %}
+                    <img src="{{ url_for('static', filename='uploads/characters/' ~ hero.image_file) }}"
+                         style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:2px solid #222;" alt="{{ hero.superhero_name }}">
+                    {% else %}
+                    <div style="font-size:2rem;">🦸</div>
+                    {% endif %}
+                    <div class="fw-bold mt-1" style="font-size:.8rem;">{{ hero.superhero_name }}</div>
+                    <div style="font-size:.7rem; color:var(--comic-blue);">PWR {{ hero.power_level }}</div>
+                  </div>
+                </label>
+              </div>
+              {% endfor %}
+
+              {% for villain in villains %}
+              <div class="col-6 col-lg-4">
+                <label class="d-block" style="cursor:pointer;" title="Add to Team 2">
+                  <input type="checkbox" name="team2" value="villain:{{ villain.id }}"
+                         class="team2-cb d-none" data-key="villain:{{ villain.id }}">
+                  <div class="comic-tile text-center p-2 team-pick-card team2-card" style="border:3px solid transparent; transition:.15s; font-size:.8rem;">
+                    {% if villain.image_file %}
+                    <img src="{{ url_for('static', filename='uploads/villains/' ~ villain.image_file) }}"
+                         style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:2px solid #222;" alt="{{ villain.villain_name }}">
+                    {% else %}
+                    <div style="font-size:2rem;">😈</div>
+                    {% endif %}
+                    <div class="fw-bold mt-1" style="font-size:.8rem;">{{ villain.villain_name }}</div>
+                    <div style="font-size:.7rem; color:var(--comic-red);">PWR {{ villain.power_level }}</div>
+                  </div>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="mt-2" style="font-family:'Bangers',cursive; font-size:1rem; letter-spacing:1px;">
+              Team 2 selected: <span id="t2Count" style="color:var(--comic-red);">0</span> / 3
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-3 flex-wrap align-items-center">
+      <button type="submit" class="btn btn-comic-cta" style="font-size:1.2rem;">
+        ⚔️ Start Team Battle!
+      </button>
+      <a href="{{ url_for('battle.arena') }}" class="btn btn-outline-dark fw-bold comic-outline-btn">
+        ← Back to Arena
+      </a>
+      <p class="mb-0 text-muted fw-bold" style="font-size:.85rem;">
+        Each team needs 2–3 fighters. The same fighter can't be on both teams!
+      </p>
+    </div>
+  </form>
+
+</div>
+
+<style>
+.team1-cb:checked + .team1-card {
+  border-color: var(--comic-blue) !important;
+  background: #e8f4ff;
+  box-shadow: 0 0 0 3px var(--comic-blue);
+}
+.team2-cb:checked + .team2-card {
+  border-color: var(--comic-red) !important;
+  background: #fff0f0;
+  box-shadow: 0 0 0 3px var(--comic-red);
+}
+.team-pick-card.dimmed {
+  opacity: 0.35;
+  pointer-events: none;
+}
+</style>
+
+<script>
+(function () {
+  const t1Cbs = document.querySelectorAll('.team1-cb');
+  const t2Cbs = document.querySelectorAll('.team2-cb');
+  const t1Count = document.getElementById('t1Count');
+  const t2Count = document.getElementById('t2Count');
+
+  function getCheckedKeys(cbs) {
+    return new Set([...cbs].filter(cb => cb.checked).map(cb => cb.dataset.key));
+  }
+
+  function updateDim() {
+    const t1Keys = getCheckedKeys(t1Cbs);
+    const t2Keys = getCheckedKeys(t2Cbs);
+    const t1Size = t1Keys.size;
+    const t2Size = t2Keys.size;
+
+    t1Count.textContent = t1Size;
+    t2Count.textContent = t2Size;
+
+    // Dim team1 cards that are in team2 or if team1 is full (3)
+    t1Cbs.forEach(cb => {
+      const card = cb.nextElementSibling;
+      const key = cb.dataset.key;
+      const blocked = t2Keys.has(key) || (!cb.checked && t1Size >= 3);
+      card.classList.toggle('dimmed', blocked);
+    });
+
+    // Dim team2 cards that are in team1 or if team2 is full (3)
+    t2Cbs.forEach(cb => {
+      const card = cb.nextElementSibling;
+      const key = cb.dataset.key;
+      const blocked = t1Keys.has(key) || (!cb.checked && t2Size >= 3);
+      card.classList.toggle('dimmed', blocked);
+    });
+  }
+
+  t1Cbs.forEach(cb => cb.addEventListener('change', updateDim));
+  t2Cbs.forEach(cb => cb.addEventListener('change', updateDim));
+  updateDim();
+})();
+</script>
+
+{% endblock %}

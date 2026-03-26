@@ -61,8 +61,8 @@
 
         <!-- Generate issue button -->
         {% if arc.status == 'ongoing' %}
-        <form method="POST" action="{{ url_for('universe.new_issue', arc_id=arc.id) }}" class="d-inline">
-          <button type="submit" class="btn btn-comic-cta">
+        <form method="POST" action="{{ url_for('universe.new_issue', arc_id=arc.id) }}" id="issueGenForm" class="d-inline">
+          <button type="submit" id="issueGenBtn" class="btn btn-comic-cta">
             Generate Issue #{{ arc.issues|length + 1 }} with AI ✨
           </button>
         </form>
@@ -110,10 +110,19 @@
             <p class="text-muted mb-3" style="font-weight:700;">{{ issue.summary[:100] }}{% if issue.summary|length > 100 %}…{% endif %}</p>
           {% endif %}
 
-          <div class="mt-auto">
+          <div class="mt-auto d-flex flex-column gap-2">
             <a href="{{ url_for('universe.issue_reader', issue_id=issue.id) }}" class="btn btn-comic-cta w-100">
               Read Issue →
             </a>
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <form method="POST" action="{{ url_for('universe.delete_issue', issue_id=issue.id) }}"
+                  onsubmit="return confirm('Delete issue \'{{ issue.title }}\' permanently?');">
+              <button type="submit" class="btn btn-sm fw-bold w-100"
+                      style="background: var(--comic-red); color:#fff; border:2px solid #000; font-family:'Bangers',cursive; letter-spacing:1px;">
+                🗑️ Delete Issue
+              </button>
+            </form>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -133,5 +142,140 @@
 <a href="{{ url_for('universe.universe_hub') }}" class="btn btn-outline-dark fw-bold comic-outline-btn mt-2">
   ← Back to Universe Hub
 </a>
+
+<!-- ===== ISSUE GENERATION LOADING OVERLAY ===== -->
+<div id="issueGenOverlay" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.88);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+">
+  <div style="position:absolute;top:16px;left:16px;font-size:2rem;">💥</div>
+  <div style="position:absolute;top:16px;right:16px;font-size:2rem;">⚡</div>
+  <div style="position:absolute;bottom:16px;left:16px;font-size:2rem;">✨</div>
+  <div style="position:absolute;bottom:16px;right:16px;font-size:2rem;">💥</div>
+
+  <div id="issueStars" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;" aria-hidden="true"></div>
+
+  <div style="
+    position: relative;
+    background: #fff;
+    border: 5px solid #000;
+    border-radius: 20px;
+    padding: 2.5rem 3rem;
+    text-align: center;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 10px 10px 0 #000;
+  ">
+    <div style="
+      background: linear-gradient(135deg, #ffe066, #e63946);
+      color: #000;
+      font-family: 'Bangers', cursive;
+      font-size: 1.8rem;
+      letter-spacing: 3px;
+      padding: .6rem 1.4rem;
+      border-radius: 10px;
+      border: 3px solid #000;
+      margin-bottom: 1.2rem;
+      display: inline-block;
+    ">📖 ISSUE IN PROGRESS! 📖</div>
+
+    <div style="font-size: 3rem; margin-bottom: .8rem; animation: issueSpin 1.6s linear infinite;">
+      <span id="issueSpinIcon">✨</span>
+    </div>
+
+    <p id="issueLoadMsg" style="font-family:'Bangers',cursive; font-size:1.4rem; letter-spacing:2px; color:#222; margin-bottom:.4rem;">
+      WRITING THE SCRIPT...
+    </p>
+    <p style="font-family:'Comic Neue',cursive; font-weight:700; color:#555; font-size:.95rem; margin-bottom:1.2rem;">
+      AI is generating the story, dialogue, and all 4 comic panels!
+    </p>
+
+    <div style="background:#eee; border:2px solid #000; border-radius:8px; overflow:hidden; height:22px; margin-bottom:.5rem;">
+      <div id="issueProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg,#ffe066,#e63946); transition:width .4s ease; border-radius:6px;"></div>
+    </div>
+    <div id="issueProgressPct" style="font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:1px; color:#555; margin-bottom:1rem;">0%</div>
+
+    <p style="font-family:'Comic Neue',cursive; font-weight:700; color:#e63946; font-size:.85rem; margin:0;">
+      ⚠️ DON&rsquo;T GO BACK — YOUR ISSUE IS BEING DRAWN! (~60 SECONDS)
+    </p>
+  </div>
+</div>
+
+<style>
+@keyframes issueSpin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+(function () {
+  const form = document.getElementById('issueGenForm');
+  const overlay = document.getElementById('issueGenOverlay');
+  if (!form || !overlay) return;
+
+  const bar = document.getElementById('issueProgressBar');
+  const pct = document.getElementById('issueProgressPct');
+  const msg = document.getElementById('issueLoadMsg');
+  const icon = document.getElementById('issueSpinIcon');
+
+  const messages = [
+    'WRITING THE SCRIPT...',
+    'DRAWING PANEL 1...',
+    'DRAWING PANEL 2...',
+    'DRAWING PANEL 3...',
+    'DRAWING PANEL 4...',
+    'ADDING DIALOGUE...',
+    'ALMOST PUBLISHED...',
+  ];
+  const icons = ['✨', '🖊️', '💥', '🎨', '📖', '⚡', '🌟'];
+
+  let submitted = false;
+
+  form.addEventListener('submit', function () {
+    if (submitted) return;
+    submitted = true;
+
+    overlay.style.display = 'flex';
+
+    const starContainer = document.getElementById('issueStars');
+    for (let i = 0; i < 60; i++) {
+      const s = document.createElement('div');
+      const size = Math.random() * 3 + 1;
+      s.style.cssText = `position:absolute;width:${size}px;height:${size}px;background:#fff;border-radius:50%;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${Math.random()*.8+.2};animation:twinkle ${Math.random()*2+1}s ease-in-out infinite alternate;`;
+      starContainer.appendChild(s);
+    }
+
+    const duration = 60000;
+    const start = Date.now();
+    let msgIdx = 0;
+    let iconIdx = 0;
+
+    function step() {
+      const elapsed = Date.now() - start;
+      const progress = Math.min((elapsed / duration) * 100, 97);
+      bar.style.width = progress + '%';
+      pct.textContent = Math.round(progress) + '%';
+
+      const newMsgIdx = Math.min(Math.floor((progress / 100) * messages.length), messages.length - 1);
+      if (newMsgIdx !== msgIdx) {
+        msgIdx = newMsgIdx;
+        msg.textContent = messages[msgIdx];
+      }
+
+      if (elapsed % 1200 < 200) {
+        iconIdx = (iconIdx + 1) % icons.length;
+        icon.textContent = icons[iconIdx];
+      }
+
+      if (progress < 97) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+})();
+</script>
 
 {% endblock %}

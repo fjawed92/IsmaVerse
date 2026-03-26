@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Team Battles – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="hero-page-header mb-4" style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-color: var(--comic-blue);">
+    <div class="hero-kicker" style="background: var(--comic-blue); color:#fff;">🤝 TEAM BATTLES</div>
+    <h1 class="hero-title" style="color: var(--comic-yellow);">Team Battle History</h1>
+    <div class="mt-3 d-flex flex-wrap gap-2">
+      <a href="{{ url_for('battle.team_new') }}" class="btn btn-comic-cta" style="background:var(--comic-blue);">+ New Team Battle</a>
+      <a href="{{ url_for('battle.arena') }}" class="btn btn-outline-dark fw-bold comic-outline-btn" style="color:#fff;border-color:#fff;">⚔️ 1v1 Arena</a>
+    </div>
+  </div>
+
+  {% if battles %}
+  <div class="row g-4">
+    {% for battle in battles %}
+    {% set t1_votes = battle.votes | selectattr('winning_team', 'eq', 1) | list | length %}
+    {% set t2_votes = battle.votes | selectattr('winning_team', 'eq', 2) | list | length %}
+    {% set total = t1_votes + t2_votes %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="comic-tile h-100 d-flex flex-column">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="comic-badge" style="font-size:.75rem;">TEAM BATTLE</span>
+          <span class="text-muted fw-bold" style="font-size:.8rem;">{{ total }} vote{{ 's' if total != 1 else '' }}</span>
+        </div>
+        <h4 style="font-family:'Bangers',cursive; letter-spacing:1px; font-size:1.1rem;">
+          {{ battle.team1_name }}
+          <span style="color:var(--comic-red);">VS</span>
+          {{ battle.team2_name }}
+        </h4>
+        {% if total > 0 %}
+        <div class="power-bar-track my-2">
+          <div class="power-bar-fill" style="width:{{ (t1_votes / total * 100)|round }}%; background:var(--comic-blue);"></div>
+        </div>
+        <div class="d-flex justify-content-between" style="font-size:.8rem;font-weight:700;">
+          <span style="color:var(--comic-blue);">{{ t1_votes }} votes</span>
+          <span style="color:var(--comic-red);">{{ t2_votes }} votes</span>
+        </div>
+        {% endif %}
+        <div class="mt-auto pt-3">
+          <a href="{{ url_for('battle.team_battle', battle_id=battle.id) }}" class="btn btn-comic-cta w-100">
+            View Battle →
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="speech text-center py-4">
+    <p class="fw-bold mb-2">No team battles yet! Be the first to create one!</p>
+    <a href="{{ url_for('battle.team_new') }}" class="btn btn-comic-cta">🤝 Create First Team Battle</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

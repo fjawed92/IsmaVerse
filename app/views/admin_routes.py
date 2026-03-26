@@ -16,6 +16,7 @@ from werkzeug.utils import secure_filename
 from ..extensions import db
 from ..models.comic import Comic
 from ..models.character import Character
+from ..models.villain import Villain
 from ..models.user import User
 
 
@@ -187,13 +188,14 @@ def admin_delete_comic(comic_id):
 
 
 # =====================================================
-# ADMIN: LIST CHARACTERS
+# ADMIN: LIST CHARACTERS (heroes + villains)
 # =====================================================
 @admin_bp.route("/characters", methods=["GET"])
 @login_required
 def admin_characters_list():
     characters = Character.query.order_by(Character.created_at.desc()).all()
-    return render_template("admin/characters_list.html", characters=characters)
+    villains = Villain.query.order_by(Villain.created_at.desc()).all()
+    return render_template("admin/characters_list.html", characters=characters, villains=villains)
 
 
 # =====================================================
@@ -323,6 +325,77 @@ def admin_delete_character(character_id):
     db.session.commit()
 
     flash("Character deleted.", "warning")
+    return redirect(url_for("admin.admin_characters_list"))
+
+
+# =====================================================
+# ADMIN: EDIT VILLAIN
+# =====================================================
+@admin_bp.route("/villains/<int:villain_id>/edit", methods=["GET", "POST"])
+@login_required
+def admin_edit_villain(villain_id):
+    villain = Villain.query.get_or_404(villain_id)
+
+    if request.method == "GET":
+        return render_template("admin/villain_edit.html", villain=villain)
+
+    villain_name = " ".join(request.form.get("villain_name", "").split())
+    powers = " ".join(request.form.get("powers", "").split())
+    weakness = " ".join(request.form.get("weakness", "").split())
+    evil_plan = " ".join(request.form.get("evil_plan", "").split())
+    lair_location = " ".join(request.form.get("lair_location", "").split())
+    costume_color = " ".join(request.form.get("costume_color", "").split()).lower()
+    hair_color = " ".join(request.form.get("hair_color", "").split()).lower()
+    age_raw = " ".join(request.form.get("age", "").split())
+
+    if not villain_name:
+        flash("Villain name is required.", "danger")
+        return redirect(url_for("admin.admin_edit_villain", villain_id=villain.id))
+
+    age = None
+    if age_raw:
+        try:
+            age = int(age_raw)
+        except ValueError:
+            pass
+
+    villain.villain_name = villain_name
+    villain.powers = powers or None
+    villain.weakness = weakness or None
+    villain.evil_plan = evil_plan or None
+    villain.lair_location = lair_location or None
+    villain.costume_color = costume_color or None
+    villain.hair_color = hair_color or None
+    villain.age = age
+
+    db.session.commit()
+    flash(f"{villain_name}'s evil plans have been updated!", "success")
+    return redirect(url_for("admin.admin_characters_list"))
+
+
+# =====================================================
+# ADMIN: DELETE VILLAIN (POST ONLY)
+# =====================================================
+@admin_bp.route("/villains/<int:villain_id>/delete", methods=["POST"])
+@login_required
+def admin_delete_villain(villain_id):
+    villain = Villain.query.get_or_404(villain_id)
+    name = villain.villain_name
+
+    if villain.image_file:
+        img_path = os.path.join(
+            current_app.root_path, "static", "uploads", "villains", villain.image_file
+        )
+        try:
+            if os.path.exists(img_path):
+                os.remove(img_path)
+        except Exception:
+            pass
+
+    db.session.delete(villain)
+    db.session.commit()
+
+    flash(f"{name} has been defeated and erased from IsmaVerse!", "warning")
     return redirect(url_for("admin.admin_characters_list"))
 
 
