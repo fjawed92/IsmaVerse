@@ -5,39 +5,64 @@
 <div class="container py-4">
 
   <!-- HEADER -->
-  <div class="comic-panel mb-4" style="overflow:visible;">
-    <div class="panel-header text-center" style="background: linear-gradient(90deg, var(--comic-red), var(--comic-yellow), var(--comic-blue));">
-      <h1 class="panel-title">🏆 Battle Leaderboard!</h1>
-    </div>
-    <div class="p-4 text-center">
-      <p class="fw-bold mb-1">{{ total_votes_cast }} total votes cast across all battles!</p>
-      <a href="{{ url_for('battle.arena') }}" class="btn btn-comic-cta me-2">⚔️ Go to Arena</a>
+  <div class="hero-page-header mb-4" style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-color: var(--comic-yellow);">
+    <div class="hero-kicker" style="background: linear-gradient(90deg, #ffd700, #ff8c00); color:#000;">🏆 BATTLE LEADERBOARD</div>
+    <h1 class="hero-title" style="color: var(--comic-yellow);">Who Reigns Supreme?!</h1>
+    <p class="hero-subtitle mb-0" style="color:#ccc;">
+      {{ total_votes_cast }} total 1v1 votes cast across all battles!
+    </p>
+    <div class="mt-3 d-flex flex-wrap gap-2">
+      <a href="{{ url_for('battle.arena') }}" class="btn btn-comic-cta" style="background:var(--comic-red);">⚔️ 1v1 Arena</a>
+      <a href="{{ url_for('battle.team_new') }}" class="btn btn-comic-cta" style="background:var(--comic-blue);">🤝 Team Battle</a>
     </div>
   </div>
 
-  <!-- HERO RANKINGS: STRONGEST HERO -->
-  <div class="comic-panel mb-5">
+  <!-- OVERALL RANKINGS -->
+  <div class="comic-panel mb-5" style="border-color: #ffd700;">
     <div class="panel-header" style="background: linear-gradient(90deg, #ffd700, #ff8c00);">
-      <h2 class="panel-title" style="font-size:1.5rem;">💪 Hero Power Rankings</h2>
+      <h2 class="panel-title" style="font-size:1.5rem;">💪 Power Rankings — Heroes &amp; Villains</h2>
     </div>
     <div class="p-4">
-      {% if hero_rankings %}
+      {% if rankings %}
+        {% if rankings|length > 0 %}
+        <div class="text-center mb-4">
+          <div class="comic-panel d-inline-block p-3" style="border:3px solid #ffd700; background:#fffbe6;">
+            <p class="mb-1" style="font-size:.85rem; font-weight:700; color:#666;">SUPREME CHAMPION</p>
+            {% set champ = rankings[0] %}
+            <div class="d-flex align-items-center gap-3 justify-content-center">
+              {% if champ.combatant.image_file %}
+              <img src="{{ url_for('static', filename='uploads/' ~ champ.combatant.image_folder ~ '/' ~ champ.combatant.image_file) }}"
+                   style="width:64px;height:64px;object-fit:cover;border-radius:50%;border:3px solid #ffd700;"
+                   alt="{{ champ.combatant.name }}">
+              {% endif %}
+              <div>
+                <p class="mb-0" style="font-size:1.5rem; font-weight:900;">👑 {{ champ.combatant.name }}</p>
+                <p class="mb-0" style="font-size:.9rem; font-weight:700;">
+                  {{ champ.wins }} wins · {{ champ.win_rate }}% win rate
+                  <span class="ms-1" style="color:{{ champ.combatant.color }};">{{ champ.combatant.label }}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
         <div class="table-responsive">
           <table class="table table-bordered align-middle" style="border:3px solid #222; font-weight:700;">
             <thead style="background:#ffe066; color:#222;">
               <tr>
-                <th style="border:2px solid #222; font-size:1rem;">#</th>
-                <th style="border:2px solid #222; font-size:1rem;">Hero</th>
-                <th style="border:2px solid #222; font-size:1rem; text-align:center;">Wins</th>
-                <th style="border:2px solid #222; font-size:1rem; text-align:center;">Battles</th>
-                <th style="border:2px solid #222; font-size:1rem; text-align:center;">Win Rate</th>
-                <th style="border:2px solid #222; font-size:1rem; text-align:center;">Strength Bar</th>
+                <th style="border:2px solid #222;">#</th>
+                <th style="border:2px solid #222;">Fighter</th>
+                <th style="border:2px solid #222; text-align:center;">Wins</th>
+                <th style="border:2px solid #222; text-align:center;">Battles</th>
+                <th style="border:2px solid #222; text-align:center;">Win Rate</th>
+                <th style="border:2px solid #222; min-width:100px;">Strength</th>
               </tr>
             </thead>
             <tbody>
-              {% for entry in hero_rankings %}
+              {% for entry in rankings %}
               <tr {% if loop.index == 1 %}style="background:#fffbe6;"{% endif %}>
-                <td style="border:2px solid #222; font-size:1.2rem; text-align:center;">
+                <td style="border:2px solid #222; text-align:center; font-size:1.2rem;">
                   {% if loop.index == 1 %}🥇
                   {% elif loop.index == 2 %}🥈
                   {% elif loop.index == 3 %}🥉
@@ -46,35 +71,33 @@
                 </td>
                 <td style="border:2px solid #222;">
                   <div class="d-flex align-items-center gap-2">
-                    {% if entry.hero.image_file %}
-                      <img src="{{ url_for('static', filename='uploads/characters/' ~ entry.hero.image_file) }}"
-                           style="width:44px; height:44px; object-fit:cover; border-radius:50%; border:2px solid #222;"
-                           alt="{{ entry.hero.superhero_name }}">
+                    {% if entry.combatant.image_file %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ entry.combatant.image_folder ~ '/' ~ entry.combatant.image_file) }}"
+                         style="width:44px;height:44px;object-fit:cover;border-radius:50%;border:2px solid {{ entry.combatant.color }};"
+                         alt="{{ entry.combatant.name }}">
                     {% else %}
-                      <div style="width:44px; height:44px; border-radius:50%; background:#ffe066; border:2px solid #222; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:1.2rem;">
-                        {{ entry.hero.superhero_name[0] }}
-                      </div>
+                    <div style="width:44px;height:44px;border-radius:50%;background:{{ entry.combatant.color }};border:2px solid #222;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.2rem;">
+                      {{ entry.combatant.name[0] }}
+                    </div>
                     {% endif %}
                     <div>
-                      <div style="font-size:1rem; font-weight:800;">{{ entry.hero.superhero_name }}</div>
-                      <div style="font-size:.75rem; color:#666;">PWR: {{ entry.hero.power_level }}</div>
+                      <div style="font-size:1rem;font-weight:800;">{{ entry.combatant.name }}</div>
+                      <div style="font-size:.75rem;color:{{ entry.combatant.color }};">{{ entry.combatant.label }} · PWR {{ entry.combatant.power_level }}</div>
                     </div>
                   </div>
                 </td>
-                <td style="border:2px solid #222; text-align:center; font-size:1.3rem; color: var(--comic-blue);">
+                <td style="border:2px solid #222; text-align:center; font-size:1.3rem; color:{{ entry.combatant.color }};">
                   {{ entry.wins }}
                 </td>
+                <td style="border:2px solid #222; text-align:center;">{{ entry.battles }}</td>
                 <td style="border:2px solid #222; text-align:center;">
-                  {{ entry.battles }}
-                </td>
-                <td style="border:2px solid #222; text-align:center;">
-                  <span class="burst" style="font-size:.8rem; background:{% if entry.win_rate >= 70 %}#28a745{% elif entry.win_rate >= 40 %}#ffc107{% else %}#dc3545{% endif %}; color:#fff;">
+                  <span class="burst" style="font-size:.8rem; background:{% if entry.win_rate >= 70 %}#28a745{% elif entry.win_rate >= 40 %}#ffc107{% else %}#dc3545{% endif %}; color:#fff; position:static; transform:none; display:inline-block;">
                     {{ entry.win_rate }}%
                   </span>
                 </td>
-                <td style="border:2px solid #222; min-width:120px;">
+                <td style="border:2px solid #222;">
                   <div class="power-bar-track">
-                    <div class="power-bar-fill" style="width:{{ entry.win_rate }}%; background: {% if loop.index == 1 %}#ffd700{% elif loop.index == 2 %}#aaa{% elif loop.index == 3 %}#cd7f32{% else %}var(--comic-blue){% endif %};"></div>
+                    <div class="power-bar-fill" style="width:{{ entry.win_rate }}%; background:{{ entry.combatant.color }};"></div>
                   </div>
                 </td>
               </tr>
@@ -82,29 +105,59 @@
             </tbody>
           </table>
         </div>
-        {% if hero_rankings %}
-        <div class="text-center mt-3">
-          <div class="comic-panel d-inline-block p-3" style="border:3px solid #ffd700; background:#fffbe6;">
-            <p class="mb-1" style="font-size:.85rem; font-weight:700; color:#666;">STRONGEST HERO</p>
-            <p class="mb-0" style="font-size:1.5rem; font-weight:900;">
-              👑 {{ hero_rankings[0].hero.superhero_name }}
-            </p>
-            <p class="mb-0" style="font-size:.9rem; font-weight:700;">
-              {{ hero_rankings[0].wins }} wins · {{ hero_rankings[0].win_rate }}% win rate
-            </p>
-          </div>
-        </div>
-        {% endif %}
       {% else %}
         <p class="fw-bold text-center">No votes yet! Head to the arena and start voting!</p>
       {% endif %}
     </div>
   </div>
 
-  <!-- ALL MATCHUPS -->
-  <div class="comic-panel mb-4">
+  <!-- RECENT TEAM BATTLES -->
+  {% if recent_team_battles %}
+  <div class="comic-panel mb-5" style="border-color: var(--comic-blue);">
+    <div class="panel-header" style="background: var(--comic-blue);">
+      <h2 class="panel-title" style="font-size:1.5rem; color:#fff;">🤝 Recent Team Battles</h2>
+    </div>
+    <div class="p-4">
+      <div class="row g-3">
+        {% for battle in recent_team_battles %}
+        {% set t1_votes = battle.votes | selectattr('winning_team', 'eq', 1) | list | length %}
+        {% set t2_votes = battle.votes | selectattr('winning_team', 'eq', 2) | list | length %}
+        {% set total = t1_votes + t2_votes %}
+        <div class="col-12 col-md-6">
+          <div class="comic-tile" style="border:3px solid #222;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="comic-badge" style="font-size:.7rem;">TEAM BATTLE</span>
+              <span class="text-muted fw-bold" style="font-size:.8rem;">{{ total }} votes</span>
+            </div>
+            <h5 style="font-family:'Bangers',cursive; font-size:1rem; letter-spacing:1px;">
+              <span style="color:var(--comic-blue);">{{ battle.team1_name }}</span>
+              <span style="color:var(--comic-red);"> VS </span>
+              <span style="color:var(--comic-red);">{{ battle.team2_name }}</span>
+            </h5>
+            {% if total > 0 %}
+            <div class="power-bar-track my-2">
+              <div class="power-bar-fill" style="width:{{ (t1_votes / total * 100)|round }}%; background:var(--comic-blue);"></div>
+            </div>
+            {% endif %}
+            <a href="{{ url_for('battle.team_battle', battle_id=battle.id) }}"
+               class="btn btn-sm btn-comic-cta mt-2">Vote →</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-3">
+        <a href="{{ url_for('battle.team_list') }}" class="btn btn-outline-dark fw-bold comic-outline-btn">
+          See All Team Battles →
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ALL 1v1 MATCHUPS -->
+  <div class="comic-panel mb-4" style="border-color: var(--comic-red);">
     <div class="panel-header" style="background: linear-gradient(90deg, var(--comic-blue), var(--comic-red));">
-      <h2 class="panel-title" style="font-size:1.5rem;">⚔️ All Matchup Results</h2>
+      <h2 class="panel-title" style="font-size:1.5rem; color:#fff;">⚔️ All 1v1 Matchup Results</h2>
     </div>
     <div class="p-4">
       {% if matchup_rows %}
@@ -112,48 +165,46 @@
           {% for row in matchup_rows %}
           <div class="col-12 col-md-6">
             <div class="comic-tile h-100" style="border:3px solid #222;">
-              <!-- Matchup header -->
               <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
-                  {% if row.hero1.image_file %}
-                    <img src="{{ url_for('static', filename='uploads/characters/' ~ row.hero1.image_file) }}"
-                         style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:2px solid var(--comic-blue);"
-                         alt="{{ row.hero1.superhero_name }}">
+                  {% if row.fighter1.image_file %}
+                  <img src="{{ url_for('static', filename='uploads/' ~ row.fighter1.image_folder ~ '/' ~ row.fighter1.image_file) }}"
+                       style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:2px solid {{ row.fighter1.color }};"
+                       alt="{{ row.fighter1.name }}">
                   {% endif %}
-                  <span style="font-weight:900; font-size:1rem; color: var(--comic-blue);">{{ row.hero1.superhero_name }}</span>
+                  <span style="font-weight:900;font-size:.95rem;color:{{ row.fighter1.color }};">{{ row.fighter1.name }}</span>
                 </div>
-                <span class="burst" style="font-size:.85rem;">VS</span>
+                <span class="burst" style="font-size:.85rem;position:static;transform:none;display:inline-block;">VS</span>
                 <div class="d-flex align-items-center gap-2">
-                  <span style="font-weight:900; font-size:1rem; color: var(--comic-red);">{{ row.hero2.superhero_name }}</span>
-                  {% if row.hero2.image_file %}
-                    <img src="{{ url_for('static', filename='uploads/characters/' ~ row.hero2.image_file) }}"
-                         style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:2px solid var(--comic-red);"
-                         alt="{{ row.hero2.superhero_name }}">
+                  <span style="font-weight:900;font-size:.95rem;color:{{ row.fighter2.color }};">{{ row.fighter2.name }}</span>
+                  {% if row.fighter2.image_file %}
+                  <img src="{{ url_for('static', filename='uploads/' ~ row.fighter2.image_folder ~ '/' ~ row.fighter2.image_file) }}"
+                       style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:2px solid {{ row.fighter2.color }};"
+                       alt="{{ row.fighter2.name }}">
                   {% endif %}
                 </div>
               </div>
 
-              <!-- Vote bars -->
               <div class="mb-2">
                 <div class="d-flex justify-content-between mb-1">
-                  <small class="fw-bold" style="color:var(--comic-blue);">{{ row.hero1.superhero_name }}</small>
-                  <small class="fw-bold">{{ row.hero1_votes }} votes ({{ row.hero1_pct }}%)</small>
+                  <small class="fw-bold" style="color:{{ row.fighter1.color }};">{{ row.fighter1.name }}</small>
+                  <small class="fw-bold">{{ row.f1_votes }} ({{ row.f1_pct }}%)</small>
                 </div>
                 <div class="power-bar-track mb-2">
-                  <div class="power-bar-fill" style="width:{{ row.hero1_pct }}%; background:var(--comic-blue);"></div>
+                  <div class="power-bar-fill" style="width:{{ row.f1_pct }}%; background:{{ row.fighter1.color }};"></div>
                 </div>
                 <div class="d-flex justify-content-between mb-1">
-                  <small class="fw-bold" style="color:var(--comic-red);">{{ row.hero2.superhero_name }}</small>
-                  <small class="fw-bold">{{ row.hero2_votes }} votes ({{ row.hero2_pct }}%)</small>
+                  <small class="fw-bold" style="color:{{ row.fighter2.color }};">{{ row.fighter2.name }}</small>
+                  <small class="fw-bold">{{ row.f2_votes }} ({{ row.f2_pct }}%)</small>
                 </div>
                 <div class="power-bar-track">
-                  <div class="power-bar-fill" style="width:{{ row.hero2_pct }}%; background:var(--comic-red);"></div>
+                  <div class="power-bar-fill" style="width:{{ row.f2_pct }}%; background:{{ row.fighter2.color }};"></div>
                 </div>
               </div>
 
               <div class="d-flex justify-content-between align-items-center mt-2">
                 <small class="fw-bold text-muted">{{ row.total_votes }} total votes</small>
-                <a href="{{ url_for('battle.arena', hero1=row.hero1.id, hero2=row.hero2.id) }}"
+                <a href="{{ url_for('battle.arena', f1=row.f1_key, f2=row.f2_key) }}"
                    class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">
                   Vote Again →
                 </a>
@@ -163,14 +214,12 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="fw-bold text-center">No battles have been fought yet! <a href="{{ url_for('battle.arena') }}">Start a battle!</a></p>
+        <p class="fw-bold text-center">No 1v1 battles yet! <a href="{{ url_for('battle.arena') }}">Start a battle!</a></p>
       {% endif %}
     </div>
   </div>
 
-  <a href="{{ url_for('battle.arena') }}" class="btn btn-outline-dark fw-bold comic-outline-btn">
-    ← Back to Arena
-  </a>
+  <a href="{{ url_for('battle.arena') }}" class="btn btn-outline-dark fw-bold comic-outline-btn">← Back to Arena</a>
 
 </div>
 {% endblock %}

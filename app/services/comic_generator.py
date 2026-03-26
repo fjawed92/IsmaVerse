@@ -322,6 +322,64 @@ def generate_panel_image(panel_description: str, hero_names: str, villain_names:
     return filename, prompt
 
 
+def generate_battle_narration(
+    fighter1_name: str, fighter1_powers: str,
+    fighter2_name: str, fighter2_powers: str,
+    winner_name: str,
+) -> str | None:
+    """Generate a short comic-style narration of a 1v1 battle result."""
+    system = (
+        "You are a comic book announcer for kids aged 6-12. "
+        "Write exciting, fun, and kid-friendly battle narrations. "
+        "Never scary or violent — think cartoon action with lots of POW!, BAM!, ZAP! "
+        "Keep it to 3-4 short punchy sentences. No markdown."
+    )
+    user = (
+        f"{fighter1_name} (powers: {fighter1_powers}) just battled "
+        f"{fighter2_name} (powers: {fighter2_powers}). "
+        f"{winner_name} won the battle! "
+        "Write a fun, exciting 3-4 sentence narration of how the battle went and how the winner triumphed. "
+        "Include at least one comic sound effect like POW! or ZAP!."
+    )
+    return _chat(
+        [{"role": "system", "content": system}, {"role": "user", "content": user}],
+        max_tokens=200,
+        temperature=0.9,
+    )
+
+
+def generate_team_battle_narration(
+    team1_name: str, team1_members: list,
+    team2_name: str, team2_members: list,
+    winning_team_name: str,
+) -> str | None:
+    """Generate a short comic-style narration of a team battle result."""
+    def member_summary(members):
+        return ", ".join(
+            f"{m['name']} ({m.get('powers','???')[:40]})" for m in members
+        )
+
+    system = (
+        "You are a comic book announcer for kids aged 6-12. "
+        "Write exciting, fun, kid-friendly team battle narrations. "
+        "Never scary or violent — think cartoon action. "
+        "Keep it to 4-5 short sentences with comic sound effects. No markdown."
+    )
+    user = (
+        f"Epic team battle!\n"
+        f"{team1_name}: {member_summary(team1_members)}\n"
+        f"{team2_name}: {member_summary(team2_members)}\n"
+        f"{winning_team_name} won! "
+        "Write an exciting 4-5 sentence comic narration of how the team battle went. "
+        "Mention at least 2 team members by name and include comic sound effects like POW!, BOOM!, ZAP!."
+    )
+    return _chat(
+        [{"role": "system", "content": system}, {"role": "user", "content": user}],
+        max_tokens=300,
+        temperature=0.9,
+    )
+
+
 def generate_issue_cover(issue_title: str, arc_title: str, heroes: list, save_dir: str) -> str | None:
     hero_names = ", ".join(h.superhero_name for h in heroes) if heroes else "heroes"
     hero_appearances = "; ".join(_hero_appearance(h) for h in heroes) if heroes else ""
