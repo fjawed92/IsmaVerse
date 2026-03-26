@@ -52,13 +52,16 @@ def build_image_prompt(hero_data: dict) -> str:
     powers_str = hero_data["powers"]
     name = hero_data["superhero_name"]
     age = hero_data["age"]
+    gender = hero_data.get("gender", "male")
+    gender_label = "boy" if gender == "male" else "girl"
 
     prompt_lines = [
         f"SUPERHERO CHARACTER ILLUSTRATION: {name}",
         "",
         "=== CHARACTER DETAILS ===",
         f"Name: {name}",
-        f"Age: {age} years old — this is a CHILD superhero. They look young, brave, and full of energy.",
+        f"Gender: {gender} ({gender_label})",
+        f"Age: {age} years old — this is a CHILD superhero. They look young, brave, and full of energy. Draw them clearly as a {gender_label}.",
         "",
         "=== COSTUME (render every detail accurately) ===",
         f"Main costume colour: {hero_data['costume_color']} — the dominant colour of their suit",
@@ -217,6 +220,9 @@ def create_character():
     weakness = normalize_text(request.form.get("weakness", ""))
     hero_origin = normalize_text(request.form.get("hero_origin", ""))
     age_raw = normalize_text(request.form.get("age", ""))
+    gender = request.form.get("gender", "male")
+    if gender not in ("male", "female"):
+        gender = "male"
 
     required_fields = {
         "Superhero name": superhero_name,
@@ -268,6 +274,7 @@ def create_character():
         "powers": powers,
         "weakness": weakness,
         "age": age,
+        "gender": gender,
         "origin_story": origin_story,
     }
 
@@ -293,6 +300,7 @@ def create_character():
         cape_color=cape_color,
         age=age,
         hair_color=hair_color,
+        gender=gender,
         image_file=image_filename,
     )
 

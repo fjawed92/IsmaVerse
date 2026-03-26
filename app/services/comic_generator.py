@@ -119,16 +119,22 @@ def generate_arc_concept(heroes: list, villains: list, arc_number: int) -> dict:
     villain_names = ", ".join(v.villain_name for v in villains) if villains else "a mysterious villain"
     hero_powers = "; ".join(f"{h.superhero_name}: {h.powers}" for h in heroes) if heroes else ""
     villain_plans = "; ".join(f"{v.villain_name}: {v.evil_plan}" for v in villains) if villains else ""
+    hero_genders = "; ".join(
+        f"{h.superhero_name}: {getattr(h, 'gender', 'male') or 'male'} (use {'she/her' if (getattr(h, 'gender', 'male') or 'male') == 'female' else 'he/him'})"
+        for h in heroes
+    ) if heroes else ""
 
     system = (
         "You are a creative comic book writer for children aged 6-12. "
         "Stories are adventurous, fun, and never scary or violent. "
         "Heroes always learn a lesson or show teamwork. "
+        "Use the correct pronouns for each hero based on their gender. "
         "Respond ONLY with valid JSON."
     )
     user = (
         f"Create story arc #{arc_number} for an IsmaVerse comic universe.\n"
         f"Heroes: {hero_names}\nHero powers: {hero_powers}\n"
+        f"Hero genders/pronouns: {hero_genders}\n"
         f"Villains: {villain_names}\nVillain plans: {villain_plans}\n\n"
         "Return JSON with exactly these keys:\n"
         '  "title": short exciting arc title (max 8 words)\n'
@@ -154,8 +160,16 @@ def generate_arc_concept(heroes: list, villains: list, arc_number: int) -> dict:
         }
 
 
+def _hero_pronoun(hero) -> str:
+    """Return the subject pronoun for a hero based on their gender."""
+    gender = getattr(hero, "gender", None) or "male"
+    return "she" if gender == "female" else "he"
+
+
 def _hero_appearance(hero) -> str:
     """Build a compact visual description of a hero from their stored image_prompt or fields."""
+    gender = getattr(hero, "gender", None) or "male"
+    gender_label = "girl" if gender == "female" else "boy"
     if hero.image_prompt:
         # Extract the costume/appearance section from the stored prompt
         lines = hero.image_prompt.splitlines()
@@ -169,9 +183,10 @@ def _hero_appearance(hero) -> str:
             if in_section and "POWERS" in line and line != "=== POWERS (MUST be visually shown in the image) ===":
                 break
         if appearance_lines:
-            return " ".join(l.strip() for l in appearance_lines[:10] if l.strip())
+            base = " ".join(l.strip() for l in appearance_lines[:10] if l.strip())
+            return f"{base} ({gender_label})"
     # Fallback: build from fields
-    parts = [f"{hero.superhero_name}"]
+    parts = [f"{hero.superhero_name} ({gender_label})"]
     if hasattr(hero, "costume_color") and hero.costume_color:
         parts.append(f"wearing {hero.costume_color} costume")
     if hasattr(hero, "cape_color") and hero.cape_color:
@@ -224,6 +239,10 @@ def generate_issue_plan(arc_summary: str, issue_number: int, total_issues: int,
     """
     hero_names = ", ".join(h.superhero_name for h in heroes) if heroes else "the heroes"
     villain_names = ", ".join(v.villain_name for v in villains) if villains else "the villain"
+    hero_genders = "; ".join(
+        f"{h.superhero_name}: {'she/her' if (getattr(h, 'gender', 'male') or 'male') == 'female' else 'he/him'}"
+        for h in heroes
+    ) if heroes else ""
 
     # Build continuity context from previous issues
     continuity_block = ""
@@ -241,13 +260,16 @@ def generate_issue_plan(arc_summary: str, issue_number: int, total_issues: int,
         "Stories are adventurous, fun, and teach positive values like teamwork and courage. "
         "Content is never scary or violent. "
         "Maintain continuity with previous issues — build on what came before. "
+        "Use the correct pronouns for each hero based on their gender. "
         "Respond ONLY with valid JSON — no markdown, no code fences."
     )
+    pronouns_line = f"Hero pronouns: {hero_genders}\n" if hero_genders else ""
     user = (
         f"Arc summary: {arc_summary}\n"
         f"{continuity_block}"
         f"Write issue {issue_number} of {total_issues} in this arc.\n"
-        f"Heroes: {hero_names}. Villains: {villain_names}.\n\n"
+        f"Heroes: {hero_names}. Villains: {villain_names}.\n"
+        f"{pronouns_line}"
         "Return JSON with exactly these keys:\n"
         '  "title": issue title (max 6 words)\n'
         '  "summary": 2-3 sentences describing this issue (used as a teaser on the arc page)\n'
@@ -355,9 +377,12 @@ def generate_team_battle_narration(
 ) -> str | None:
     """Generate a short comic-style narration of a team battle result."""
     def member_summary(members):
-        return ", ".join(
-            f"{m['name']} ({m.get('powers','???')[:40]})" for m in members
-        )
+        parts = []
+        for m in members:
+            gender = m.get("gender", "male") or "male"
+            pronoun = "she/her" if gender == "female" else "he/him"
+            parts.append(f"{m['name']} ({m.get('powers','???')[:40]}, {pronoun})")
+        return ", ".join(parts)
 
     system = (
         "You are a comic book announcer for kids aged 6-12. "
