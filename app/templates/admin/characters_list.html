@@ -1,69 +1,200 @@
 {% extends "base.html" %}
-{% block title %}Admin - Characters{% endblock %}
+{% block title %}Admin – Characters & Villains{% endblock %}
 
 {% block content %}
 <div class="container py-4">
 
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h4 m-0">Characters</h1>
-    <a class="btn btn-primary" href="{{ url_for('admin.admin_create_character') }}">+ New Character</a>
+  <!-- ===== PAGE HEADER ===== -->
+  <div class="hero-page-header mb-5" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border: 4px solid #000; border-radius: 16px; position: relative; overflow: hidden;">
+    <div style="position: absolute; top: 10px; left: 10px; font-size: 2rem; opacity: .4;">⚡</div>
+    <div style="position: absolute; top: 10px; right: 10px; font-size: 2rem; opacity: .4;">💀</div>
+    <div style="position: absolute; bottom: 10px; left: 10px; font-size: 2rem; opacity: .4;">💀</div>
+    <div style="position: absolute; bottom: 10px; right: 10px; font-size: 2rem; opacity: .4;">⚡</div>
+    <div class="hero-kicker" style="background: linear-gradient(90deg, var(--comic-blue), var(--comic-red)); color:#fff;">🔧 ADMIN COMMAND CENTER</div>
+    <h1 class="hero-title" style="color: var(--comic-yellow); font-size: 2.8rem;">Heroes &amp; Villains HQ</h1>
+    <p class="hero-subtitle mb-0" style="color: #ccc;">Edit your characters and villains. With great power comes great responsibility!</p>
+    <div class="mt-3 d-flex flex-wrap gap-2">
+      <a class="btn btn-comic-cta" href="{{ url_for('characters.create_character') }}" style="background: var(--comic-blue);">
+        ✨ Create Hero
+      </a>
+      <a class="btn btn-comic-cta" href="{{ url_for('villains.create_villain') }}" style="background: var(--comic-red);">
+        😈 Create Villain
+      </a>
+      <a class="btn btn-outline-dark fw-bold comic-outline-btn" href="{{ url_for('admin.admin_users_list') }}" style="color:#fff; border-color:#fff;">
+        👥 Manage Users
+      </a>
+    </div>
   </div>
 
-  {% if characters %}
-    <div class="card shadow-sm">
-      <div class="table-responsive">
-        <table class="table table-striped align-middle mb-0">
-          <thead>
-            <tr>
-              <th style="width:80px;">ID</th>
-              <th>Superhero Name</th>
-              <th style="width:220px;">Created</th>
-              <th style="width:240px;" class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for c in characters %}
-            <tr>
-              <td>{{ c.id }}</td>
-              <td>
-                <div class="fw-semibold">{{ c.superhero_name }}</div>
-                <div class="text-muted small">
-                  {% if c.powers %}Powers: {{ c.powers|truncate(80) }}{% else %}No powers listed{% endif %}
-                </div>
-              </td>
-              <td class="text-muted">
-                {% if c.created_at %}
-                  {{ c.created_at.strftime("%b %d, %Y %I:%M %p") }}
-                {% else %}
-                  —
-                {% endif %}
-              </td>
-              <td class="text-end">
-                <a class="btn btn-sm btn-outline-primary"
-                   href="{{ url_for('admin.admin_edit_character', character_id=c.id) }}">
-                  Edit
-                </a>
+  <!-- ===== HEROES SECTION ===== -->
+  <div class="mb-5">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="hero-burst" style="position: static; transform: none; font-size: 1rem; padding: .4rem .8rem;">HEROES</div>
+      <h2 style="font-family:'Bangers',cursive; font-size:2.2rem; letter-spacing:2px; color: var(--comic-blue); margin:0; text-shadow: 3px 3px 0 #000;">
+        ⚡ Hero Roster
+      </h2>
+      <span class="badge" style="background: var(--comic-blue); color:#fff; font-family:'Bangers',cursive; font-size:1rem; padding:.3rem .8rem;">
+        {{ characters|length }} HERO{{ 'ES' if characters|length != 1 else '' }}
+      </span>
+    </div>
 
-                <form class="d-inline"
-                      method="POST"
-                      action="{{ url_for('admin.admin_delete_character', character_id=c.id) }}"
-                      onsubmit="return confirm('Delete this character? This cannot be undone.');">
-                  <button type="submit" class="btn btn-sm btn-outline-danger">
-                    Delete
-                  </button>
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    {% if characters %}
+    <div class="row g-4">
+      {% for c in characters %}
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="hero-card" style="border-color: var(--comic-blue);">
+
+          <div class="hero-burst" style="background: var(--comic-blue);">HERO!</div>
+
+          {% if c.image_file %}
+          <div class="hero-avatar-wrap">
+            <img src="{{ url_for('static', filename='uploads/characters/' ~ c.image_file) }}"
+                 alt="{{ c.superhero_name }}" class="hero-avatar">
+          </div>
+          {% else %}
+          <div class="hero-avatar-wrap hero-avatar-placeholder">
+            <span>NO IMAGE</span>
+          </div>
+          {% endif %}
+
+          <header class="hero-card-header">
+            <h3 class="hero-name" style="font-size: 1.4rem;">{{ c.superhero_name }}</h3>
+            <div class="hero-stickers">
+              <span class="hero-sticker hero-sticker-good">POWERED</span>
+              {% if c.power_level_override %}<span class="hero-sticker" style="background:#7c3aed;color:#fff;">ADMIN LOCK</span>{% endif %}
+            </div>
+          </header>
+
+          <div class="hero-card-body">
+            <section class="hero-section">
+              <div class="hero-section-title">Powers</div>
+              <div class="hero-section-text">{{ (c.powers or "Not set")|truncate(80) }}</div>
+            </section>
+            <section class="hero-section">
+              <div class="hero-section-title">Weakness</div>
+              <div class="hero-section-text">{{ (c.weakness or "Not set")|truncate(60) }}</div>
+            </section>
+          </div>
+
+          <footer class="hero-card-footer">
+            <span class="hero-id">#{{ "%03d"|format(c.id) }}</span>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('admin.admin_edit_character', character_id=c.id) }}"
+                 class="btn btn-sm fw-bold"
+                 style="background: var(--comic-yellow); color:#000; border:2px solid #000; font-family:'Bangers',cursive; letter-spacing:1px; font-size:.85rem;">
+                ✏️ Edit
+              </a>
+              <form method="POST"
+                    action="{{ url_for('admin.admin_delete_character', character_id=c.id) }}"
+                    onsubmit="return confirm('Remove {{ c.superhero_name|replace("'","\\'")|replace('"','\\"') }} from IsmaVerse forever?');">
+                <button type="submit" class="btn btn-sm fw-bold"
+                        style="background: var(--comic-red); color:#fff; border:2px solid #000; font-family:'Bangers',cursive; letter-spacing:1px; font-size:.85rem;">
+                  🗑️ Delete
+                </button>
+              </form>
+            </div>
+          </footer>
+        </div>
       </div>
+      {% endfor %}
     </div>
-  {% else %}
-    <div class="alert alert-info mb-0">
-      No characters yet. Click <strong>New Character</strong> to create one.
+    {% else %}
+    <div class="speech text-center py-4">
+      <p class="fw-bold mb-2">No heroes yet! The world needs saving!</p>
+      <a href="{{ url_for('characters.create_character') }}" class="btn btn-comic-cta">Create the First Hero ⚡</a>
     </div>
-  {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- ===== DIVIDER ===== -->
+  <div class="text-center my-4" style="position:relative;">
+    <div style="border-top: 4px dashed #000; position:absolute; top:50%; left:0; right:0;"></div>
+    <span style="position:relative; background: var(--paper); padding: 0 1rem; font-family:'Bangers',cursive; font-size:1.8rem; color:#000; letter-spacing:3px;">
+      ⚡ VS 💀
+    </span>
+  </div>
+
+  <!-- ===== VILLAINS SECTION ===== -->
+  <div class="mb-4">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="villain-burst hero-burst" style="position: static; transform: none; font-size: 1rem; padding: .4rem .8rem; background: var(--comic-red);">VILLAINS</div>
+      <h2 style="font-family:'Bangers',cursive; font-size:2.2rem; letter-spacing:2px; color: var(--comic-red); margin:0; text-shadow: 3px 3px 0 #000;">
+        💀 Villain Roster
+      </h2>
+      <span class="badge" style="background: var(--comic-red); color:#fff; font-family:'Bangers',cursive; font-size:1rem; padding:.3rem .8rem;">
+        {{ villains|length }} VILLAIN{{ 'S' if villains|length != 1 else '' }}
+      </span>
+    </div>
+
+    {% if villains %}
+    <div class="row g-4">
+      {% for v in villains %}
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="hero-card villain-card">
+
+          <div class="hero-burst villain-burst">VILLAIN!</div>
+
+          {% if v.image_file %}
+          <div class="hero-avatar-wrap">
+            <img src="{{ url_for('static', filename='uploads/villains/' ~ v.image_file) }}"
+                 alt="{{ v.villain_name }}" class="hero-avatar">
+          </div>
+          {% else %}
+          <div class="hero-avatar-wrap hero-avatar-placeholder villain-placeholder">
+            <span>VILLAIN UNSEEN</span>
+          </div>
+          {% endif %}
+
+          <header class="hero-card-header villain-card-header">
+            <h3 class="hero-name" style="font-size: 1.4rem;">{{ v.villain_name }}</h3>
+            <div class="hero-stickers">
+              <span class="hero-sticker" style="background: var(--comic-red); color:#fff;">EVIL</span>
+              {% if v.lair_location %}<span class="hero-sticker hero-sticker-muted">{{ v.lair_location|truncate(18) }}</span>{% endif %}
+            </div>
+          </header>
+
+          <div class="hero-card-body">
+            <section class="hero-section">
+              <div class="hero-section-title">Evil Powers</div>
+              <div class="hero-section-text">{{ (v.powers or "Not set")|truncate(80) }}</div>
+            </section>
+            <section class="hero-section">
+              <div class="hero-section-title">Evil Plan</div>
+              <div class="hero-section-text">{{ (v.evil_plan or "Not set")|truncate(60) }}</div>
+            </section>
+          </div>
+
+          <footer class="hero-card-footer villain-card-footer">
+            <span class="hero-id">#V{{ "%03d"|format(v.id) }}</span>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('admin.admin_edit_villain', villain_id=v.id) }}"
+                 class="btn btn-sm fw-bold"
+                 style="background: var(--comic-yellow); color:#000; border:2px solid #000; font-family:'Bangers',cursive; letter-spacing:1px; font-size:.85rem;">
+                ✏️ Edit
+              </a>
+              <form method="POST"
+                    action="{{ url_for('admin.admin_delete_villain', villain_id=v.id) }}"
+                    onsubmit="return confirm('Defeat {{ v.villain_name|replace("'","\\'")|replace('"','\\"') }} forever? This cannot be undone!');">
+                <button type="submit" class="btn btn-sm fw-bold"
+                        style="background: var(--comic-red); color:#fff; border:2px solid #000; font-family:'Bangers',cursive; letter-spacing:1px; font-size:.85rem;">
+                  💀 Delete
+                </button>
+              </form>
+            </div>
+          </footer>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="speech text-center py-4" style="border-color: var(--comic-red);">
+      <p class="fw-bold mb-2">No villains yet! The world is safe... for now.</p>
+      <a href="{{ url_for('villains.create_villain') }}" class="btn btn-comic-cta" style="background: var(--comic-red); color:#fff;">
+        Create the First Villain 😈
+      </a>
+    </div>
+    {% endif %}
+  </div>
 
 </div>
 {% endblock %}

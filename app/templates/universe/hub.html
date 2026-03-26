@@ -71,13 +71,23 @@
           {% endfor %}
         </div>
 
-        <div class="mt-auto d-flex flex-wrap gap-2">
+        <div class="mt-auto d-flex flex-wrap gap-2 align-items-center">
           <a href="{{ url_for('universe.arc_detail', arc_id=arc.id) }}" class="btn btn-comic-cta">
             View Arc →
           </a>
           <span class="align-self-center text-muted fw-bold" style="font-size:.85rem;">
             {{ arc.issues|length }} issue{{ 's' if arc.issues|length != 1 else '' }}
           </span>
+          {% if current_user.is_authenticated and current_user.is_admin %}
+          <form method="POST" action="{{ url_for('universe.delete_arc', arc_id=arc.id) }}"
+                class="ms-auto"
+                onsubmit="return confirm('Delete arc \'{{ arc.title }}\' and all its issues? This cannot be undone!');">
+            <button type="submit" class="btn btn-sm fw-bold"
+                    style="background: var(--comic-red); color:#fff; border:2px solid #000; font-family:'Bangers',cursive; letter-spacing:1px;">
+              🗑️ Delete Arc
+            </button>
+          </form>
+          {% endif %}
         </div>
 
       </div>
