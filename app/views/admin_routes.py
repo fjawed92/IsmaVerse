@@ -211,6 +211,9 @@ def admin_create_character():
     powers = request.form.get("powers", "").strip()
     weakness = request.form.get("weakness", "").strip()
     origins = request.form.get("origins", "").strip()
+    gender = request.form.get("gender", "male")
+    if gender not in ("male", "female"):
+        gender = "male"
     image = request.files.get("image_file")
 
     if not superhero_name:
@@ -229,6 +232,7 @@ def admin_create_character():
         powers=powers or None,
         weakness=weakness or None,
         origins=origins or None,
+        gender=gender,
         image_file=image_filename
     )
     db.session.add(character)
@@ -253,6 +257,9 @@ def admin_edit_character(character_id):
     powers = request.form.get("powers", "").strip()
     weakness = request.form.get("weakness", "").strip()
     origins = request.form.get("origins", "").strip()
+    gender = request.form.get("gender", "male")
+    if gender not in ("male", "female"):
+        gender = "male"
     image = request.files.get("image_file")
 
     # Power level override
@@ -275,6 +282,7 @@ def admin_edit_character(character_id):
     character.powers = powers or None
     character.weakness = weakness or None
     character.origins = origins or None
+    character.gender = gender
 
     # Optional: replace image if a new one is uploaded
     if image and image.filename:

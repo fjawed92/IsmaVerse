@@ -43,6 +43,7 @@ def _get_combatant(fighter_type: str, fighter_id: int) -> dict | None:
             "color": "var(--comic-blue)",
             "bg_color": "#d0e8ff",
             "label": "⚡ HERO",
+            "gender": c.gender or "male",
         }
     elif fighter_type == "villain":
         v = Villain.query.get(fighter_id)
@@ -297,6 +298,7 @@ def team_new():
                     "image_file": combatant["image_file"],
                     "image_folder": combatant["image_folder"],
                     "power_level": combatant["power_level"],
+                    "gender": combatant.get("gender", "male"),
                 })
         return members
 

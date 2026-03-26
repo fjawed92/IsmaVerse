@@ -22,6 +22,8 @@ class Character(db.Model):
     age = db.Column(db.Integer, nullable=True)
     hair_color = db.Column(db.String(80), nullable=True)
 
+    gender = db.Column(db.String(10), nullable=True, default="male")  # 'male' or 'female'
+
     power_level_override = db.Column(db.Integer, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
