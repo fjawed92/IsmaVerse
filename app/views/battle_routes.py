@@ -118,6 +118,15 @@ def _update_power_level(fighter_type: str, fighter_id: int, delta: int) -> int:
     return 0
 
 
+def _refresh_member_power_levels(members: list) -> list:
+    """Refresh power_level for each member dict from the current DB values."""
+    for m in members:
+        combatant = _get_combatant(m["type"], m["id"])
+        if combatant:
+            m["power_level"] = combatant["power_level"]
+    return members
+
+
 # ─── 1v1 Arena ──────────────────────────────────────────────────────────────
 
 @battle_bp.route("/")
@@ -434,8 +443,8 @@ def team_new():
 @battle_bp.route("/team/<int:battle_id>")
 def team_battle(battle_id):
     battle = TeamBattle.query.get_or_404(battle_id)
-    team1_members = json.loads(battle.team1_members)
-    team2_members = json.loads(battle.team2_members)
+    team1_members = _refresh_member_power_levels(json.loads(battle.team1_members))
+    team2_members = _refresh_member_power_levels(json.loads(battle.team2_members))
 
     session_key = _get_session_key()
     already_fought = bool(TeamBattleVote.query.filter_by(
@@ -492,8 +501,8 @@ def team_fight(battle_id):
         flash("This team battle has already been fought! Create a new one!", "info")
         return redirect(url_for("battle.team_battle", battle_id=battle_id))
 
-    team1_members = json.loads(battle.team1_members)
-    team2_members = json.loads(battle.team2_members)
+    team1_members = _refresh_member_power_levels(json.loads(battle.team1_members))
+    team2_members = _refresh_member_power_levels(json.loads(battle.team2_members))
 
     # Average power level per team
     avg1 = sum(m["power_level"] for m in team1_members) / len(team1_members)
