@@ -296,12 +296,39 @@ def fight():
     _update_power_level(winner["type"], winner["id"],  win_gain)
     _update_power_level(loser["type"],  loser["id"],  -loss_drop)
 
+    # Gather all-time win counts for each fighter for the AI context
+    all_fights = ArenaBattleVote.query.filter(
+        db.or_(
+            db.and_(
+                ArenaBattleVote.fighter1_type == f1_type,
+                ArenaBattleVote.fighter1_id == f1_id,
+                ArenaBattleVote.fighter2_type == f2_type,
+                ArenaBattleVote.fighter2_id == f2_id,
+            ),
+            db.and_(
+                ArenaBattleVote.fighter1_type == f2_type,
+                ArenaBattleVote.fighter1_id == f2_id,
+                ArenaBattleVote.fighter2_type == f1_type,
+                ArenaBattleVote.fighter2_id == f1_id,
+            ),
+        )
+    ).all()
+    f1_wins_count = sum(1 for b in all_fights if b.winner_type == f1_type and b.winner_id == f1_id)
+    f2_wins_count = sum(1 for b in all_fights if b.winner_type == f2_type and b.winner_id == f2_id)
+
     narration = None
     try:
         narration = generate_battle_narration(
             fighter1["name"], fighter1["powers"],
             fighter2["name"], fighter2["powers"],
             winner["name"],
+            fighter1_type=fighter1["type"],
+            fighter2_type=fighter2["type"],
+            fighter1_gender=fighter1.get("gender", "male"),
+            fighter2_gender=fighter2.get("gender", "male"),
+            fighter1_wins=f1_wins_count,
+            fighter2_wins=f2_wins_count,
+            upset=upset,
         )
     except Exception:
         pass
@@ -495,6 +522,7 @@ def team_fight(battle_id):
             battle.team1_name, team1_members,
             battle.team2_name, team2_members,
             winning_team_name,
+            upset=upset,
         )
     except Exception:
         pass
