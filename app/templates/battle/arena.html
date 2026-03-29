@@ -12,7 +12,7 @@
       ⚔️ BATTLE ARENA
     </div>
     <h1 class="hero-title" style="color: var(--comic-yellow);">Who Would Win?!</h1>
-    <p class="hero-subtitle mb-0" style="color:#ccc;">Pick any hero OR villain — then vote for the winner!</p>
+    <p class="hero-subtitle mb-0" style="color:#ccc;">Pick any hero OR villain — then watch the battle unfold!</p>
     <div class="mt-3 d-flex flex-wrap gap-2">
       <a href="{{ url_for('battle.arena') }}" class="btn btn-comic-cta" style="background:var(--comic-red);">🎲 Random Battle!</a>
       <a href="{{ url_for('battle.team_new') }}" class="btn btn-comic-cta" style="background:var(--comic-blue);">🤝 Team Battle!</a>
@@ -82,7 +82,8 @@
   {% endif %}
 
   {% if fighter1 and fighter2 %}
-  <!-- ===== NARRATION PANEL (shown after vote) ===== -->
+
+  <!-- ===== NARRATION PANEL (shown after fight) ===== -->
   {% if narration %}
   <div class="mb-4" style="
     background: #fffbe6;
@@ -108,9 +109,22 @@
   <div class="row g-4 align-items-stretch mb-4">
 
     <!-- FIGHTER 1 -->
+    {% set f1_is_winner = battle_result and battle_result.winner_key == f1_key %}
+    {% set f1_is_loser  = battle_result and battle_result.winner_key != f1_key %}
     <div class="col-12 col-md-5">
       <div class="hero-card {% if fighter1.type == 'villain' %}villain-card{% endif %} battle-hero-card text-center"
-           style="border-color: {{ fighter1.color }};">
+           style="border-color: {{ fighter1.color }}; {% if f1_is_winner %}box-shadow: 0 0 0 4px gold, 8px 8px 0 #000;{% endif %}">
+
+        <!-- Winner / Loser banner -->
+        {% if f1_is_winner %}
+        <div style="background: gold; color: #000; font-family:'Bangers',cursive; font-size:1.2rem; letter-spacing:2px; padding:.3rem .5rem; border-bottom:3px solid #000;">
+          🏆 WINNER! +{{ battle_result.gain }} POWER UP! ⬆️
+        </div>
+        {% elif f1_is_loser %}
+        <div style="background: #555; color: #fff; font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:1px; padding:.3rem .5rem; border-bottom:3px solid #000;">
+          💔 DEFEATED! -{{ battle_result.loss }} POWER ⬇️
+        </div>
+        {% endif %}
 
         <div class="hero-burst {% if fighter1.type == 'villain' %}villain-burst{% endif %}"
              style="background: {{ fighter1.color }};">
@@ -148,57 +162,85 @@
           </div>
         </div>
 
-        <!-- VOTE BAR -->
-        <div class="px-3 pb-2">
+        <!-- Battle Record Bar -->
+        <div class="px-3 pb-3">
           <div class="d-flex justify-content-between mb-1">
-            <small class="fw-bold">Votes</small>
-            <small class="fw-bold">{{ vote_counts[(fighter1.type, fighter1.id)] }} ({{ fighter1_pct }}%)</small>
+            <small class="fw-bold">Battle Record</small>
+            <small class="fw-bold">{{ win_counts[(fighter1.type, fighter1.id)] }} wins / {{ total_battles }} fights</small>
           </div>
           <div class="power-bar-track">
             <div class="power-bar-fill" style="width:{{ fighter1_pct }}%; background: {{ fighter1.color }};"></div>
           </div>
         </div>
 
-        <div class="hero-card-footer {% if fighter1.type == 'villain' %}villain-card-footer{% endif %}"
-             style="justify-content:center; background: {{ fighter1.bg_color }};">
-          <form method="POST" action="{{ url_for('battle.vote') }}">
-            <input type="hidden" name="f1_type" value="{{ fighter1.type }}">
-            <input type="hidden" name="f1_id" value="{{ fighter1.id }}">
-            <input type="hidden" name="f2_type" value="{{ fighter2.type }}">
-            <input type="hidden" name="f2_id" value="{{ fighter2.id }}">
-            <input type="hidden" name="winner_type" value="{{ fighter1.type }}">
-            <input type="hidden" name="winner_id" value="{{ fighter1.id }}">
-            <button type="submit" class="btn btn-comic-cta" style="background:{{ fighter1.color }}; color:#fff; font-size:1.1rem;">
-              Vote for {{ fighter1.name }}!
-            </button>
-          </form>
-        </div>
       </div>
     </div>
 
-    <!-- VS BADGE -->
+    <!-- VS / FIGHT SECTION -->
     <div class="col-12 col-md-2 d-flex align-items-center justify-content-center">
       <div class="vs-badge text-center">
         <div style="font-family:'Bangers',cursive; font-size:3rem; text-shadow: 4px 4px 0 var(--ink); color:var(--comic-red);">VS</div>
-        <div class="fw-bold" style="font-size:.85rem;">{{ total_votes }} votes cast</div>
-        {% if total_votes > 0 %}
-        <div class="mt-2" style="font-size:.75rem; font-weight:700; color:#555;">
-          {% if vote_counts[(fighter1.type, fighter1.id)] > vote_counts[(fighter2.type, fighter2.id)] %}
+
+        <!-- Upset badge -->
+        {% if battle_result and battle_result.upset %}
+        <div style="background: var(--comic-yellow); color:#000; font-family:'Bangers',cursive; font-size:1rem; padding:.2rem .6rem; border:3px solid #000; border-radius:8px; margin:.5rem auto; display:inline-block;">
+          ⚡ LUCKY UPSET!
+        </div>
+        {% endif %}
+
+        <div class="fw-bold" style="font-size:.85rem; margin-bottom:.5rem;">{{ total_battles }} battle{{ 's' if total_battles != 1 else '' }}</div>
+
+        {% if total_battles > 0 %}
+        <div style="font-size:.75rem; font-weight:700; color:#555; margin-bottom:.75rem;">
+          {% if win_counts[(fighter1.type, fighter1.id)] > win_counts[(fighter2.type, fighter2.id)] %}
             📊 {{ fighter1.name }} leads!
-          {% elif vote_counts[(fighter2.type, fighter2.id)] > vote_counts[(fighter1.type, fighter1.id)] %}
+          {% elif win_counts[(fighter2.type, fighter2.id)] > win_counts[(fighter1.type, fighter1.id)] %}
             📊 {{ fighter2.name }} leads!
           {% else %}
             📊 It's tied!
           {% endif %}
         </div>
         {% endif %}
+
+        <!-- FIGHT button or already-fought message -->
+        {% if not already_fought %}
+        <form method="POST" action="{{ url_for('battle.fight') }}">
+          <input type="hidden" name="f1_type" value="{{ fighter1.type }}">
+          <input type="hidden" name="f1_id"   value="{{ fighter1.id }}">
+          <input type="hidden" name="f2_type" value="{{ fighter2.type }}">
+          <input type="hidden" name="f2_id"   value="{{ fighter2.id }}">
+          <button type="submit" class="btn btn-comic-cta"
+                  style="background: var(--comic-red); font-size:1.3rem; padding:.5rem 1.2rem; letter-spacing:2px;">
+            ⚡ FIGHT! ⚡
+          </button>
+        </form>
+        {% else %}
+        <div style="font-family:'Bangers',cursive; font-size:1rem; color:#888; margin-top:.5rem;">
+          Already battled!<br>
+          <a href="{{ url_for('battle.arena') }}" style="color:var(--comic-blue);">🎲 Try a new matchup!</a>
+        </div>
+        {% endif %}
+
       </div>
     </div>
 
     <!-- FIGHTER 2 -->
+    {% set f2_is_winner = battle_result and battle_result.winner_key == f2_key %}
+    {% set f2_is_loser  = battle_result and battle_result.winner_key != f2_key %}
     <div class="col-12 col-md-5">
       <div class="hero-card {% if fighter2.type == 'villain' %}villain-card{% endif %} battle-hero-card text-center"
-           style="border-color: {{ fighter2.color }};">
+           style="border-color: {{ fighter2.color }}; {% if f2_is_winner %}box-shadow: 0 0 0 4px gold, 8px 8px 0 #000;{% endif %}">
+
+        <!-- Winner / Loser banner -->
+        {% if f2_is_winner %}
+        <div style="background: gold; color: #000; font-family:'Bangers',cursive; font-size:1.2rem; letter-spacing:2px; padding:.3rem .5rem; border-bottom:3px solid #000;">
+          🏆 WINNER! +{{ battle_result.gain }} POWER UP! ⬆️
+        </div>
+        {% elif f2_is_loser %}
+        <div style="background: #555; color: #fff; font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:1px; padding:.3rem .5rem; border-bottom:3px solid #000;">
+          💔 DEFEATED! -{{ battle_result.loss }} POWER ⬇️
+        </div>
+        {% endif %}
 
         <div class="hero-burst {% if fighter2.type == 'villain' %}villain-burst{% endif %}"
              style="background: {{ fighter2.color }};">
@@ -236,31 +278,17 @@
           </div>
         </div>
 
-        <!-- VOTE BAR -->
-        <div class="px-3 pb-2">
+        <!-- Battle Record Bar -->
+        <div class="px-3 pb-3">
           <div class="d-flex justify-content-between mb-1">
-            <small class="fw-bold">Votes</small>
-            <small class="fw-bold">{{ vote_counts[(fighter2.type, fighter2.id)] }} ({{ fighter2_pct }}%)</small>
+            <small class="fw-bold">Battle Record</small>
+            <small class="fw-bold">{{ win_counts[(fighter2.type, fighter2.id)] }} wins / {{ total_battles }} fights</small>
           </div>
           <div class="power-bar-track">
             <div class="power-bar-fill" style="width:{{ fighter2_pct }}%; background: {{ fighter2.color }};"></div>
           </div>
         </div>
 
-        <div class="hero-card-footer {% if fighter2.type == 'villain' %}villain-card-footer{% endif %}"
-             style="justify-content:center; background: {{ fighter2.bg_color }};">
-          <form method="POST" action="{{ url_for('battle.vote') }}">
-            <input type="hidden" name="f1_type" value="{{ fighter1.type }}">
-            <input type="hidden" name="f1_id" value="{{ fighter1.id }}">
-            <input type="hidden" name="f2_type" value="{{ fighter2.type }}">
-            <input type="hidden" name="f2_id" value="{{ fighter2.id }}">
-            <input type="hidden" name="winner_type" value="{{ fighter2.type }}">
-            <input type="hidden" name="winner_id" value="{{ fighter2.id }}">
-            <button type="submit" class="btn btn-comic-cta" style="background:{{ fighter2.color }}; color:#fff; font-size:1.1rem;">
-              Vote for {{ fighter2.name }}!
-            </button>
-          </form>
-        </div>
       </div>
     </div>
 
