@@ -12,10 +12,12 @@
     <h1 class="hero-title" style="color: var(--comic-yellow);">{{ battle.team1_name }}</h1>
     <div class="burst" style="background: var(--comic-red); position:static; transform:none; display:inline-block; margin: .5rem auto; font-size:1.4rem;">VS</div>
     <h1 class="hero-title" style="color: var(--comic-yellow);">{{ battle.team2_name }}</h1>
-    <p class="hero-subtitle" style="color:#ccc;">{{ total_votes }} vote{{ 's' if total_votes != 1 else '' }} cast — who wins?!</p>
+    <p class="hero-subtitle" style="color:#ccc;">
+      {{ total_battles }} battle{{ 's' if total_battles != 1 else '' }} fought — who will win?!
+    </p>
   </div>
 
-  <!-- NARRATION (shown after vote) -->
+  <!-- NARRATION (shown after fight) -->
   {% if narration %}
   <div class="mb-4" style="
     background: #fffbe6;
@@ -41,8 +43,24 @@
   <div class="row g-4 align-items-stretch mb-4">
 
     <!-- TEAM 1 -->
+    {% set team1_won = battle_result and battle_result.winning_team == 1 %}
+    {% set team1_lost = battle_result and battle_result.winning_team == 2 %}
     <div class="col-12 col-md-5">
-      <div class="comic-panel h-100" style="border-color: var(--comic-blue);">
+      <div class="comic-panel h-100"
+           style="border-color: var(--comic-blue); {% if team1_won %}box-shadow: 0 0 0 4px gold, 8px 8px 0 #000;{% endif %}">
+
+        <!-- Victory / Defeat banner -->
+        {% if team1_won %}
+        <div style="background: gold; color:#000; font-family:'Bangers',cursive; font-size:1.2rem; letter-spacing:2px; padding:.3rem .5rem; border-bottom:3px solid #000; text-align:center;">
+          🏆 VICTORY! +{{ battle_result.gain }} POWER!
+          {% if battle_result.upset %} ⚡ UPSET ALERT!{% endif %}
+        </div>
+        {% elif team1_lost %}
+        <div style="background: #555; color:#fff; font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:1px; padding:.3rem .5rem; border-bottom:3px solid #000; text-align:center;">
+          💔 DEFEATED! -{{ battle_result.loss }} POWER
+        </div>
+        {% endif %}
+
         <div class="panel-header" style="background: var(--comic-blue);">
           <h2 class="panel-title" style="color:#fff; font-size:1.3rem;">⚡ {{ battle.team1_name }}</h2>
         </div>
@@ -66,30 +84,16 @@
             {% endfor %}
           </div>
 
-          <!-- Vote bar -->
+          <!-- Battle record bar -->
           <div class="mb-2">
             <div class="d-flex justify-content-between mb-1">
-              <small class="fw-bold" style="color:var(--comic-blue);">Team 1 Votes</small>
-              <small class="fw-bold">{{ team1_votes }} ({{ team1_pct }}%)</small>
+              <small class="fw-bold" style="color:var(--comic-blue);">Team 1 Wins</small>
+              <small class="fw-bold">{{ team1_wins }} / {{ total_battles }} battles</small>
             </div>
             <div class="power-bar-track">
               <div class="power-bar-fill" style="width:{{ team1_pct }}%; background:var(--comic-blue);"></div>
             </div>
           </div>
-
-          <!-- Vote button -->
-          {% if not existing_vote %}
-          <form method="POST" action="{{ url_for('battle.team_vote', battle_id=battle.id) }}" class="mt-3">
-            <input type="hidden" name="winning_team" value="1">
-            <button type="submit" class="btn btn-comic-cta w-100" style="background:var(--comic-blue); font-size:1.1rem;">
-              Vote Team 1 Wins! ⚡
-            </button>
-          </form>
-          {% elif existing_vote.winning_team == 1 %}
-          <div class="mt-3 text-center fw-bold" style="color:var(--comic-blue); font-family:'Bangers',cursive; font-size:1.2rem;">
-            ✅ You voted for this team!
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>
@@ -98,11 +102,11 @@
     <div class="col-12 col-md-2 d-flex align-items-center justify-content-center">
       <div class="text-center">
         <div style="font-family:'Bangers',cursive; font-size:3rem; text-shadow: 4px 4px 0 var(--ink); color:var(--comic-red);">VS</div>
-        <div class="fw-bold" style="font-size:.85rem;">{{ total_votes }} votes</div>
-        {% if total_votes > 0 %}
+        <div class="fw-bold" style="font-size:.85rem;">{{ total_battles }} battle{{ 's' if total_battles != 1 else '' }}</div>
+        {% if total_battles > 0 %}
         <div class="mt-1" style="font-size:.75rem;font-weight:700;color:#555;">
-          {% if team1_votes > team2_votes %}📊 Team 1 leads!
-          {% elif team2_votes > team1_votes %}📊 Team 2 leads!
+          {% if team1_wins > team2_wins %}📊 Team 1 leads!
+          {% elif team2_wins > team1_wins %}📊 Team 2 leads!
           {% else %}📊 It's tied!
           {% endif %}
         </div>
@@ -111,8 +115,24 @@
     </div>
 
     <!-- TEAM 2 -->
+    {% set team2_won = battle_result and battle_result.winning_team == 2 %}
+    {% set team2_lost = battle_result and battle_result.winning_team == 1 %}
     <div class="col-12 col-md-5">
-      <div class="comic-panel h-100" style="border-color: var(--comic-red);">
+      <div class="comic-panel h-100"
+           style="border-color: var(--comic-red); {% if team2_won %}box-shadow: 0 0 0 4px gold, 8px 8px 0 #000;{% endif %}">
+
+        <!-- Victory / Defeat banner -->
+        {% if team2_won %}
+        <div style="background: gold; color:#000; font-family:'Bangers',cursive; font-size:1.2rem; letter-spacing:2px; padding:.3rem .5rem; border-bottom:3px solid #000; text-align:center;">
+          🏆 VICTORY! +{{ battle_result.gain }} POWER!
+          {% if battle_result.upset %} ⚡ UPSET ALERT!{% endif %}
+        </div>
+        {% elif team2_lost %}
+        <div style="background: #555; color:#fff; font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:1px; padding:.3rem .5rem; border-bottom:3px solid #000; text-align:center;">
+          💔 DEFEATED! -{{ battle_result.loss }} POWER
+        </div>
+        {% endif %}
+
         <div class="panel-header" style="background: var(--comic-red);">
           <h2 class="panel-title" style="color:#fff; font-size:1.3rem;">💀 {{ battle.team2_name }}</h2>
         </div>
@@ -136,33 +156,35 @@
             {% endfor %}
           </div>
 
-          <!-- Vote bar -->
+          <!-- Battle record bar -->
           <div class="mb-2">
             <div class="d-flex justify-content-between mb-1">
-              <small class="fw-bold" style="color:var(--comic-red);">Team 2 Votes</small>
-              <small class="fw-bold">{{ team2_votes }} ({{ team2_pct }}%)</small>
+              <small class="fw-bold" style="color:var(--comic-red);">Team 2 Wins</small>
+              <small class="fw-bold">{{ team2_wins }} / {{ total_battles }} battles</small>
             </div>
             <div class="power-bar-track">
               <div class="power-bar-fill" style="width:{{ team2_pct }}%; background:var(--comic-red);"></div>
             </div>
           </div>
-
-          <!-- Vote button -->
-          {% if not existing_vote %}
-          <form method="POST" action="{{ url_for('battle.team_vote', battle_id=battle.id) }}" class="mt-3">
-            <input type="hidden" name="winning_team" value="2">
-            <button type="submit" class="btn btn-comic-cta w-100" style="background:var(--comic-red); font-size:1.1rem;">
-              Vote Team 2 Wins! 💀
-            </button>
-          </form>
-          {% elif existing_vote.winning_team == 2 %}
-          <div class="mt-3 text-center fw-bold" style="color:var(--comic-red); font-family:'Bangers',cursive; font-size:1.2rem;">
-            ✅ You voted for this team!
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- FIGHT BUTTON (centred, below teams) -->
+  <div class="text-center mb-4">
+    {% if not already_fought %}
+    <form method="POST" action="{{ url_for('battle.team_fight', battle_id=battle.id) }}">
+      <button type="submit" class="btn btn-comic-cta"
+              style="background: var(--comic-red); font-size:1.5rem; padding:.6rem 2rem; letter-spacing:2px;">
+        ⚔️ LAUNCH BATTLE! ⚔️
+      </button>
+    </form>
+    {% else %}
+    <div style="font-family:'Bangers',cursive; font-size:1.1rem; color:#888;">
+      Already fought! Create a new team battle to go again.
+    </div>
+    {% endif %}
   </div>
 
   <!-- BACK LINKS -->

@@ -83,6 +83,41 @@ def _all_combatants():
     return heroes, villains
 
 
+def _calculate_winner(fighter1: dict, fighter2: dict) -> tuple[dict, dict, bool]:
+    """Weighted random — higher power_level = better odds. Returns (winner, loser, upset).
+
+    A lucky factor of ±15 is added to each fighter's power level so that
+    upsets are always possible, keeping the battles exciting for kids.
+    """
+    pl1 = fighter1["power_level"]
+    pl2 = fighter2["power_level"]
+    eff1 = max(1, pl1 + random.randint(-15, 15))
+    eff2 = max(1, pl2 + random.randint(-15, 15))
+    if random.random() * (eff1 + eff2) < eff1:
+        winner, loser = fighter1, fighter2
+    else:
+        winner, loser = fighter2, fighter1
+    upset = winner["power_level"] < loser["power_level"]
+    return winner, loser, upset
+
+
+def _update_power_level(fighter_type: str, fighter_id: int, delta: int) -> int:
+    """Persist a power level change. Returns the new level."""
+    if fighter_type == "hero":
+        char = Character.query.get(fighter_id)
+        if char:
+            new_level = max(10, min(100, char.power_level + delta))
+            char.power_level_override = new_level
+            return new_level
+    elif fighter_type == "villain":
+        vil = Villain.query.get(fighter_id)
+        if vil:
+            new_level = max(10, min(100, vil.power_level + delta))
+            vil.power_level_override = new_level
+            return new_level
+    return 0
+
+
 # ─── 1v1 Arena ──────────────────────────────────────────────────────────────
 
 @battle_bp.route("/")
@@ -99,9 +134,11 @@ def arena():
             "battle/arena.html",
             fighter1=None, fighter2=None,
             all_combatants=all_combatants,
-            vote_counts={}, total_votes=0,
+            win_counts={}, total_battles=0,
             fighter1_pct=0, fighter2_pct=0,
             narration=None,
+            battle_result=None,
+            already_fought=False,
         )
 
     # Parse fighter params e.g. ?f1=hero:1&f2=villain:3
@@ -124,13 +161,12 @@ def arena():
     fighter2 = _get_combatant(f2_type, f2_id) if f2_type else None
 
     if not fighter1 or not fighter2 or (fighter1["type"] == fighter2["type"] and fighter1["id"] == fighter2["id"]):
-        # Pick two random combatants
         picks = random.sample(all_combatants, 2)
         fighter1 = _get_combatant(picks[0]["type"], picks[0]["id"])
         fighter2 = _get_combatant(picks[1]["type"], picks[1]["id"])
 
-    # Vote counts from ArenaBattleVote
-    all_votes = ArenaBattleVote.query.filter(
+    # Win counts for this matchup (from all-time battle history)
+    all_battles = ArenaBattleVote.query.filter(
         db.or_(
             db.and_(
                 ArenaBattleVote.fighter1_type == fighter1["type"],
@@ -149,60 +185,82 @@ def arena():
 
     f1_key = (fighter1["type"], fighter1["id"])
     f2_key = (fighter2["type"], fighter2["id"])
-    vote_counts = {f1_key: 0, f2_key: 0}
-    for v in all_votes:
-        key = (v.winner_type, v.winner_id)
-        if key in vote_counts:
-            vote_counts[key] += 1
+    win_counts = {f1_key: 0, f2_key: 0}
+    for b in all_battles:
+        key = (b.winner_type, b.winner_id)
+        if key in win_counts:
+            win_counts[key] += 1
 
-    total_votes = sum(vote_counts.values())
-    f1_pct = round(vote_counts[f1_key] / total_votes * 100) if total_votes else 0
-    f2_pct = 100 - f1_pct if total_votes else 0
+    total_battles = len(all_battles)
+    f1_pct = round(win_counts[f1_key] / total_battles * 100) if total_battles else 0
+    f2_pct = 100 - f1_pct if total_battles else 0
 
-    # Show narration from most recent vote if user just voted
+    # Check if this session already fought this matchup
+    session_key = _get_session_key()
+    already_fought = bool(ArenaBattleVote.query.filter(
+        ArenaBattleVote.session_key == session_key,
+        db.or_(
+            db.and_(
+                ArenaBattleVote.fighter1_type == fighter1["type"],
+                ArenaBattleVote.fighter1_id == fighter1["id"],
+                ArenaBattleVote.fighter2_type == fighter2["type"],
+                ArenaBattleVote.fighter2_id == fighter2["id"],
+            ),
+            db.and_(
+                ArenaBattleVote.fighter1_type == fighter2["type"],
+                ArenaBattleVote.fighter1_id == fighter2["id"],
+                ArenaBattleVote.fighter2_type == fighter1["type"],
+                ArenaBattleVote.fighter2_id == fighter1["id"],
+            ),
+        )
+    ).first())
+
+    # Show narration + result after a fight
     narration = None
-    last_vote_id = request.args.get("voted", type=int)
-    if last_vote_id:
-        last_vote = ArenaBattleVote.query.get(last_vote_id)
-        if last_vote:
-            narration = last_vote.narration
+    battle_result = None
+    fought_id = request.args.get("fought", type=int)
+    if fought_id:
+        fought = ArenaBattleVote.query.get(fought_id)
+        if fought:
+            narration = fought.narration
+            battle_result = {
+                "winner_key": f"{fought.winner_type}:{fought.winner_id}",
+                "gain": request.args.get("gain", type=int, default=0),
+                "loss": request.args.get("loss", type=int, default=0),
+                "upset": request.args.get("upset", type=int, default=0) == 1,
+            }
 
     return render_template(
         "battle/arena.html",
         fighter1=fighter1,
         fighter2=fighter2,
         all_combatants=all_combatants,
-        vote_counts=vote_counts,
-        total_votes=total_votes,
+        win_counts=win_counts,
+        total_battles=total_battles,
         fighter1_pct=f1_pct,
         fighter2_pct=f2_pct,
         narration=narration,
+        battle_result=battle_result,
+        already_fought=already_fought,
         f1_key=f"{fighter1['type']}:{fighter1['id']}",
         f2_key=f"{fighter2['type']}:{fighter2['id']}",
     )
 
 
-@battle_bp.route("/vote", methods=["POST"])
-def vote():
+@battle_bp.route("/fight", methods=["POST"])
+def fight():
     f1_type = request.form.get("f1_type", "")
     f1_id   = request.form.get("f1_id", type=int)
     f2_type = request.form.get("f2_type", "")
     f2_id   = request.form.get("f2_id", type=int)
-    w_type  = request.form.get("winner_type", "")
-    w_id    = request.form.get("winner_id", type=int)
 
-    if not all([f1_type, f1_id, f2_type, f2_id, w_type, w_id]):
-        flash("Invalid vote.", "danger")
-        return redirect(url_for("battle.arena"))
-
-    # winner must be one of the two fighters
-    if not ((w_type == f1_type and w_id == f1_id) or (w_type == f2_type and w_id == f2_id)):
-        flash("Invalid vote selection.", "danger")
+    if not all([f1_type, f1_id, f2_type, f2_id]):
+        flash("Invalid battle.", "danger")
         return redirect(url_for("battle.arena"))
 
     session_key = _get_session_key()
 
-    # Prevent double-voting same matchup
+    # Once per session per matchup
     existing = ArenaBattleVote.query.filter(
         ArenaBattleVote.session_key == session_key,
         db.or_(
@@ -222,29 +280,36 @@ def vote():
     ).first()
 
     if existing:
-        flash("You already voted in this battle! Try a new matchup.", "info")
+        flash("You already fought this matchup! Pick a new one!", "info")
         return redirect(url_for("battle.arena", f1=f"{f1_type}:{f1_id}", f2=f"{f2_type}:{f2_id}"))
 
-    # Fetch combatant data for narration
     fighter1 = _get_combatant(f1_type, f1_id)
     fighter2 = _get_combatant(f2_type, f2_id)
-    winner   = _get_combatant(w_type, w_id)
+    if not fighter1 or not fighter2:
+        flash("Fighters not found.", "danger")
+        return redirect(url_for("battle.arena"))
+
+    winner, loser, upset = _calculate_winner(fighter1, fighter2)
+
+    win_gain  = random.randint(2, 5)
+    loss_drop = random.randint(1, 3)
+    _update_power_level(winner["type"], winner["id"],  win_gain)
+    _update_power_level(loser["type"],  loser["id"],  -loss_drop)
 
     narration = None
-    if fighter1 and fighter2 and winner:
-        try:
-            narration = generate_battle_narration(
-                fighter1["name"], fighter1["powers"],
-                fighter2["name"], fighter2["powers"],
-                winner["name"],
-            )
-        except Exception:
-            pass  # narration is optional
+    try:
+        narration = generate_battle_narration(
+            fighter1["name"], fighter1["powers"],
+            fighter2["name"], fighter2["powers"],
+            winner["name"],
+        )
+    except Exception:
+        pass
 
     arena_vote = ArenaBattleVote(
         fighter1_type=f1_type, fighter1_id=f1_id,
         fighter2_type=f2_type, fighter2_id=f2_id,
-        winner_type=w_type, winner_id=w_id,
+        winner_type=winner["type"], winner_id=winner["id"],
         narration=narration,
         session_key=session_key,
         user_id=current_user.id if current_user.is_authenticated else None,
@@ -259,7 +324,10 @@ def vote():
         "battle.arena",
         f1=f"{f1_type}:{f1_id}",
         f2=f"{f2_type}:{f2_id}",
-        voted=arena_vote.id,
+        fought=arena_vote.id,
+        gain=win_gain,
+        loss=loss_drop,
+        upset=1 if upset else 0,
     ))
 
 
@@ -332,7 +400,7 @@ def team_new():
     db.session.add(battle)
     db.session.commit()
 
-    flash(f"Team battle created! {team1_name} vs {team2_name} — vote now!", "success")
+    flash(f"Team battle created! {team1_name} vs {team2_name} — press FIGHT to launch it!", "success")
     return redirect(url_for("battle.team_battle", battle_id=battle.id))
 
 
@@ -343,62 +411,82 @@ def team_battle(battle_id):
     team2_members = json.loads(battle.team2_members)
 
     session_key = _get_session_key()
-    existing_vote = TeamBattleVote.query.filter_by(
+    already_fought = bool(TeamBattleVote.query.filter_by(
         team_battle_id=battle.id,
         session_key=session_key,
-    ).first()
+    ).first())
 
-    team1_votes = sum(1 for v in battle.votes if v.winning_team == 1)
-    team2_votes = sum(1 for v in battle.votes if v.winning_team == 2)
-    total_votes = team1_votes + team2_votes
-    team1_pct = round(team1_votes / total_votes * 100) if total_votes else 0
-    team2_pct = 100 - team1_pct if total_votes else 0
+    team1_wins = sum(1 for v in battle.votes if v.winning_team == 1)
+    team2_wins = sum(1 for v in battle.votes if v.winning_team == 2)
+    total_battles = team1_wins + team2_wins
+    team1_pct = round(team1_wins / total_battles * 100) if total_battles else 0
+    team2_pct = 100 - team1_pct if total_battles else 0
 
     narration = None
-    last_vote_id = request.args.get("voted", type=int)
-    if last_vote_id:
-        last_vote = TeamBattleVote.query.get(last_vote_id)
-        if last_vote:
-            narration = last_vote.narration
+    battle_result = None
+    fought_id = request.args.get("fought", type=int)
+    if fought_id:
+        fought_vote = TeamBattleVote.query.get(fought_id)
+        if fought_vote:
+            narration = fought_vote.narration
+            battle_result = {
+                "winning_team": fought_vote.winning_team,
+                "gain": request.args.get("gain", type=int, default=0),
+                "loss": request.args.get("loss", type=int, default=0),
+                "upset": request.args.get("upset", type=int, default=0) == 1,
+            }
 
     return render_template(
         "battle/team_battle.html",
         battle=battle,
         team1_members=team1_members,
         team2_members=team2_members,
-        existing_vote=existing_vote,
-        team1_votes=team1_votes,
-        team2_votes=team2_votes,
-        total_votes=total_votes,
+        already_fought=already_fought,
+        team1_wins=team1_wins,
+        team2_wins=team2_wins,
+        total_battles=total_battles,
         team1_pct=team1_pct,
         team2_pct=team2_pct,
         narration=narration,
+        battle_result=battle_result,
     )
 
 
-@battle_bp.route("/team/<int:battle_id>/vote", methods=["POST"])
-def team_vote(battle_id):
+@battle_bp.route("/team/<int:battle_id>/fight", methods=["POST"])
+def team_fight(battle_id):
     battle = TeamBattle.query.get_or_404(battle_id)
-    winning_team = request.form.get("winning_team", type=int)
-
-    if winning_team not in (1, 2):
-        flash("Invalid vote.", "danger")
-        return redirect(url_for("battle.team_battle", battle_id=battle_id))
-
     session_key = _get_session_key()
+
     existing = TeamBattleVote.query.filter_by(
         team_battle_id=battle.id,
         session_key=session_key,
     ).first()
-
     if existing:
-        flash("You already voted in this team battle!", "info")
+        flash("This team battle has already been fought! Create a new one!", "info")
         return redirect(url_for("battle.team_battle", battle_id=battle_id))
 
     team1_members = json.loads(battle.team1_members)
     team2_members = json.loads(battle.team2_members)
+
+    # Average power level per team
+    avg1 = sum(m["power_level"] for m in team1_members) / len(team1_members)
+    avg2 = sum(m["power_level"] for m in team2_members) / len(team2_members)
+
+    # Lucky factor keeps upsets possible
+    eff1 = max(1, avg1 + random.randint(-15, 15))
+    eff2 = max(1, avg2 + random.randint(-15, 15))
+    winning_team = 1 if random.random() * (eff1 + eff2) < eff1 else 2
+    upset = (winning_team == 1 and avg1 < avg2) or (winning_team == 2 and avg2 < avg1)
+
+    win_gain  = random.randint(2, 4)
+    loss_drop = random.randint(1, 2)
     winning_members = team1_members if winning_team == 1 else team2_members
-    losing_team_name = battle.team2_name if winning_team == 1 else battle.team1_name
+    losing_members  = team2_members if winning_team == 1 else team1_members
+    for m in winning_members:
+        _update_power_level(m["type"], m["id"],  win_gain)
+    for m in losing_members:
+        _update_power_level(m["type"], m["id"], -loss_drop)
+
     winning_team_name = battle.team1_name if winning_team == 1 else battle.team2_name
 
     narration = None
@@ -424,7 +512,14 @@ def team_vote(battle_id):
     if current_user.is_authenticated:
         record_badge_progress(current_user, "battle-voter")
 
-    return redirect(url_for("battle.team_battle", battle_id=battle_id, voted=tbv.id))
+    return redirect(url_for(
+        "battle.team_battle",
+        battle_id=battle_id,
+        fought=tbv.id,
+        gain=win_gain,
+        loss=loss_drop,
+        upset=1 if upset else 0,
+    ))
 
 
 # ─── Leaderboard ─────────────────────────────────────────────────────────────
@@ -433,23 +528,14 @@ def team_vote(battle_id):
 def leaderboard():
     all_votes = ArenaBattleVote.query.all()
 
-    # Load all heroes and villains for name lookup
     heroes = {c.id: c for c in Character.query.all()}
     villains = {v.id: v for v in Villain.query.all()}
-
-    def get_name(ftype, fid):
-        if ftype == "hero":
-            h = heroes.get(fid)
-            return h.superhero_name if h else f"Hero #{fid}"
-        v = villains.get(fid)
-        return v.villain_name if v else f"Villain #{fid}"
 
     def get_obj(ftype, fid):
         if ftype == "hero":
             return heroes.get(fid)
         return villains.get(fid)
 
-    # Per-matchup stats
     matchup_stats = {}
     win_counts = defaultdict(int)
     battle_appearances = defaultdict(int)
@@ -466,7 +552,6 @@ def leaderboard():
         battle_appearances[(vote.fighter1_type, vote.fighter1_id)] += 1
         battle_appearances[(vote.fighter2_type, vote.fighter2_id)] += 1
 
-    # Build matchup rows
     matchup_rows = []
     for key, counts in matchup_stats.items():
         ids = list(key)
@@ -478,23 +563,22 @@ def leaderboard():
         f2_obj = get_obj(f2_type, f2_id)
         if not f1_obj or not f2_obj:
             continue
-        f1_votes = counts.get((f1_type, f1_id), 0)
-        f2_votes = counts.get((f2_type, f2_id), 0)
-        total = f1_votes + f2_votes
+        f1_wins = counts.get((f1_type, f1_id), 0)
+        f2_wins = counts.get((f2_type, f2_id), 0)
+        total = f1_wins + f2_wins
         matchup_rows.append({
             "fighter1": _get_combatant(f1_type, f1_id),
             "fighter2": _get_combatant(f2_type, f2_id),
-            "f1_votes": f1_votes,
-            "f2_votes": f2_votes,
+            "f1_votes": f1_wins,
+            "f2_votes": f2_wins,
             "total_votes": total,
-            "f1_pct": round(f1_votes / total * 100) if total else 0,
-            "f2_pct": round(f2_votes / total * 100) if total else 0,
+            "f1_pct": round(f1_wins / total * 100) if total else 0,
+            "f2_pct": round(f2_wins / total * 100) if total else 0,
             "f1_key": f"{f1_type}:{f1_id}",
             "f2_key": f"{f2_type}:{f2_id}",
         })
     matchup_rows.sort(key=lambda r: r["total_votes"], reverse=True)
 
-    # Build rankings (all heroes + villains ranked by wins)
     rankings = []
     all_fighter_keys = set(win_counts.keys()) | set(battle_appearances.keys())
     for ftype, fid in all_fighter_keys:
@@ -512,7 +596,6 @@ def leaderboard():
         })
     rankings.sort(key=lambda r: (r["wins"], r["win_rate"]), reverse=True)
 
-    # Team battle stats
     recent_team_battles = TeamBattle.query.order_by(TeamBattle.created_at.desc()).limit(5).all()
 
     return render_template(
