@@ -73,9 +73,7 @@
 
         <div class="mb-3">
           <div class="alert alert-info py-2" style="font-family:'Comic Neue',cursive; font-size:.9rem;">
-            ⚡ Power level is managed via the
-            <a href="{{ url_for('admin.power_levels') }}" class="fw-bold">Power Levels admin page</a>.
-            Current level: <strong>{{ character.power_level }}</strong>
+            ⚡ Current power level: <strong>{{ character.power_level }}</strong>
             {% if character.power_level_override is not none %}
               <span class="badge bg-warning text-dark ms-1">🔒 Override Active</span>
             {% else %}
