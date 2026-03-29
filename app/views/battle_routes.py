@@ -564,6 +564,7 @@ def leaderboard():
             return heroes.get(fid)
         return villains.get(fid)
 
+    # ─── 1v1 stats ───────────────────────────────────────────────────────────
     matchup_stats = {}
     win_counts = defaultdict(int)
     battle_appearances = defaultdict(int)
@@ -577,6 +578,7 @@ def leaderboard():
             matchup_stats[key] = defaultdict(int)
         matchup_stats[key][(vote.winner_type, vote.winner_id)] += 1
         win_counts[(vote.winner_type, vote.winner_id)] += 1
+        # Each vote is one battle; count appearances per fighter directly
         battle_appearances[(vote.fighter1_type, vote.fighter1_id)] += 1
         battle_appearances[(vote.fighter2_type, vote.fighter2_id)] += 1
 
@@ -607,6 +609,8 @@ def leaderboard():
         })
     matchup_rows.sort(key=lambda r: r["total_votes"], reverse=True)
 
+    # 1v1 rankings — battle_appearances[fighter] is already the per-fighter count
+    # (each vote increments both fighters by 1, so appearances == battles fought)
     rankings = []
     all_fighter_keys = set(win_counts.keys()) | set(battle_appearances.keys())
     for ftype, fid in all_fighter_keys:
@@ -614,22 +618,89 @@ def leaderboard():
         if not combatant:
             continue
         wins = win_counts.get((ftype, fid), 0)
-        appearances = battle_appearances.get((ftype, fid), 0)
-        unique_battles = appearances // 2 if appearances > 0 else 0
+        battles = battle_appearances.get((ftype, fid), 0)
         rankings.append({
             "combatant": combatant,
             "wins": wins,
-            "battles": unique_battles,
-            "win_rate": round(wins / unique_battles * 100) if unique_battles else 0,
+            "battles": battles,
+            "win_rate": round(wins / battles * 100) if battles else 0,
         })
     rankings.sort(key=lambda r: (r["wins"], r["win_rate"]), reverse=True)
 
-    recent_team_battles = TeamBattle.query.order_by(TeamBattle.created_at.desc()).limit(5).all()
+    # ─── Team battle stats ────────────────────────────────────────────────────
+    all_team_battles = TeamBattle.query.all()
+    team_win_counts = defaultdict(int)
+    team_battle_appearances = defaultdict(int)
+    team_matchup_rows = []
+
+    for tbattle in all_team_battles:
+        t1_members = json.loads(tbattle.team1_members)
+        t2_members = json.loads(tbattle.team2_members)
+        all_members = t1_members + t2_members
+        t1_wins = sum(1 for v in tbattle.votes if v.winning_team == 1)
+        t2_wins = sum(1 for v in tbattle.votes if v.winning_team == 2)
+        total = t1_wins + t2_wins
+
+        for v in tbattle.votes:
+            winning_members = t1_members if v.winning_team == 1 else t2_members
+            for m in winning_members:
+                team_win_counts[(m["type"], m["id"])] += 1
+            for m in all_members:
+                team_battle_appearances[(m["type"], m["id"])] += 1
+
+        if total > 0:
+            team_matchup_rows.append({
+                "battle": tbattle,
+                "t1_wins": t1_wins,
+                "t2_wins": t2_wins,
+                "total": total,
+                "t1_pct": round(t1_wins / total * 100),
+                "t2_pct": round(t2_wins / total * 100),
+            })
+    team_matchup_rows.sort(key=lambda r: r["total"], reverse=True)
+
+    team_rankings = []
+    all_team_fighter_keys = set(team_win_counts.keys()) | set(team_battle_appearances.keys())
+    for ftype, fid in all_team_fighter_keys:
+        combatant = _get_combatant(ftype, fid)
+        if not combatant:
+            continue
+        wins = team_win_counts.get((ftype, fid), 0)
+        battles = team_battle_appearances.get((ftype, fid), 0)
+        team_rankings.append({
+            "combatant": combatant,
+            "wins": wins,
+            "battles": battles,
+            "win_rate": round(wins / battles * 100) if battles else 0,
+        })
+    team_rankings.sort(key=lambda r: (r["wins"], r["win_rate"]), reverse=True)
+
+    # Recent team battles ordered by last fight activity, not creation date
+    last_voted_subq = (
+        db.session.query(
+            TeamBattleVote.team_battle_id,
+            db.func.max(TeamBattleVote.created_at).label("last_voted"),
+        )
+        .group_by(TeamBattleVote.team_battle_id)
+        .subquery()
+    )
+    recent_team_battles = (
+        TeamBattle.query
+        .outerjoin(last_voted_subq, TeamBattle.id == last_voted_subq.c.team_battle_id)
+        .order_by(
+            db.func.coalesce(last_voted_subq.c.last_voted, TeamBattle.created_at).desc()
+        )
+        .limit(5)
+        .all()
+    )
 
     return render_template(
         "battle/leaderboard.html",
         matchup_rows=matchup_rows,
         rankings=rankings,
+        team_rankings=team_rankings,
+        team_matchup_rows=team_matchup_rows,
         total_votes_cast=len(all_votes),
+        total_team_fights=sum(len(tb.votes) for tb in all_team_battles),
         recent_team_battles=recent_team_battles,
     )
