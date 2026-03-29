@@ -204,7 +204,7 @@
 
         <!-- FIGHT button or already-fought message -->
         {% if not already_fought %}
-        <form method="POST" action="{{ url_for('battle.fight') }}">
+        <form method="POST" action="{{ url_for('battle.fight') }}" id="fightForm1v1">
           <input type="hidden" name="f1_type" value="{{ fighter1.type }}">
           <input type="hidden" name="f1_id"   value="{{ fighter1.id }}">
           <input type="hidden" name="f2_type" value="{{ fighter2.type }}">
@@ -304,4 +304,172 @@
   {% endif %}
 
 </div>
+
+<!-- ===== BATTLE LOADING OVERLAY ===== -->
+<div id="battleOverlay" style="display:none; position:fixed; inset:0; z-index:9999;
+  background: #0a0a1a; overflow:hidden; align-items:center; justify-content:center; flex-direction:column;">
+
+  <!-- Animated starfield dots -->
+  <canvas id="battleCanvas" style="position:absolute; inset:0; width:100%; height:100%;"></canvas>
+
+  <!-- Central fight content -->
+  <div style="position:relative; z-index:10; text-align:center; user-select:none;">
+
+    <!-- VS fighters -->
+    <div style="display:flex; align-items:center; justify-content:center; gap:1.5rem; margin-bottom:1rem;">
+      <div style="font-family:'Bangers',cursive; font-size:2rem; color:#ffd400; text-shadow:3px 3px 0 #000;
+                  animation: fightBob 0.6s ease-in-out infinite alternate;">
+        {{ fighter1.name if fighter1 else "FIGHTER 1" }}
+      </div>
+      <div style="font-family:'Bangers',cursive; font-size:3rem; color:#ff2d2d;
+                  text-shadow: 4px 4px 0 #000, 0 0 20px #ff2d2d;
+                  animation: fightPulse 0.4s ease-in-out infinite alternate;">⚡VS⚡</div>
+      <div style="font-family:'Bangers',cursive; font-size:2rem; color:#ffd400; text-shadow:3px 3px 0 #000;
+                  animation: fightBob 0.6s ease-in-out infinite alternate-reverse;">
+        {{ fighter2.name if fighter2 else "FIGHTER 2" }}
+      </div>
+    </div>
+
+    <!-- Giant cycling sound effect -->
+    <div id="sfxWord" style="
+      font-family:'Bangers',cursive;
+      font-size:clamp(5rem, 18vw, 11rem);
+      color:#ffd400;
+      text-shadow: 6px 6px 0 #000, -3px -3px 0 #ff2d2d, 3px -3px 0 #1e6bff, -3px 3px 0 #ff2d2d;
+      line-height:1;
+      letter-spacing:4px;
+      animation: sfxBurst 0.35s cubic-bezier(.175,.885,.32,1.275) both;
+    ">KAPOW!</div>
+
+    <!-- Sub-label -->
+    <div style="font-family:'Bangers',cursive; font-size:1.6rem; color:#fff; letter-spacing:3px;
+                margin-top:.5rem; text-shadow:2px 2px 0 #000;
+                animation: fightPulse 1s ease-in-out infinite alternate;">
+      ⚔️ BATTLE IN PROGRESS... ⚔️
+    </div>
+
+    <!-- Progress dots -->
+    <div style="margin-top:1.2rem; display:flex; gap:.6rem; justify-content:center;" id="fightDots">
+      <span class="fdot"></span><span class="fdot"></span><span class="fdot"></span>
+      <span class="fdot"></span><span class="fdot"></span>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  @keyframes fightBob {
+    from { transform: translateY(0) rotate(-3deg); }
+    to   { transform: translateY(-10px) rotate(3deg); }
+  }
+  @keyframes fightPulse {
+    from { transform: scale(1); opacity:.8; }
+    to   { transform: scale(1.08); opacity:1; }
+  }
+  @keyframes sfxBurst {
+    0%   { transform: scale(0.2) rotate(-15deg); opacity:0; }
+    60%  { transform: scale(1.15) rotate(4deg); opacity:1; }
+    100% { transform: scale(1) rotate(0deg); opacity:1; }
+  }
+  @keyframes sfxExit {
+    to { transform: scale(1.4) rotate(10deg); opacity:0; }
+  }
+  @keyframes dotPop {
+    0%, 80%, 100% { transform: scale(0); background:#555; }
+    40% { transform: scale(1.2); background:#ffd400; }
+  }
+  .fdot {
+    display:inline-block; width:12px; height:12px;
+    border-radius:50%; background:#ffd400;
+    animation: dotPop 1.2s ease-in-out infinite;
+  }
+  .fdot:nth-child(1) { animation-delay: 0s; }
+  .fdot:nth-child(2) { animation-delay: .15s; }
+  .fdot:nth-child(3) { animation-delay: .3s; }
+  .fdot:nth-child(4) { animation-delay: .45s; }
+  .fdot:nth-child(5) { animation-delay: .6s; }
+</style>
+
+<script>
+(function () {
+  const SFX = ['KAPOW!','POW!','ZAP!','WHAM!','BAM!','KA-BOOM!','SMASH!','CRASH!','BIFF!','WHACK!','CRUNCH!','ZOWIE!','SPLAT!','THWACK!'];
+  let sfxIdx = 0;
+  let sfxTimer = null;
+
+  function nextSfx() {
+    sfxIdx = (sfxIdx + 1) % SFX.length;
+    const el = document.getElementById('sfxWord');
+    if (!el) return;
+    el.style.animation = 'none';
+    el.offsetWidth; // reflow
+    el.textContent = SFX[sfxIdx];
+    el.style.animation = 'sfxBurst 0.35s cubic-bezier(.175,.885,.32,1.275) both';
+    // Random colour each time
+    const colours = ['#ffd400','#ff5ad6','#22ff66','#1e6bff','#ff2d2d'];
+    el.style.color = colours[Math.floor(Math.random() * colours.length)];
+  }
+
+  function startParticles() {
+    const canvas = document.getElementById('battleCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const shapes = [];
+    const SHAPE_COUNT = 60;
+    const ICONS = ['⚡','💥','✦','★','⭐','🔥','💢','💫'];
+
+    for (let i = 0; i < SHAPE_COUNT; i++) {
+      shapes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 3,
+        vy: (Math.random() - 0.5) * 3,
+        size: 10 + Math.random() * 28,
+        icon: ICONS[Math.floor(Math.random() * ICONS.length)],
+        alpha: 0.1 + Math.random() * 0.5,
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 4,
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      shapes.forEach(s => {
+        ctx.save();
+        ctx.globalAlpha = s.alpha;
+        ctx.font = `${s.size}px serif`;
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.rotation * Math.PI / 180);
+        ctx.fillText(s.icon, -s.size / 2, s.size / 2);
+        ctx.restore();
+        s.x += s.vx; s.y += s.vy; s.rotation += s.rotSpeed;
+        if (s.x < -40) s.x = canvas.width + 40;
+        if (s.x > canvas.width + 40) s.x = -40;
+        if (s.y < -40) s.y = canvas.height + 40;
+        if (s.y > canvas.height + 40) s.y = -40;
+      });
+      if (document.getElementById('battleOverlay').style.display !== 'none') {
+        requestAnimationFrame(draw);
+      }
+    }
+    draw();
+  }
+
+  function showOverlay() {
+    const overlay = document.getElementById('battleOverlay');
+    overlay.style.display = 'flex';
+    startParticles();
+    sfxTimer = setInterval(nextSfx, 650);
+  }
+
+  const form = document.getElementById('fightForm1v1');
+  if (form) {
+    form.addEventListener('submit', function () {
+      showOverlay();
+    });
+  }
+})();
+</script>
 {% endblock %}

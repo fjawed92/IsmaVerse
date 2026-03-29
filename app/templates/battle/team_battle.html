@@ -174,7 +174,7 @@
   <!-- FIGHT BUTTON (centred, below teams) -->
   <div class="text-center mb-4">
     {% if not already_fought %}
-    <form method="POST" action="{{ url_for('battle.team_fight', battle_id=battle.id) }}">
+    <form method="POST" action="{{ url_for('battle.team_fight', battle_id=battle.id) }}" id="teamFightForm">
       <button type="submit" class="btn btn-comic-cta"
               style="background: var(--comic-red); font-size:1.5rem; padding:.6rem 2rem; letter-spacing:2px;">
         ⚔️ LAUNCH BATTLE! ⚔️
@@ -195,4 +195,162 @@
   </div>
 
 </div>
+
+<!-- ===== TEAM BATTLE LOADING OVERLAY ===== -->
+<div id="teamBattleOverlay" style="display:none; position:fixed; inset:0; z-index:9999;
+  background: #0a0a1a; overflow:hidden; align-items:center; justify-content:center; flex-direction:column;">
+
+  <canvas id="teamBattleCanvas" style="position:absolute; inset:0; width:100%; height:100%;"></canvas>
+
+  <div style="position:relative; z-index:10; text-align:center; user-select:none;">
+
+    <!-- Team names -->
+    <div style="display:flex; align-items:center; justify-content:center; gap:1.2rem; margin-bottom:1rem; flex-wrap:wrap; padding:0 1rem;">
+      <div style="font-family:'Bangers',cursive; font-size:1.8rem; color:#1e6bff; text-shadow:3px 3px 0 #000;
+                  animation: fightBob 0.7s ease-in-out infinite alternate;">
+        ⚡ {{ battle.team1_name }}
+      </div>
+      <div style="font-family:'Bangers',cursive; font-size:3rem; color:#ff2d2d;
+                  text-shadow: 4px 4px 0 #000, 0 0 20px #ff2d2d;
+                  animation: fightPulse 0.4s ease-in-out infinite alternate;">VS</div>
+      <div style="font-family:'Bangers',cursive; font-size:1.8rem; color:#ff2d2d; text-shadow:3px 3px 0 #000;
+                  animation: fightBob 0.7s ease-in-out infinite alternate-reverse;">
+        💀 {{ battle.team2_name }}
+      </div>
+    </div>
+
+    <!-- Giant cycling sound effect -->
+    <div id="teamSfxWord" style="
+      font-family:'Bangers',cursive;
+      font-size:clamp(5rem, 18vw, 11rem);
+      color:#ffd400;
+      text-shadow: 6px 6px 0 #000, -3px -3px 0 #ff2d2d, 3px -3px 0 #1e6bff, -3px 3px 0 #ff2d2d;
+      line-height:1;
+      letter-spacing:4px;
+      animation: sfxBurst 0.35s cubic-bezier(.175,.885,.32,1.275) both;
+    ">KA-BOOM!</div>
+
+    <div style="font-family:'Bangers',cursive; font-size:1.6rem; color:#fff; letter-spacing:3px;
+                margin-top:.5rem; text-shadow:2px 2px 0 #000;
+                animation: fightPulse 1s ease-in-out infinite alternate;">
+      ⚔️ TEAM BATTLE IN PROGRESS... ⚔️
+    </div>
+
+    <div style="margin-top:1.2rem; display:flex; gap:.6rem; justify-content:center;">
+      <span class="fdot"></span><span class="fdot"></span><span class="fdot"></span>
+      <span class="fdot"></span><span class="fdot"></span>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes fightBob {
+    from { transform: translateY(0) rotate(-3deg); }
+    to   { transform: translateY(-10px) rotate(3deg); }
+  }
+  @keyframes fightPulse {
+    from { transform: scale(1); opacity:.8; }
+    to   { transform: scale(1.08); opacity:1; }
+  }
+  @keyframes sfxBurst {
+    0%   { transform: scale(0.2) rotate(-15deg); opacity:0; }
+    60%  { transform: scale(1.15) rotate(4deg); opacity:1; }
+    100% { transform: scale(1) rotate(0deg); opacity:1; }
+  }
+  @keyframes dotPop {
+    0%, 80%, 100% { transform: scale(0); background:#555; }
+    40% { transform: scale(1.2); background:#ffd400; }
+  }
+  .fdot {
+    display:inline-block; width:12px; height:12px;
+    border-radius:50%; background:#ffd400;
+    animation: dotPop 1.2s ease-in-out infinite;
+  }
+  .fdot:nth-child(1) { animation-delay: 0s; }
+  .fdot:nth-child(2) { animation-delay: .15s; }
+  .fdot:nth-child(3) { animation-delay: .3s; }
+  .fdot:nth-child(4) { animation-delay: .45s; }
+  .fdot:nth-child(5) { animation-delay: .6s; }
+</style>
+
+<script>
+(function () {
+  const SFX = ['KA-BOOM!','KAPOW!','WHAM!','POW!','ZAP!','SMASH!','CRASH!','BIFF!','CRUNCH!','ZOWIE!','THWACK!','BAM!','KA-BLAM!','SPLAT!'];
+  let sfxIdx = 0;
+
+  function nextSfx() {
+    sfxIdx = (sfxIdx + 1) % SFX.length;
+    const el = document.getElementById('teamSfxWord');
+    if (!el) return;
+    el.style.animation = 'none';
+    el.offsetWidth;
+    el.textContent = SFX[sfxIdx];
+    el.style.animation = 'sfxBurst 0.35s cubic-bezier(.175,.885,.32,1.275) both';
+    const colours = ['#ffd400','#ff5ad6','#22ff66','#1e6bff','#ff2d2d','#fff'];
+    el.style.color = colours[Math.floor(Math.random() * colours.length)];
+  }
+
+  function startParticles() {
+    const canvas = document.getElementById('teamBattleCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const shapes = [];
+    const SHAPE_COUNT = 80;
+    const ICONS = ['⚡','💥','✦','★','⭐','🔥','💢','💫','🤝','👊','💪','🌟'];
+
+    for (let i = 0; i < SHAPE_COUNT; i++) {
+      shapes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 4,
+        vy: (Math.random() - 0.5) * 4,
+        size: 12 + Math.random() * 32,
+        icon: ICONS[Math.floor(Math.random() * ICONS.length)],
+        alpha: 0.1 + Math.random() * 0.55,
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 5,
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      shapes.forEach(s => {
+        ctx.save();
+        ctx.globalAlpha = s.alpha;
+        ctx.font = `${s.size}px serif`;
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.rotation * Math.PI / 180);
+        ctx.fillText(s.icon, -s.size / 2, s.size / 2);
+        ctx.restore();
+        s.x += s.vx; s.y += s.vy; s.rotation += s.rotSpeed;
+        if (s.x < -40) s.x = canvas.width + 40;
+        if (s.x > canvas.width + 40) s.x = -40;
+        if (s.y < -40) s.y = canvas.height + 40;
+        if (s.y > canvas.height + 40) s.y = -40;
+      });
+      if (document.getElementById('teamBattleOverlay').style.display !== 'none') {
+        requestAnimationFrame(draw);
+      }
+    }
+    draw();
+  }
+
+  function showTeamOverlay() {
+    const overlay = document.getElementById('teamBattleOverlay');
+    overlay.style.display = 'flex';
+    startParticles();
+    setInterval(nextSfx, 650);
+  }
+
+  const form = document.getElementById('teamFightForm');
+  if (form) {
+    form.addEventListener('submit', function () {
+      showTeamOverlay();
+    });
+  }
+})();
+</script>
 {% endblock %}

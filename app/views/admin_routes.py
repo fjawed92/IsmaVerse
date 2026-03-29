@@ -262,18 +262,6 @@ def admin_edit_character(character_id):
         gender = "male"
     image = request.files.get("image_file")
 
-    # Power level override
-    power_override_raw = request.form.get("power_level_override", "").strip()
-    reset_power = request.form.get("reset_power_override") == "1"
-    if reset_power:
-        character.power_level_override = None
-    elif power_override_raw:
-        try:
-            val = int(power_override_raw)
-            character.power_level_override = max(10, min(val, 100))
-        except ValueError:
-            pass
-
     if not superhero_name:
         flash("Superhero name is required.", "danger")
         return redirect(url_for("admin.admin_edit_character", character_id=character.id))
@@ -405,6 +393,48 @@ def admin_delete_villain(villain_id):
 
     flash(f"{name} has been defeated and erased from IsmaVerse!", "warning")
     return redirect(url_for("admin.admin_characters_list"))
+
+
+# =====================================================
+# ADMIN: POWER LEVELS (hidden admin-only page)
+# =====================================================
+@admin_bp.route("/power-levels", methods=["GET", "POST"])
+@login_required
+def power_levels():
+    characters = Character.query.order_by(Character.superhero_name).all()
+    villains = Villain.query.order_by(Villain.villain_name).all()
+
+    if request.method == "POST":
+        updated = 0
+        for char in characters:
+            val = request.form.get(f"hero_{char.id}", "").strip()
+            if val == "auto":
+                char.power_level_override = None
+                updated += 1
+            elif val:
+                try:
+                    char.power_level_override = max(10, min(int(val), 100))
+                    updated += 1
+                except ValueError:
+                    pass
+
+        for vil in villains:
+            val = request.form.get(f"villain_{vil.id}", "").strip()
+            if val == "auto":
+                vil.power_level_override = None
+                updated += 1
+            elif val:
+                try:
+                    vil.power_level_override = max(10, min(int(val), 100))
+                    updated += 1
+                except ValueError:
+                    pass
+
+        db.session.commit()
+        flash(f"Power levels updated for {updated} character(s)!", "success")
+        return redirect(url_for("admin.power_levels"))
+
+    return render_template("admin/power_levels.html", characters=characters, villains=villains)
 
 
 # =====================================================

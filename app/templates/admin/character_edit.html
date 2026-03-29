@@ -71,84 +71,16 @@
           <textarea name="origins" class="form-control" rows="4">{{ character.origins or "" }}</textarea>
         </div>
 
-        <!-- ============================================================
-             POWER LEVEL EDITOR — Comic Book Style
-        ============================================================ -->
-        <div class="power-editor-panel mb-4">
-          <div class="power-editor-header">
-            <span class="power-editor-bolt">⚡</span>
-            POWER LEVEL CONTROL
-            <span class="power-editor-bolt">⚡</span>
-          </div>
-
-          <div class="power-editor-body">
-
-            <!-- Current live power level display -->
-            <div class="text-center mb-3">
-              <div class="power-tier-badge" id="powerTierBadge">
-                {{ _get_tier_label(character.power_level) if _get_tier_label is defined else "" }}
-              </div>
-              <div class="power-big-number" id="powerBigNumber">{{ character.power_level }}</div>
-              <div class="text-muted small mt-1">
-                {% if character.power_level_override is not none %}
-                  <span class="badge bg-warning text-dark">&#128274; Admin Override Active</span>
-                {% else %}
-                  <span class="badge bg-secondary">Auto-Calculated</span>
-                {% endif %}
-              </div>
-            </div>
-
-            <!-- Live power bar preview -->
-            <div class="power-bar-track mb-1">
-              <div class="power-bar-fill" id="powerBarPreview"
-                   style="width: {{ character.power_level }}%; transition: width 0.3s ease;"></div>
-            </div>
-            <div class="d-flex justify-content-between mb-3" style="font-size:0.7rem; font-family:'Comic Neue',cursive; font-weight:700;">
-              <span>10</span><span>25</span><span>50</span><span>75</span><span>100</span>
-            </div>
-
-            <!-- Tier colour key -->
-            <div class="power-tier-key mb-4">
-              <span class="tier-pip tier-rookie">ROOKIE<br>10–30</span>
-              <span class="tier-pip tier-fighter">FIGHTER<br>31–50</span>
-              <span class="tier-pip tier-hero">HERO<br>51–70</span>
-              <span class="tier-pip tier-champion">CHAMPION<br>71–85</span>
-              <span class="tier-pip tier-legend">LEGEND<br>86–100</span>
-            </div>
-
-            <!-- Slider -->
-            <label class="form-label fw-bold" style="font-family:'Comic Neue',cursive;">
-              Set Power Level
-            </label>
-            <input
-              type="range"
-              class="power-slider"
-              id="powerSlider"
-              min="10" max="100" step="1"
-              value="{{ character.power_level_override if character.power_level_override is not none else character.power_level }}"
-            >
-            <input type="hidden" name="power_level_override" id="powerLevelInput"
-                   value="{{ character.power_level_override if character.power_level_override is not none else '' }}">
-
-            <!-- Action buttons -->
-            <div class="d-flex gap-2 mt-3 flex-wrap">
-              <button type="button" class="btn-power-set" id="applyPowerBtn">
-                &#128274; LOCK POWER LEVEL
-              </button>
-              <button type="button" class="btn-power-reset" id="resetPowerBtn">
-                &#128260; RESET TO AUTO
-              </button>
-            </div>
-            <input type="hidden" name="reset_power_override" id="resetPowerInput" value="0">
-
-            <div class="power-editor-tip mt-3">
-              <strong>Admin Tip:</strong> Use the slider to set a fixed power level for this hero.
-              Auto mode calculates it from powers, weaknesses, age &amp; fan reactions.
-            </div>
-
+        <div class="mb-3">
+          <div class="alert alert-info py-2" style="font-family:'Comic Neue',cursive; font-size:.9rem;">
+            ⚡ Current power level: <strong>{{ character.power_level }}</strong>
+            {% if character.power_level_override is not none %}
+              <span class="badge bg-warning text-dark ms-1">🔒 Override Active</span>
+            {% else %}
+              <span class="badge bg-secondary ms-1">Auto-Calculated</span>
+            {% endif %}
           </div>
         </div>
-        <!-- END POWER LEVEL EDITOR -->
 
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -170,59 +102,4 @@
 
 </div>
 
-<script>
-(function () {
-  const slider      = document.getElementById('powerSlider');
-  const bigNumber   = document.getElementById('powerBigNumber');
-  const barPreview  = document.getElementById('powerBarPreview');
-  const tierBadge   = document.getElementById('powerTierBadge');
-  const levelInput  = document.getElementById('powerLevelInput');
-  const resetInput  = document.getElementById('resetPowerInput');
-  const applyBtn    = document.getElementById('applyPowerBtn');
-  const resetBtn    = document.getElementById('resetPowerBtn');
-
-  const TIERS = [
-    { max: 30,  label: '🐣 ROOKIE HERO',     cls: 'tier-rookie'   },
-    { max: 50,  label: '🥊 STREET FIGHTER',  cls: 'tier-fighter'  },
-    { max: 70,  label: '🦸 CITY DEFENDER',   cls: 'tier-hero'     },
-    { max: 85,  label: '🏆 CHAMPION',        cls: 'tier-champion' },
-    { max: 100, label: '🌟 LEGEND',          cls: 'tier-legend'   },
-  ];
-
-  function getTier(val) {
-    return TIERS.find(t => val <= t.max) || TIERS[TIERS.length - 1];
-  }
-
-  function updateDisplay(val) {
-    bigNumber.textContent  = val;
-    barPreview.style.width = val + '%';
-    const tier = getTier(val);
-    tierBadge.textContent = tier.label;
-    tierBadge.className   = 'power-tier-badge ' + tier.cls;
-  }
-
-  // Initialise on load
-  updateDisplay(parseInt(slider.value, 10));
-
-  slider.addEventListener('input', function () {
-    updateDisplay(parseInt(this.value, 10));
-  });
-
-  applyBtn.addEventListener('click', function () {
-    levelInput.value = slider.value;
-    resetInput.value = '0';
-    applyBtn.textContent = '✅ LOCKED! (save the form to apply)';
-    applyBtn.style.background = 'var(--comic-green, #22ff66)';
-    applyBtn.style.color = '#111';
-  });
-
-  resetBtn.addEventListener('click', function () {
-    resetInput.value = '1';
-    levelInput.value = '';
-    resetBtn.textContent = '✅ RESET! (save the form to apply)';
-    resetBtn.style.background = 'var(--comic-green, #22ff66)';
-    resetBtn.style.color = '#111';
-  });
-})();
-</script>
 {% endblock %}

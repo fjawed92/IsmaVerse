@@ -348,24 +348,59 @@ def generate_battle_narration(
     fighter1_name: str, fighter1_powers: str,
     fighter2_name: str, fighter2_powers: str,
     winner_name: str,
+    fighter1_type: str = "hero",
+    fighter2_type: str = "hero",
+    fighter1_gender: str = "male",
+    fighter2_gender: str = "male",
+    fighter1_wins: int = 0,
+    fighter2_wins: int = 0,
+    upset: bool = False,
 ) -> str | None:
     """Generate a short comic-style narration of a 1v1 battle result."""
+
+    def pronoun(gender: str) -> str:
+        return "she" if gender == "female" else "he"
+
+    def label(ftype: str) -> str:
+        return "villain" if ftype == "villain" else "hero"
+
+    f1_pronoun = pronoun(fighter1_gender)
+    f2_pronoun = pronoun(fighter2_gender)
+    f1_label = label(fighter1_type)
+    f2_label = label(fighter2_type)
+    winner_label = f1_label if fighter1_name == winner_name else f2_label
+    winner_pronoun = f1_pronoun if fighter1_name == winner_name else f2_pronoun
+
+    history_line = ""
+    if fighter1_wins > 0 or fighter2_wins > 0:
+        history_line = (
+            f"Battle history: {fighter1_name} has {fighter1_wins} wins, "
+            f"{fighter2_name} has {fighter2_wins} wins in past matchups. "
+        )
+
+    upset_line = "This was a shocking upset — the underdog pulled off an incredible victory! " if upset else ""
+
     system = (
         "You are a comic book announcer for kids aged 6-12. "
         "Write exciting, fun, and kid-friendly battle narrations. "
         "Never scary or violent — think cartoon action with lots of POW!, BAM!, ZAP! "
+        "Use the correct pronouns for each fighter based on their gender. "
+        "Reference whether each fighter is a hero or villain to add drama. "
         "Keep it to 3-4 short punchy sentences. No markdown."
     )
     user = (
-        f"{fighter1_name} (powers: {fighter1_powers}) just battled "
-        f"{fighter2_name} (powers: {fighter2_powers}). "
-        f"{winner_name} won the battle! "
-        "Write a fun, exciting 3-4 sentence narration of how the battle went and how the winner triumphed. "
-        "Include at least one comic sound effect like POW! or ZAP!."
+        f"{fighter1_name} (a {f1_label}, powers: {fighter1_powers}, pronouns: {f1_pronoun}/him-her) "
+        f"just battled {fighter2_name} (a {f2_label}, powers: {fighter2_powers}, pronouns: {f2_pronoun}/him-her). "
+        f"{history_line}"
+        f"{upset_line}"
+        f"{winner_name} (the {winner_label}) won the battle! "
+        f"Use '{winner_pronoun}' for the winner. "
+        "Write a fun, exciting 3-4 sentence narration. "
+        "Include at least one comic sound effect like POW!, ZAP!, KAPOW!, or WHAM!."
     )
     return _chat(
         [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        max_tokens=200,
+        max_tokens=250,
         temperature=0.9,
     )
 
@@ -374,6 +409,7 @@ def generate_team_battle_narration(
     team1_name: str, team1_members: list,
     team2_name: str, team2_members: list,
     winning_team_name: str,
+    upset: bool = False,
 ) -> str | None:
     """Generate a short comic-style narration of a team battle result."""
     def member_summary(members):
@@ -381,26 +417,45 @@ def generate_team_battle_narration(
         for m in members:
             gender = m.get("gender", "male") or "male"
             pronoun = "she/her" if gender == "female" else "he/him"
-            parts.append(f"{m['name']} ({m.get('powers','???')[:40]}, {pronoun})")
-        return ", ".join(parts)
+            ftype = m.get("type", "hero")
+            role = "villain" if ftype == "villain" else "hero"
+            parts.append(f"{m['name']} ({role}, powers: {m.get('powers','???')[:40]}, {pronoun})")
+        return "; ".join(parts)
+
+    def team_composition(members):
+        heroes = [m["name"] for m in members if m.get("type") == "hero"]
+        villains = [m["name"] for m in members if m.get("type") == "villain"]
+        parts = []
+        if heroes:
+            parts.append(f"heroes: {', '.join(heroes)}")
+        if villains:
+            parts.append(f"villains: {', '.join(villains)}")
+        return " and ".join(parts)
+
+    upset_line = "It was a shocking upset! " if upset else ""
 
     system = (
         "You are a comic book announcer for kids aged 6-12. "
         "Write exciting, fun, kid-friendly team battle narrations. "
         "Never scary or violent — think cartoon action. "
+        "Use the correct pronouns for each fighter (he/him for male, she/her for female). "
+        "Note whether fighters are heroes or villains to add dramatic tension. "
         "Keep it to 4-5 short sentences with comic sound effects. No markdown."
     )
     user = (
         f"Epic team battle!\n"
-        f"{team1_name}: {member_summary(team1_members)}\n"
-        f"{team2_name}: {member_summary(team2_members)}\n"
+        f"{team1_name} ({team_composition(team1_members)}): {member_summary(team1_members)}\n"
+        f"{team2_name} ({team_composition(team2_members)}): {member_summary(team2_members)}\n"
+        f"{upset_line}"
         f"{winning_team_name} won! "
         "Write an exciting 4-5 sentence comic narration of how the team battle went. "
-        "Mention at least 2 team members by name and include comic sound effects like POW!, BOOM!, ZAP!."
+        "Use each fighter's correct pronouns. "
+        "Mention at least 2 fighters by name. "
+        "Include comic sound effects like POW!, BOOM!, ZAP!, KAPOW!, or KA-BLAM!."
     )
     return _chat(
         [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        max_tokens=300,
+        max_tokens=320,
         temperature=0.9,
     )
 
