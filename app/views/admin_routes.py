@@ -63,6 +63,25 @@ def save_character_image(file_storage) -> str:
     return new_name
 
 
+def save_villain_image(file_storage) -> str:
+    """
+    Save uploaded villain image to:
+      app/static/uploads/villains/
+    Returns the stored filename to put in DB.
+    """
+    upload_dir = os.path.join(current_app.root_path, "static", "uploads", "villains")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    original = secure_filename(file_storage.filename)
+    ext = original.rsplit(".", 1)[1].lower()
+
+    # Prevent collisions
+    new_name = f"{uuid.uuid4().hex}.{ext}"
+    save_path = os.path.join(upload_dir, new_name)
+    file_storage.save(save_path)
+    return new_name
+
+
 # =====================================================
 # ADMIN: CREATE COMIC
 # =====================================================
@@ -363,6 +382,28 @@ def admin_edit_villain(villain_id):
     villain.costume_color = costume_color or None
     villain.hair_color = hair_color or None
     villain.age = age
+
+    # Optional: replace image if a new one is uploaded
+    image = request.files.get("image_file")
+    if image and image.filename:
+        if not allowed_image(image.filename):
+            flash("Image must be png/jpg/jpeg/webp.", "danger")
+            return redirect(url_for("admin.admin_edit_villain", villain_id=villain.id))
+
+        new_filename = save_villain_image(image)
+
+        # Optional cleanup: delete old image file
+        if villain.image_file and villain.image_file != new_filename:
+            old_path = os.path.join(
+                current_app.root_path, "static", "uploads", "villains", villain.image_file
+            )
+            try:
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            except Exception:
+                pass
+
+        villain.image_file = new_filename
 
     db.session.commit()
     flash(f"{villain_name}'s evil plans have been updated!", "success")
