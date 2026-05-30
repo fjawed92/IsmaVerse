@@ -19,7 +19,7 @@
       <span class="burst" style="font-size:.85rem;">TOP SECRET!</span>
     </div>
     <div class="p-4">
-      <form method="POST" id="heroCreationForm" class="comic-form">
+      <form method="POST" id="heroCreationForm" class="comic-form" enctype="multipart/form-data">
 
         <!-- Row 1: Identity -->
         <div class="row g-3 mb-2">
@@ -100,9 +100,18 @@
           </div>
         </div>
 
+        <!-- Optional own picture -->
+        <div class="row g-3 mb-2">
+          <div class="col-12">
+            <label class="form-label">🖼️ Hero Picture (optional)</label>
+            <input type="file" name="image" accept="image/*" class="form-control">
+            <small class="text-muted">Upload your own picture, or leave this empty and the AI will draw your hero.</small>
+          </div>
+        </div>
+
         <!-- Tip box -->
         <div class="power-editor-tip mb-3">
-          ⏱️ <strong>Heads up!</strong> After you click the button below, our AI will create your hero's image.
+          ⏱️ <strong>Heads up!</strong> If you didn't upload a picture, our AI will create your hero's image.
           This takes about <strong>20–40 seconds</strong> — a loading screen will appear.
           Don't go back or refresh — your hero is being born!
         </div>

@@ -11,8 +11,13 @@ from flask_login import current_user
 from ..extensions import db
 from ..models.villain import Villain
 from ..services.badges import record_badge_progress
+from ..services.uploads import save_uploaded_image, delete_image
 
 villains_bp = Blueprint("villains", __name__, url_prefix="/villains")
+
+
+def _villains_upload_dir() -> str:
+    return os.path.join(current_app.root_path, "static", "uploads", "villains")
 
 VILLAIN_STYLE_PROMPT = """
 Overall Comic Style:
@@ -158,11 +163,20 @@ def create_villain():
     prompt = build_villain_image_prompt(villain_data)
     image_filename = None
     image_error = None
-    try:
-        image_filename = generate_villain_image(prompt)
-    except Exception:
-        current_app.logger.exception("Failed to generate villain image.")
-        image_error = "unexpected"
+
+    # If the user uploaded their own picture, use it. Otherwise let the AI draw one.
+    uploaded = request.files.get("image")
+    if uploaded and uploaded.filename:
+        image_filename = save_uploaded_image(uploaded, _villains_upload_dir(), "villain")
+        if not image_filename:
+            flash("That image couldn't be used, so the AI will draw your villain instead.", "warning")
+
+    if not image_filename:
+        try:
+            image_filename = generate_villain_image(prompt)
+        except Exception:
+            current_app.logger.exception("Failed to generate villain image.")
+            image_error = "unexpected"
 
     villain = Villain(
         villain_name=villain_name,
@@ -237,6 +251,40 @@ def edit_villain(villain_id):
     villain.lair_location = lair_location
     villain.hair_color = hair_color
     villain.age = age
+
+    # Picture: keep, upload a new one, or regenerate with the AI.
+    folder = _villains_upload_dir()
+    image_action = request.form.get("image_action", "keep")
+    uploaded = request.files.get("image")
+
+    new_image = None
+    if uploaded and uploaded.filename:
+        new_image = save_uploaded_image(uploaded, folder, "villain")
+        if not new_image:
+            flash("That image couldn't be used. Keeping the previous picture.", "warning")
+    elif image_action == "regenerate":
+        villain_data = {
+            "villain_name": villain_name,
+            "costume_color": costume_color,
+            "powers": powers,
+            "weakness": weakness,
+            "evil_plan": evil_plan,
+            "lair_location": lair_location,
+            "hair_color": hair_color,
+            "age": age,
+        }
+        try:
+            new_image = generate_villain_image(build_villain_image_prompt(villain_data))
+        except Exception:
+            current_app.logger.exception("Failed to regenerate villain image.")
+        if not new_image:
+            flash("Couldn't regenerate the picture. Keeping the previous one.", "warning")
+
+    if new_image:
+        old_image = villain.image_file
+        villain.image_file = new_image
+        if old_image and old_image != new_image:
+            delete_image(folder, old_image)
 
     db.session.commit()
     flash(f"{villain_name}'s evil plans have been updated!", "success")

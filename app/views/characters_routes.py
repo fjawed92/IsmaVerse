@@ -14,8 +14,13 @@ from ..models.character import Character
 from ..models.hero_reaction import HeroReaction, REACTION_TYPES
 from ..models.hero_comment import HeroComment
 from ..services.badges import record_badge_progress
+from ..services.uploads import save_uploaded_image, delete_image
 
 characters_bp = Blueprint("characters", __name__, url_prefix="/characters")
+
+
+def _characters_upload_dir() -> str:
+    return os.path.join(current_app.root_path, "static", "uploads", "characters")
 
 STYLE_PROMPT = """
 ART STYLE:
@@ -280,11 +285,20 @@ def create_character():
 
     prompt = build_image_prompt(hero_data)
     image_filename = None
-    try:
-        image_filename = generate_hero_image(prompt)
-    except Exception:
-        current_app.logger.exception("Failed to generate hero image.")
-        image_filename = None
+
+    # If the user uploaded their own picture, use it. Otherwise let the AI draw one.
+    uploaded = request.files.get("image")
+    if uploaded and uploaded.filename:
+        image_filename = save_uploaded_image(uploaded, _characters_upload_dir(), "char")
+        if not image_filename:
+            flash("That image couldn't be used, so the AI will draw your hero instead.", "warning")
+
+    if not image_filename:
+        try:
+            image_filename = generate_hero_image(prompt)
+        except Exception:
+            current_app.logger.exception("Failed to generate hero image.")
+            image_filename = None
 
     character = Character(
         superhero_name=superhero_name,
@@ -345,6 +359,102 @@ def character_detail(character_id):
         reaction_types=REACTION_TYPES,
         already_reacted=already_reacted,
     )
+
+
+@characters_bp.route("/<int:character_id>/edit", methods=["GET", "POST"])
+def edit_character(character_id):
+    character = Character.query.get_or_404(character_id)
+
+    if request.method == "GET":
+        return render_template("characters/edit.html", character=character)
+
+    superhero_name = normalize_text(request.form.get("superhero_name", ""))
+    costume_color = normalize_color(request.form.get("costume_color", ""))
+    boots_color = normalize_color(request.form.get("boots_color", ""))
+    gloves_color = normalize_color(request.form.get("gloves_color", ""))
+    chest_symbol = normalize_text(request.form.get("chest_symbol", ""))
+    eye_mask_color = normalize_color(request.form.get("eye_mask_color", ""))
+    cape_color = normalize_color(request.form.get("cape_color", ""))
+    hair_color = normalize_color(request.form.get("hair_color", ""))
+    powers = normalize_text(request.form.get("powers", ""))
+    weakness = normalize_text(request.form.get("weakness", ""))
+    origins = normalize_text(request.form.get("origins", ""))
+    age_raw = normalize_text(request.form.get("age", ""))
+    gender = request.form.get("gender", "male")
+    if gender not in ("male", "female"):
+        gender = "male"
+
+    if not superhero_name:
+        flash("Superhero name is required.", "danger")
+        return redirect(url_for("characters.edit_character", character_id=character.id))
+
+    age = character.age
+    if age_raw:
+        try:
+            age = int(age_raw)
+        except ValueError:
+            flash("Age must be a number.", "danger")
+            return redirect(url_for("characters.edit_character", character_id=character.id))
+        if age < MIN_HERO_AGE or age > MAX_HERO_AGE:
+            flash(f"Heroes should be between {MIN_HERO_AGE} and {MAX_HERO_AGE} years old.", "danger")
+            return redirect(url_for("characters.edit_character", character_id=character.id))
+
+    character.superhero_name = superhero_name
+    character.costume_color = costume_color or None
+    character.boots_color = boots_color or None
+    character.gloves_color = gloves_color or None
+    character.chest_symbol = chest_symbol or None
+    character.eye_mask_color = eye_mask_color or None
+    character.cape_color = cape_color or None
+    character.hair_color = hair_color or None
+    character.powers = powers or None
+    character.weakness = weakness or None
+    character.origins = origins or None
+    character.age = age
+    character.gender = gender
+
+    # Picture: keep, upload a new one, or regenerate with the AI.
+    folder = _characters_upload_dir()
+    image_action = request.form.get("image_action", "keep")
+    uploaded = request.files.get("image")
+
+    new_image = None
+    if uploaded and uploaded.filename:
+        new_image = save_uploaded_image(uploaded, folder, "char")
+        if not new_image:
+            flash("That image couldn't be used. Keeping the previous picture.", "warning")
+    elif image_action == "regenerate":
+        hero_data = {
+            "superhero_name": superhero_name,
+            "costume_color": costume_color,
+            "boots_color": boots_color,
+            "gloves_color": gloves_color,
+            "chest_symbol": chest_symbol,
+            "eye_mask_color": eye_mask_color,
+            "cape_color": cape_color,
+            "hair_color": hair_color,
+            "powers": powers,
+            "weakness": weakness,
+            "age": age,
+            "gender": gender,
+            "origin_story": origins or "",
+        }
+        try:
+            new_image = generate_hero_image(build_image_prompt(hero_data))
+        except Exception:
+            current_app.logger.exception("Failed to regenerate hero image.")
+        if not new_image:
+            flash("Couldn't regenerate the picture. Keeping the previous one.", "warning")
+
+    if new_image:
+        old_image = character.image_file
+        character.image_file = new_image
+        if old_image and old_image != new_image:
+            delete_image(folder, old_image)
+
+    db.session.commit()
+    flash(f"{superhero_name} has been updated!", "success")
+    return redirect(url_for("characters.character_detail", character_id=character.id))
 
 
 @characters_bp.route("/<int:character_id>/react", methods=["POST"])

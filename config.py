@@ -22,3 +22,6 @@ class Config:
         "sqlite:///" + DB_PATH
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Reject uploads larger than 8 MB
+    MAX_CONTENT_LENGTH = 8 * 1024 * 1024
