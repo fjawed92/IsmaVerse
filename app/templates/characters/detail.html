@@ -78,6 +78,9 @@
         <footer class="hero-card-footer">
           <span class="hero-id">#{{ "%03d"|format(character.id) }}</span>
           <div class="d-flex gap-2">
+            <a href="{{ url_for('characters.edit_character', character_id=character.id) }}" class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">
+              ✏️ Edit
+            </a>
             <a href="{{ url_for('characters.random_character') }}" class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">
               Random Hero 🎲
             </a>

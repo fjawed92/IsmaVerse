@@ -8,7 +8,7 @@
     <div class="admin-hero-label" style="background: var(--comic-red);">EDIT VILLAIN</div>
     <h1 class="admin-hero-title" style="color: var(--comic-yellow); font-size:2.2rem;">Update {{ villain.villain_name }}!</h1>
     <p class="admin-hero-subtitle" style="color:#ccc;">
-      Change the details of this villain. Their portrait stays the same.
+      Change the details of this villain, and update their picture if you like.
     </p>
   </div>
 
@@ -17,7 +17,7 @@
       <h2 class="panel-title">Villain Details</h2>
     </div>
     <div class="p-4">
-      <form method="POST" class="comic-form">
+      <form method="POST" class="comic-form" enctype="multipart/form-data">
 
         <div class="mb-3">
           <label class="form-label">Villain Name *</label>
@@ -76,6 +76,33 @@
                  placeholder="e.g. inside a volcano, under the school cafeteria" maxlength="120">
         </div>
 
+        <div class="mb-4">
+          <label class="form-label">Picture</label>
+
+          {% if villain.image_file %}
+          <div class="mb-2">
+            <img src="{{ url_for('static', filename='uploads/villains/' ~ villain.image_file) }}"
+                 alt="{{ villain.villain_name }}"
+                 style="max-width:160px; border-radius:10px; border:3px solid var(--comic-red);">
+          </div>
+          {% endif %}
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="image_action" id="vimgKeep" value="keep" checked>
+            <label class="form-check-label" for="vimgKeep">Keep current picture</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="image_action" id="vimgUpload" value="upload">
+            <label class="form-check-label" for="vimgUpload">Upload a new picture</label>
+          </div>
+          <input type="file" name="image" accept="image/*" class="form-control mt-2">
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="radio" name="image_action" id="vimgRegen" value="regenerate">
+            <label class="form-check-label" for="vimgRegen">Let the AI draw a new picture</label>
+          </div>
+          <small class="text-muted">Choosing a file to upload will always replace the picture, whatever option is selected.</small>
+        </div>
+
         <div class="d-flex gap-2 flex-wrap">
           <button type="submit" class="btn btn-comic-cta" style="background:var(--comic-red); color:#fff; font-size:1.1rem;">
             Save Changes 😈
@@ -98,7 +125,7 @@
       <img src="{{ url_for('static', filename='uploads/villains/' ~ villain.image_file) }}"
            alt="{{ villain.villain_name }}"
            style="max-width: 260px; width:100%; border: 4px solid var(--comic-red); border-radius: 12px;">
-      <p class="mt-2 text-muted" style="font-size:.85rem;">Portrait is not re-generated on edit.</p>
+      <p class="mt-2 text-muted" style="font-size:.85rem;">Use the picture options in the form above to upload or regenerate.</p>
     </div>
   </div>
   {% endif %}

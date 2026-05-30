@@ -266,6 +266,9 @@ const initVillainCreationOverlay = () => {
 
   form.addEventListener("submit", (e) => {
     if (!form.checkValidity()) return;
+    // Skip the "AI is drawing" overlay when the user uploaded their own picture.
+    const fileInput = form.querySelector('input[type="file"][name="image"]');
+    if (fileInput && fileInput.files && fileInput.files.length > 0) return;
     setTimeout(showOverlay, 10);
     const submitBtn = document.getElementById("villainSubmitBtn");
     if (submitBtn) {
@@ -369,6 +372,10 @@ const initHeroCreationOverlay = () => {
   form.addEventListener("submit", (e) => {
     // Let HTML5 built-in validation run first
     if (!form.checkValidity()) return;
+
+    // Skip the "AI is drawing" overlay when the user uploaded their own picture.
+    const fileInput = form.querySelector('input[type="file"][name="image"]');
+    if (fileInput && fileInput.files && fileInput.files.length > 0) return;
 
     // Show overlay after a tiny tick so the browser can show validation UI
     setTimeout(showOverlay, 10);

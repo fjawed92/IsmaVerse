@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ character.superhero_name }} – IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 960px;">
+
+  <div class="hero-page-header mb-4">
+    <div class="hero-kicker">⚡ EDIT HERO ⚡</div>
+    <h1 class="hero-title">Update {{ character.superhero_name }}!</h1>
+    <p class="hero-subtitle mb-0">
+      Change the details, and upload or regenerate the picture if you like.
+    </p>
+  </div>
+
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex align-items-center gap-3">
+      <h2 class="panel-title mb-0">🦸 Hero Details</h2>
+    </div>
+    <div class="p-4">
+      <form method="POST" class="comic-form" enctype="multipart/form-data">
+
+        <!-- Row 1: Identity -->
+        <div class="row g-3 mb-2">
+          <div class="col-md-5">
+            <label class="form-label">⚡ Superhero Name</label>
+            <input type="text" name="superhero_name" class="form-control" value="{{ character.superhero_name }}" required>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">🎂 Age</label>
+            <input type="number" name="age" class="form-control" min="4" max="16" value="{{ character.age or '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">💇 Hair Color</label>
+            <input type="text" name="hair_color" class="form-control" value="{{ character.hair_color or '' }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">🦸 Gender</label>
+            <select name="gender" class="form-select">
+              <option value="male" {% if character.gender == 'male' %}selected{% endif %}>Male</option>
+              <option value="female" {% if character.gender == 'female' %}selected{% endif %}>Female</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 2: Costume -->
+        <div class="row g-3 mb-2">
+          <div class="col-12">
+            <div class="hero-section mb-0">
+              <div class="hero-section-title">🎨 Costume Designer</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Costume Color</label>
+            <input type="text" name="costume_color" class="form-control" value="{{ character.costume_color or '' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Boots Color</label>
+            <input type="text" name="boots_color" class="form-control" value="{{ character.boots_color or '' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Gloves Color</label>
+            <input type="text" name="gloves_color" class="form-control" value="{{ character.gloves_color or '' }}">
+          </div>
+        </div>
+
+        <!-- Row 3: Mask / Cape / Symbol -->
+        <div class="row g-3 mb-2">
+          <div class="col-md-5">
+            <label class="form-label">🛡️ Chest Symbol</label>
+            <input type="text" name="chest_symbol" class="form-control" value="{{ character.chest_symbol or '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">👁️ Eye Mask Color</label>
+            <input type="text" name="eye_mask_color" class="form-control" value="{{ character.eye_mask_color or '' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">🦸 Cape Color</label>
+            <input type="text" name="cape_color" class="form-control" value="{{ character.cape_color or '' }}">
+          </div>
+        </div>
+
+        <!-- Powers, Weakness, Origin -->
+        <div class="row g-3 mb-2">
+          <div class="col-12">
+            <label class="form-label">⚡ Superpowers</label>
+            <textarea name="powers" class="form-control" rows="2">{{ character.powers or '' }}</textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">😰 Weakness</label>
+            <textarea name="weakness" class="form-control" rows="2">{{ character.weakness or '' }}</textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">📖 Origin Story</label>
+            <textarea name="origins" class="form-control" rows="3">{{ character.origins or '' }}</textarea>
+          </div>
+        </div>
+
+        <!-- Picture options -->
+        <div class="mb-4">
+          <label class="form-label">🖼️ Picture</label>
+
+          {% if character.image_file %}
+          <div class="mb-2">
+            <img src="{{ url_for('static', filename='uploads/characters/' ~ character.image_file) }}"
+                 alt="{{ character.superhero_name }}"
+                 style="max-width:160px; border-radius:10px; border:3px solid var(--ink);">
+          </div>
+          {% endif %}
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="image_action" id="imgKeep" value="keep" checked>
+            <label class="form-check-label" for="imgKeep">Keep current picture</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="image_action" id="imgUpload" value="upload">
+            <label class="form-check-label" for="imgUpload">Upload a new picture</label>
+          </div>
+          <input type="file" name="image" accept="image/*" class="form-control mt-2">
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="radio" name="image_action" id="imgRegen" value="regenerate">
+            <label class="form-check-label" for="imgRegen">Let the AI draw a new picture</label>
+          </div>
+          <small class="text-muted">Choosing a file to upload will always replace the picture, whatever option is selected.</small>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <button type="submit" class="btn hero-create-submit">
+            ⚡ SAVE CHANGES ⚡
+          </button>
+          <a class="btn btn-outline-dark fw-bold comic-outline-btn"
+             href="{{ url_for('characters.character_detail', character_id=character.id) }}">← Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -17,7 +17,7 @@
       <h2 class="panel-title">Villain Details</h2>
     </div>
     <div class="p-4">
-      <form method="POST" id="villainCreationForm" class="comic-form">
+      <form method="POST" id="villainCreationForm" class="comic-form" enctype="multipart/form-data">
 
         <div class="mb-3">
           <label class="form-label">Villain Name *</label>
@@ -60,9 +60,15 @@
           <input type="text" name="lair_location" class="form-control" placeholder="e.g. inside a volcano, under the school cafeteria" maxlength="120">
         </div>
 
+        <div class="mb-3">
+          <label class="form-label">Villain Picture (optional)</label>
+          <input type="file" name="image" accept="image/*" class="form-control">
+          <small class="text-muted">Upload your own picture, or leave this empty and the AI will draw your villain.</small>
+        </div>
+
         <div class="speech mb-4">
           <p class="mb-0 fw-bold">
-            🤖 Our AI will draw your villain based on your description. It may take a moment — evil masterminds take time to render!
+            🤖 No picture uploaded? Our AI will draw your villain based on your description. It may take a moment — evil masterminds take time to render!
           </p>
         </div>
 
