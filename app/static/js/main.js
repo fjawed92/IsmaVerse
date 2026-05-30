@@ -70,6 +70,9 @@ const SOUNDS = {
   pow: [300, 150, 0.12],
   click: [440, 330, 0.06],
   unlock: [523, 659, 0.1],
+  zap: [880, 220, 0.1],
+  whoosh: [600, 1200, 0.07],
+  flip: [520, 380, 0.05],
 };
 
 let audioCtx = null;
@@ -127,6 +130,10 @@ const playUnlockFanfare = () => {
     osc.stop(start + 0.2);
   });
 };
+
+// Expose audio helpers for other scripts (games.js, comic_reader.js).
+window.playSound = playSound;
+window.playUnlockFanfare = playUnlockFanfare;
 
 
 /* =====================================================
@@ -391,6 +398,264 @@ const initHeroCreationOverlay = () => {
 
 
 /* =====================================================
+   THEME TOGGLE (Day / Night mode)
+   The pre-paint boot script in base.html already applied the
+   saved theme; this only handles the in-page toggle button.
+===================================================== */
+const applyTheme = (pref) => {
+  const root = document.documentElement;
+  const dark =
+    pref === "dark" ||
+    (pref === "system" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
+  root.setAttribute("data-theme", dark ? "dark" : "light");
+  root.setAttribute("data-theme-pref", pref);
+
+  document.querySelectorAll(".comic-theme-toggle").forEach((btn) => {
+    const icon = btn.querySelector(".theme-toggle-icon");
+    const label = btn.querySelector(".theme-toggle-label");
+    if (icon) icon.textContent = dark ? "☀️" : "🌙";
+    if (label) label.textContent = dark ? "Day" : "Night";
+  });
+};
+
+const initThemeToggle = () => {
+  const buttons = document.querySelectorAll(".comic-theme-toggle");
+  if (!buttons.length) return;
+
+  const current = localStorage.getItem("ismaverseTheme") || "system";
+  applyTheme(current);
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      const next = isDark ? "light" : "dark";
+      localStorage.setItem("ismaverseTheme", next);
+      applyTheme(next);
+      playSound("click");
+    });
+  });
+
+  // React to OS theme changes while in "system" mode.
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if ((localStorage.getItem("ismaverseTheme") || "system") === "system") {
+        applyTheme("system");
+      }
+    });
+  }
+};
+
+
+/* =====================================================
+   FAVORITES (dual-source: server AJAX or localStorage)
+===================================================== */
+const FAVORITES_KEY = "ismaverseFavorites";
+
+const loadFavorites = () => {
+  try {
+    return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "{}");
+  } catch {
+    return {};
+  }
+};
+const saveFavorites = (favs) =>
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
+
+const setFavButtonState = (btn, isFav) => {
+  btn.classList.toggle("is-fav", isFav);
+  btn.setAttribute("aria-pressed", isFav ? "true" : "false");
+  const heart = btn.querySelector(".fav-heart");
+  const label = btn.querySelector(".fav-label");
+  if (heart) heart.textContent = isFav ? "❤️" : "🤍";
+  if (label) label.textContent = isFav ? "Favorited" : "Favorite";
+};
+
+const initFavorites = () => {
+  const buttons = document.querySelectorAll(".fav-btn");
+  if (!buttons.length) return;
+
+  const localFavs = loadFavorites();
+
+  buttons.forEach((btn) => {
+    const source = btn.dataset.favSource;
+    const type = btn.dataset.itemType;
+    const id = btn.dataset.itemId;
+    const key = `${type}:${id}`;
+
+    // For anonymous users, reflect localStorage state on load.
+    if (source !== "server") {
+      setFavButtonState(btn, Boolean(localFavs[key]));
+    }
+
+    const form = btn.closest("form.fav-form");
+    if (form) {
+      form.addEventListener("submit", (e) => {
+        // Always intercept; degrade to normal POST only if fetch is missing.
+        if (!window.fetch) return;
+        e.preventDefault();
+        playSound("pow");
+
+        if (source === "server") {
+          const data = new FormData(form);
+          fetch(form.action, {
+            method: "POST",
+            body: data,
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+          })
+            .then((r) => r.json())
+            .then((res) => {
+              if (res && res.ok) setFavButtonState(btn, res.favorited);
+            })
+            .catch(() => form.submit());
+        } else {
+          const favs = loadFavorites();
+          const nowFav = !favs[key];
+          if (nowFav) favs[key] = true;
+          else delete favs[key];
+          saveFavorites(favs);
+          setFavButtonState(btn, nowFav);
+        }
+      });
+    }
+  });
+};
+
+
+/* =====================================================
+   READING STREAK (dual-source) — pings once per day
+===================================================== */
+const STREAK_KEY = "ismaverseStreak";
+const todayStr = () => new Date().toISOString().slice(0, 10);
+
+const computeLocalStreak = () => {
+  let s;
+  try {
+    s = JSON.parse(localStorage.getItem(STREAK_KEY) || "{}");
+  } catch {
+    s = {};
+  }
+  s.current = s.current || 0;
+  s.longest = s.longest || 0;
+  s.totalDays = s.totalDays || 0;
+
+  const today = todayStr();
+  if (s.last === today) return s; // already counted
+
+  const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+  s.current = s.last === yesterday ? s.current + 1 : 1;
+  s.last = today;
+  s.totalDays += 1;
+  s.longest = Math.max(s.longest, s.current);
+  localStorage.setItem(STREAK_KEY, JSON.stringify(s));
+  return s;
+};
+
+const renderStreak = (current, longest) => {
+  document.querySelectorAll("[data-streak-current]").forEach((el) => {
+    el.textContent = current;
+  });
+  document.querySelectorAll("[data-streak-longest]").forEach((el) => {
+    el.textContent = longest;
+  });
+};
+
+const initStreak = () => {
+  const widget = document.querySelector("[data-streak-source]");
+  // Always count the visit (even with no widget on this page) so streaks
+  // accrue while browsing; only update UI if a widget is present.
+  const source = widget ? widget.dataset.streakSource : "local";
+
+  if (source === "server") {
+    if (sessionStorage.getItem("streakPinged") === todayStr()) return;
+    sessionStorage.setItem("streakPinged", todayStr());
+    fetch("/streak/ping", {
+      method: "POST",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res || !res.ok) return;
+        renderStreak(res.current, res.longest);
+        if (res.unlocked && res.unlocked.length) playUnlockFanfare();
+      })
+      .catch(() => {});
+  } else {
+    const s = computeLocalStreak();
+    renderStreak(s.current, s.longest);
+  }
+};
+
+
+/* =====================================================
+   READ TO ME (Text-to-Speech)
+===================================================== */
+const initReadToMe = () => {
+  const widgets = document.querySelectorAll(".read-to-me");
+  if (!widgets.length) return;
+
+  if (!("speechSynthesis" in window)) {
+    widgets.forEach((w) => (w.style.display = "none"));
+    return;
+  }
+
+  const pickVoice = () => {
+    const voices = window.speechSynthesis.getVoices() || [];
+    return (
+      voices.find((v) => /en[-_]/i.test(v.lang) && /female|samantha|zira|google/i.test(v.name)) ||
+      voices.find((v) => /^en/i.test(v.lang)) ||
+      voices[0] ||
+      null
+    );
+  };
+
+  // Voices can load async.
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => {};
+  }
+
+  const gatherText = (widget) => {
+    const sel = widget.dataset.readTarget;
+    let container = null;
+    if (sel) container = document.querySelector(sel);
+    if (!container) container = document.querySelector("[data-readable]");
+    if (!container) return "";
+    return container.innerText.replace(/\s+/g, " ").trim();
+  };
+
+  widgets.forEach((widget) => {
+    const playBtn = widget.querySelector(".read-to-me-play");
+    const stopBtn = widget.querySelector(".read-to-me-stop");
+
+    const stop = () => {
+      window.speechSynthesis.cancel();
+      if (stopBtn) stopBtn.hidden = true;
+    };
+
+    if (playBtn) {
+      playBtn.addEventListener("click", () => {
+        const text = gatherText(widget);
+        if (!text) return;
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        const v = pickVoice();
+        if (v) utter.voice = v;
+        utter.rate = 0.95;
+        utter.pitch = 1.1;
+        utter.onend = () => { if (stopBtn) stopBtn.hidden = true; };
+        if (stopBtn) stopBtn.hidden = false;
+        window.speechSynthesis.speak(utter);
+        playSound("click");
+      });
+    }
+    if (stopBtn) stopBtn.addEventListener("click", stop);
+    window.addEventListener("beforeunload", () => window.speechSynthesis.cancel());
+  });
+};
+
+
+/* =====================================================
    INIT
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
@@ -414,4 +679,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Villain creation loading screen
   initVillainCreationOverlay();
+
+  // New: theme toggle, favorites, streak, read-to-me
+  initThemeToggle();
+  initFavorites();
+  initStreak();
+  initReadToMe();
 });

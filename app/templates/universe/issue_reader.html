@@ -42,11 +42,12 @@
 <!-- STORY NARRATIVE -->
 {% if issue.story_text %}
 <div class="comic-panel mb-4">
-  <div class="panel-header d-flex align-items-center gap-2">
+  <div class="panel-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
     <h2 class="panel-title mb-0" style="font-size:1.3rem;">📖 The Story</h2>
+    {% include 'partials/_read_to_me.html' %}
   </div>
   <div class="p-4">
-    <div style="font-size:1.05rem; line-height:1.8; font-weight:600; color:#222;">
+    <div data-readable style="font-size:1.05rem; line-height:1.8; font-weight:600; color: var(--text);">
       {% for paragraph in issue.story_text.split('\n') %}
         {% if paragraph.strip() %}
           <p class="mb-3">{{ paragraph.strip() }}</p>

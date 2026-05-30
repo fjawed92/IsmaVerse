@@ -111,6 +111,35 @@ BADGE_DEFINITIONS = {
         "color": "red",
         "emoji": "💪",
     },
+    # Profiles / favorites / streaks / games
+    "collector": {
+        "name": "Collector",
+        "description": "Favorited your first hero, villain or comic.",
+        "unlock_count": 1,
+        "color": "pink",
+        "emoji": "❤️",
+    },
+    "streak-3": {
+        "name": "On Fire!",
+        "description": "Visited 3 days in a row.",
+        "unlock_count": 1,
+        "color": "red",
+        "emoji": "🔥",
+    },
+    "streak-7": {
+        "name": "Week Warrior",
+        "description": "Kept a 7-day reading streak!",
+        "unlock_count": 1,
+        "color": "yellow",
+        "emoji": "🗓️",
+    },
+    "game-player": {
+        "name": "Game On!",
+        "description": "Played a mini-game.",
+        "unlock_count": 1,
+        "color": "green",
+        "emoji": "🕹️",
+    },
 }
 
 

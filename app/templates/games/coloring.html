@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Coloring Page - IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-pink), #ffd1f2);">
+      <h1 class="panel-title" style="color:var(--ink);">🖍️ Coloring Page</h1>
+      <span class="burst">CREATE!</span>
+    </div>
+
+    <div class="p-3 p-md-4">
+      <!-- Color palette -->
+      <div class="color-palette" id="colorPalette" role="toolbar" aria-label="Colors"></div>
+
+      <!-- Tools -->
+      <div class="coloring-tools d-flex flex-wrap align-items-center gap-2 my-3">
+        <label class="fw-bold mb-0">Brush
+          <input type="range" id="brushSize" min="4" max="48" value="18" class="align-middle">
+        </label>
+        <button type="button" class="btn btn-outline-dark fw-bold comic-outline-btn" id="eraserBtn">🧽 Eraser</button>
+        <button type="button" class="btn btn-outline-dark fw-bold comic-outline-btn" id="sceneBtn">🔀 New Scene</button>
+        <button type="button" class="btn btn-outline-dark fw-bold comic-outline-btn" id="clearBtn">🗑️ Clear</button>
+        <button type="button" class="btn btn-comic-cta" id="saveBtn">💾 Save Picture</button>
+      </div>
+
+      <div class="coloring-stage">
+        <canvas id="coloringCanvas" width="800" height="600" aria-label="Coloring canvas"></canvas>
+      </div>
+      <p class="text-muted mt-2 mb-0">Tip: pick a color, then draw with your finger or mouse. Save downloads your art!</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/games.js') }}"></script>
+<script>window.IsmaGames && IsmaGames.initColoring();</script>
+{% endblock %}

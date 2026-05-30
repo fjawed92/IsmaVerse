@@ -18,6 +18,15 @@ class User(UserMixin, db.Model):
     comments = db.relationship("Comment", backref="author", lazy="dynamic")
     badges = db.relationship("UserBadge", back_populates="user", cascade="all, delete-orphan")
     hero_comments = db.relationship("HeroComment", back_populates="author", cascade="all, delete-orphan")
+    profile = db.relationship(
+        "UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+    favorites = db.relationship(
+        "Favorite", back_populates="user", cascade="all, delete-orphan"
+    )
+    streak = db.relationship(
+        "ReadingStreak", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)

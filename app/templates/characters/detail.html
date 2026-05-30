@@ -34,6 +34,9 @@
             <span class="hero-sticker hero-sticker-good">POWERED</span>
             {% if character.weakness %}<span class="hero-sticker hero-sticker-warn">WEAK SPOT</span>{% endif %}
           </div>
+          <div class="mt-2">
+            {% with item_type='hero', item_id=character.id %}{% include 'partials/_favorite_button.html' %}{% endwith %}
+          </div>
         </header>
 
         <!-- POWER LEVEL BAR -->

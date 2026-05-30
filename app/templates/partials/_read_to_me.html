@@ -1,0 +1,14 @@
+{#
+  "Read to me" text-to-speech control. main.js (initReadToMe) wires this up
+  to the nearest [data-readable] container. Hidden automatically if the
+  browser has no SpeechSynthesis support.
+  Optional param: target (CSS selector string) to read a specific element.
+#}
+<div class="read-to-me" data-read-target="{{ target | default('') }}">
+  <button type="button" class="btn btn-comic-cta btn-sm read-to-me-play">
+    🔊 Read to me
+  </button>
+  <button type="button" class="btn btn-outline-dark btn-sm fw-bold comic-outline-btn read-to-me-stop" hidden>
+    ⏹ Stop
+  </button>
+</div>

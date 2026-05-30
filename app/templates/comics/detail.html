@@ -32,6 +32,10 @@
       </p>
     {% endif %}
 
+    <div class="mb-3">
+      {% with item_type='comic', item_id=comic.id %}{% include 'partials/_favorite_button.html' %}{% endwith %}
+    </div>
+
     {% if comic.pdf_file %}
       <div class="d-flex flex-wrap gap-2 mt-3">
 

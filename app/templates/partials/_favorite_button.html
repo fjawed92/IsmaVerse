@@ -1,0 +1,25 @@
+{#
+  Reusable favorite (heart) button.
+  Params: item_type ('hero'|'villain'|'comic'), item_id, optional `compact`.
+  Works for logged-in users (AJAX form post) and anonymous kids
+  (main.js toggles localStorage). Initial active state comes from
+  fav_keys (server) or is set by main.js on load (local).
+#}
+{% set fav_key = item_type ~ ':' ~ (item_id|string) %}
+{% set is_fav = fav_key in fav_keys %}
+<form class="fav-form d-inline" method="post"
+      action="{{ url_for('profile.favorites_toggle') }}">
+  <input type="hidden" name="item_type" value="{{ item_type }}">
+  <input type="hidden" name="item_id" value="{{ item_id }}">
+  <input type="hidden" name="next" value="{{ request.path }}">
+  <button type="submit"
+          class="fav-btn {% if is_fav %}is-fav{% endif %}{% if compact %} fav-btn--compact{% endif %}"
+          data-fav-source="{{ fav_source }}"
+          data-item-type="{{ item_type }}"
+          data-item-id="{{ item_id }}"
+          aria-pressed="{{ 'true' if is_fav else 'false' }}"
+          title="Add to My Stuff">
+    <span class="fav-heart" aria-hidden="true">{{ '❤️' if is_fav else '🤍' }}</span>
+    <span class="fav-label">{{ 'Favorited' if is_fav else 'Favorite' }}</span>
+  </button>
+</form>

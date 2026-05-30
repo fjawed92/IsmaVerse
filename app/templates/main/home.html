@@ -4,6 +4,28 @@
 {% block content %}
 
 <!-- =====================
+     CINEMATIC HERO LANDING
+===================== -->
+<section class="isma-hero">
+  <span class="isma-hero-burst">POW!</span>
+  <div class="isma-hero-kicker">WELCOME TO THE</div>
+  <h1 class="isma-hero-title">ISMA<span class="pop">VERSE</span></h1>
+  <p class="isma-hero-sub">
+    Read comics, build heroes &amp; villains, battle in the arena, and unlock
+    awesome badges — a whole comic universe made just for you!
+  </p>
+  <div class="d-flex flex-wrap gap-2 isma-hero-cta">
+    <a class="btn btn-comic-cta" href="{{ url_for('comics.list_comics') }}">📖 Read Comics</a>
+    <a class="btn btn-outline-light fw-bold comic-outline-btn" href="{{ url_for('characters.create_character') }}">✨ Create a Hero</a>
+    <a class="btn btn-outline-light fw-bold comic-outline-btn" href="{{ url_for('games.games_hub') }}">🕹️ Play Games</a>
+  </div>
+  <div class="home-streak-chip" data-streak-source="{{ 'server' if current_user.is_authenticated else 'local' }}">
+    🔥 <span data-streak-current>0</span>-day streak — keep it going!
+  </div>
+  <div class="isma-hero-float" aria-hidden="true">🦸</div>
+</section>
+
+<!-- =====================
      HERO INTRO PANEL
 ===================== -->
 <div class="comic-panel mb-4">
@@ -47,7 +69,7 @@
 ===================== -->
 {% if spotlight %}
 <div class="comic-panel mb-4" style="border-color: var(--comic-yellow);">
-  <div class="panel-header d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, var(--comic-yellow), #ffe89c);">
+  <div class="panel-header d-flex justify-content-between align-items-center" data-accent style="background: linear-gradient(90deg, var(--comic-yellow), #ffe89c);">
     <h2 class="panel-title" style="color:var(--ink);">⭐ Hero Spotlight!</h2>
     <span class="burst" style="transform:rotate(-6deg);">TODAY'S HERO</span>
   </div>
@@ -99,7 +121,7 @@
      DAILY MISSION TEASER
 ===================== -->
 <div class="comic-panel mb-4" style="border-color: var(--comic-green);">
-  <div class="panel-header d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg, var(--comic-green), #a0ffcc);">
+  <div class="panel-header d-flex justify-content-between align-items-center" data-accent style="background: linear-gradient(90deg, var(--comic-green), #a0ffcc);">
     <h2 class="panel-title" style="color:var(--ink);">🎯 Daily Mission!</h2>
     <span class="burst" style="background:var(--ink); color:var(--comic-green);">NEW!</span>
   </div>

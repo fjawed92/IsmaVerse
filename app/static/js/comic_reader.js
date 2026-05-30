@@ -33,6 +33,7 @@
     // restart animation reliably
     void pageFrame.offsetWidth;
     pageFrame.classList.add("is-flipping");
+    try { window.playSound && window.playSound("flip"); } catch (e) {}
     setTimeout(() => pageFrame.classList.remove("is-flipping"), 260);
   }
 
