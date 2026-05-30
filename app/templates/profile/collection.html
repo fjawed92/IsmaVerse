@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}My Stuff - IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+
+  <!-- =====================
+       PROFILE HEADER
+  ===================== -->
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-pink), #ffd1f2);">
+      <h1 class="panel-title" style="color:var(--ink);">⭐ My Stuff</h1>
+      <span class="burst">YOUR HQ</span>
+    </div>
+
+    <div class="p-4">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <div class="my-avatar-badge">
+          {% if current_user.is_authenticated and current_user.profile and current_user.profile.avatar %}
+            {{ user_avatar_emoji or '🦸' }}
+          {% else %}
+            🦸
+          {% endif %}
+        </div>
+        <div class="flex-grow-1">
+          {% if current_user.is_authenticated %}
+            <h2 class="h4 fw-bold mb-1" style="font-family:'Bangers',cursive; letter-spacing:1px;">
+              {{ (current_user.profile.display_name if current_user.profile and current_user.profile.display_name else current_user.username) }}
+            </h2>
+            <a href="{{ url_for('profile.profile_edit') }}" class="btn btn-sm btn-outline-dark fw-bold comic-outline-btn">
+              ✏️ Pick avatar &amp; name
+            </a>
+          {% else %}
+            <h2 class="h4 fw-bold mb-1" style="font-family:'Bangers',cursive; letter-spacing:1px;">Guest Hero</h2>
+            <p class="mb-2 text-muted">Your favorites &amp; badges are saved on this device.</p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-comic-cta">Login to save everywhere →</a>
+          {% endif %}
+        </div>
+
+        <!-- STREAK WIDGET -->
+        <div class="streak-widget" data-streak-source="{{ fav_source }}">
+          <div class="streak-flame" aria-hidden="true">🔥</div>
+          <div class="streak-count"><span data-streak-current>{{ streak.current }}</span></div>
+          <div class="streak-label">day streak</div>
+          <div class="streak-best">Best: <span data-streak-longest>{{ streak.longest }}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================
+       FAVORITES
+  ===================== -->
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center">
+      <h2 class="panel-title">❤️ My Favorites</h2>
+      <span class="burst burst-blue">SAVED!</span>
+    </div>
+    <div class="p-4">
+      {% if current_user.is_authenticated %}
+        {% set total_favs = favorites.heroes|length + favorites.villains|length + favorites.comics|length %}
+        {% if total_favs == 0 %}
+          <p class="text-muted mb-0">No favorites yet! Tap the 🤍 on any hero, villain or comic to save it here.</p>
+        {% else %}
+
+          {% if favorites.heroes %}
+          <h3 class="h5 fw-bold mb-2">🦸 Heroes</h3>
+          <div class="row g-3 mb-3">
+            {% for c in favorites.heroes %}
+            <div class="col-6 col-md-4 col-lg-3">
+              <a href="{{ url_for('characters.character_detail', character_id=c.id) }}" class="text-decoration-none text-reset">
+                <div class="my-card text-center h-100">
+                  {% if c.image_file %}
+                  <img src="{{ url_for('static', filename='uploads/characters/' ~ c.image_file) }}" alt="{{ c.superhero_name }}" class="my-card-img">
+                  {% else %}
+                  <div class="my-card-img my-card-img--empty">🦸</div>
+                  {% endif %}
+                  <div class="my-card-name">{{ c.superhero_name }}</div>
+                </div>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if favorites.villains %}
+          <h3 class="h5 fw-bold mb-2">😈 Villains</h3>
+          <div class="row g-3 mb-3">
+            {% for v in favorites.villains %}
+            <div class="col-6 col-md-4 col-lg-3">
+              <a href="{{ url_for('villains.list_villains') }}" class="text-decoration-none text-reset">
+                <div class="my-card text-center h-100">
+                  {% if v.image_file %}
+                  <img src="{{ url_for('static', filename='uploads/villains/' ~ v.image_file) }}" alt="{{ v.villain_name }}" class="my-card-img">
+                  {% else %}
+                  <div class="my-card-img my-card-img--empty">😈</div>
+                  {% endif %}
+                  <div class="my-card-name">{{ v.villain_name }}</div>
+                </div>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if favorites.comics %}
+          <h3 class="h5 fw-bold mb-2">📚 Comics</h3>
+          <div class="row g-3">
+            {% for comic in favorites.comics %}
+            <div class="col-6 col-md-4 col-lg-3">
+              <a href="{{ url_for('comics.comic_detail', comic_id=comic.id) }}" class="text-decoration-none text-reset">
+                <div class="my-card text-center h-100">
+                  {% if comic.cover_image %}
+                  <img src="{{ url_for('static', filename='img/comics/' ~ comic.cover_image) }}" alt="{{ comic.title }}" class="my-card-img">
+                  {% else %}
+                  <div class="my-card-img my-card-img--empty">📚</div>
+                  {% endif %}
+                  <div class="my-card-name">{{ comic.title }}</div>
+                </div>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+        {% endif %}
+      {% else %}
+        <div id="localFavorites">
+          <p class="text-muted mb-0" data-empty-favs>
+            Favorites you tap are saved on this device. <a href="{{ url_for('auth.login') }}">Log in</a> to keep them everywhere and see them all here!
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- =====================
+       BADGES
+  ===================== -->
+  <div class="badge-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center">
+      <h2 class="panel-title">🏅 My Badges</h2>
+      <span class="burst">COLLECT ALL {{ badge_meta|length }}!</span>
+    </div>
+    <div class="p-4">
+      {% set badge_colors = {"yellow": "badge-sticker--yellow", "green": "badge-sticker--green", "pink": "badge-sticker--pink", "blue": "badge-sticker--blue", "red": "badge-sticker--red", "purple": "badge-sticker--purple"} %}
+      <ul class="badge-strip" aria-live="polite" data-badge-source="{{ 'server' if current_user.is_authenticated else 'local' }}">
+        {% for slug, meta in badge_meta.items() %}
+        {% set is_unlocked = badge_states.get(slug, False) %}
+        <li class="badge-item {% if not is_unlocked %}is-locked{% endif %}" data-badge-id="{{ slug }}">
+          <span class="badge-sticker {{ badge_colors.get(meta.color, 'badge-sticker--yellow') }}" title="{{ meta.description }}">
+            <span style="font-size:1.4rem; display:block;">{{ meta.emoji }}</span>
+            {{ meta.name }}
+          </span>
+          <span class="badge-status">{% if is_unlocked %}Unlocked!{% else %}Locked{% endif %}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

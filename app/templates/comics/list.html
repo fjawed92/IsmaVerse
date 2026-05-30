@@ -54,6 +54,8 @@
                href="{{ url_for('comics.comic_detail', comic_id=c.id) }}">
               Details
             </a>
+
+            {% with item_type='comic', item_id=c.id %}{% include 'partials/_favorite_button.html' %}{% endwith %}
           </div>
 
         </div>

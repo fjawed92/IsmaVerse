@@ -1,0 +1,140 @@
+/* =====================================================
+   ISMAVERSE — THEME TOKENS  (loaded BEFORE style.css)
+   Holds every CSS variable so style.css recolors for free.
+   Light = default comic palette. Dark = "Night Mode".
+   NOTE: dark overrides use html[data-theme="dark"] (0,1,1)
+   so they beat the :root block kept inside style.css.
+===================================================== */
+
+:root {
+  /* Semantic tokens (light). The comic palette itself lives in
+     style.css :root — these reference it so var() resolves lazily. */
+  --bg:          var(--paper);
+  --surface:     #ffffff;
+  --panel-bg:    #ffffff;
+  --text:        var(--ink);
+  --text-muted:  #5b5b5b;
+  --border:      var(--ink);
+
+  /* Halftone dot colour for the body background pattern */
+  --halftone:    rgba(0, 0, 0, .11);
+
+  /* Theme-toggle knob */
+  --toggle-bg:   #0a0a1a;
+}
+
+/* =====================================================
+   NIGHT MODE
+   --ink becomes light: it doubles as line-art, borders,
+   comic offset-shadows AND default text — all readable
+   on a dark canvas. --paper becomes deep midnight.
+===================================================== */
+html[data-theme="dark"] {
+  --ink:    #f3f3fb;   /* line art / borders / text */
+  --paper:  #0d0d1a;   /* page background */
+
+  /* Lift the comic accents slightly for contrast on dark */
+  --comic-blue:   #4d8bff;
+  --comic-yellow: #ffd83d;
+  --comic-red:    #ff5757;
+  --comic-green:  #3dff7d;
+  --comic-pink:   #ff79de;
+
+  --glow-blue:   rgba( 77, 139, 255, 0.55);
+  --glow-yellow: rgba(255, 216,  61, 0.55);
+  --glow-red:    rgba(255,  87,  87, 0.55);
+  --glow-green:  rgba( 61, 255, 125, 0.55);
+  --glow-pink:   rgba(255, 121, 222, 0.55);
+
+  /* Semantic surfaces */
+  --bg:          #0d0d1a;
+  --surface:     #16162b;
+  --panel-bg:    #1b1b34;
+  --text:        #f3f3fb;
+  --text-muted:  #b9b9d6;
+  --border:      #f3f3fb;
+
+  --halftone:    rgba(255, 255, 255, .05);
+  --toggle-bg:   #ffd83d;
+
+  color-scheme: dark;
+}
+
+/* ---- Body canvas: use the halftone token so dots flip too ---- */
+body {
+  background:
+    radial-gradient(circle at 1px 1px, var(--halftone) 1px, transparent 1.9px) 0 0/14px 14px,
+    var(--paper);
+  color: var(--text);
+}
+
+/* =====================================================
+   DARK-MODE SURFACE OVERRIDES
+   Re-skin the hardcoded-white panels/cards to dark.
+   Borders/shadows already follow --ink (now light) -> they
+   render as crisp light "ink" outlines on the dark canvas.
+===================================================== */
+html[data-theme="dark"] .comic-panel,
+html[data-theme="dark"] .speech,
+html[data-theme="dark"] .comic-tile,
+html[data-theme="dark"] .badge-panel,
+html[data-theme="dark"] .comment-form,
+html[data-theme="dark"] .hero-card,
+html[data-theme="dark"] .hero-card-body,
+html[data-theme="dark"] .hero-id,
+html[data-theme="dark"] .timeline-content,
+html[data-theme="dark"] .power-editor-tip,
+html[data-theme="dark"] .battle-hero-card,
+html[data-theme="dark"] .arena-card,
+html[data-theme="dark"] .my-card {
+  background: var(--panel-bg);
+  color: var(--text);
+}
+
+html[data-theme="dark"] .comic-dropdown {
+  background: var(--surface);
+  color: var(--text);
+}
+html[data-theme="dark"] .comic-dropdown .dropdown-item { color: var(--text); }
+html[data-theme="dark"] .comic-dropdown .dropdown-item:hover {
+  background: rgba(255, 255, 255, .08);
+}
+
+/* Form controls */
+html[data-theme="dark"] .comic-textarea,
+html[data-theme="dark"] .form-control,
+html[data-theme="dark"] .form-select {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+html[data-theme="dark"] .form-control::placeholder { color: var(--text-muted); }
+
+/* Bootstrap tables in admin */
+html[data-theme="dark"] .table {
+  --bs-table-bg: var(--panel-bg);
+  --bs-table-color: var(--text);
+  --bs-table-striped-bg: #20203c;
+  --bs-table-striped-color: var(--text);
+  --bs-table-border-color: rgba(255, 255, 255, .15);
+}
+
+/* Bootstrap helpers used across templates */
+html[data-theme="dark"] .text-muted { color: var(--text-muted) !important; }
+html[data-theme="dark"] .bg-white   { background: var(--panel-bg) !important; }
+html[data-theme="dark"] .text-reset { color: var(--text) !important; }
+html[data-theme="dark"] hr.comic-divider { border-top-color: var(--ink); }
+
+/* Alerts: keep them legible without losing the comic punch */
+html[data-theme="dark"] .alert {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* Light-coloured panel headers (yellow/green/etc.) keep DARK text for
+   contrast even though --ink is light in dark mode. */
+html[data-theme="dark"] .panel-header[data-accent] .panel-title,
+html[data-theme="dark"] .panel-header[data-accent] .burst {
+  color: #111 !important;
+}
