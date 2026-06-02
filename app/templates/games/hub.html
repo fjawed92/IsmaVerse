@@ -6,13 +6,29 @@
   <div class="hero-page-header mb-4">
     <div class="hero-kicker">PLAY TIME</div>
     <h1 class="hero-title">🕹️ Mini-Games</h1>
-    <p class="hero-subtitle mb-0">Quick superhero games — earn the Game On! badge.</p>
+    <p class="hero-subtitle mb-0">Quick superhero games — earn badges, set high scores!</p>
   </div>
 
   <div class="row g-4">
     <div class="col-12 col-md-6">
-      <a href="{{ url_for('games.memory') }}" class="text-decoration-none text-reset d-block h-100">
+      <a href="{{ url_for('games.poppi_jump') }}" class="text-decoration-none text-reset d-block h-100">
         <div class="comic-tile comic-tile-link h-100" style="border-color: var(--comic-green);">
+          <h3>🐸 Poppi Jump</h3>
+          <p class="text-muted mb-0">Tap to flap and dodge the obstacles — how far can you go?</p>
+        </div>
+      </a>
+    </div>
+    <div class="col-12 col-md-6">
+      <a href="{{ url_for('games.spaceship') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="comic-tile comic-tile-link h-100" style="border-color: var(--comic-blue);">
+          <h3>🚀 Spaceship Dodge</h3>
+          <p class="text-muted mb-0">Steer your ship and dodge the falling asteroids!</p>
+        </div>
+      </a>
+    </div>
+    <div class="col-12 col-md-6">
+      <a href="{{ url_for('games.memory') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="comic-tile comic-tile-link h-100" style="border-color: var(--comic-yellow);">
           <h3>🧠 Hero Memory Match</h3>
           <p class="text-muted mb-0">Flip the cards and find the matching superhero pairs!</p>
         </div>
@@ -23,6 +39,14 @@
         <div class="comic-tile comic-tile-link h-100" style="border-color: var(--comic-pink);">
           <h3>🖍️ Coloring Page</h3>
           <p class="text-muted mb-0">Color your own comic scene and save it as a picture!</p>
+        </div>
+      </a>
+    </div>
+    <div class="col-12">
+      <a href="{{ url_for('games.leaderboard') }}" class="text-decoration-none text-reset d-block">
+        <div class="comic-tile comic-tile-link" style="border-color: var(--comic-red); text-align:center;">
+          <h3 class="mb-1">🏆 High Scores</h3>
+          <p class="text-muted mb-0">See the top heroes and claim your own champion!</p>
         </div>
       </a>
     </div>

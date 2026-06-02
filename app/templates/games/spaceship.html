@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Spaceship Dodge - IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-blue), #a7d4ff);">
+      <h1 class="panel-title" style="color:var(--ink);">🚀 Spaceship Dodge</h1>
+      <span class="burst">ZOOM!</span>
+    </div>
+
+    <div class="p-3 p-md-4 text-center">
+      <div class="arcade-hud d-flex flex-wrap justify-content-center align-items-center gap-3 mb-3">
+        <span class="memory-stat">Score: <strong id="spaceScore">0</strong></span>
+        <span class="memory-stat" data-best-source="{{ fav_source }}" data-game="spaceship">
+          Best: <strong data-best-value>{{ best }}</strong>
+        </span>
+      </div>
+
+      <div class="arcade-stage">
+        <canvas id="spaceCanvas" class="arcade-canvas" width="480" height="640"
+                aria-label="Spaceship Dodge game board"></canvas>
+        <div class="arcade-overlay" id="spaceOverlay">
+          <span class="burst">TAP TO START!</span>
+          <p class="fw-bold mt-2 mb-0">Move with arrows, A/D, or drag.<br>Dodge the asteroids!</p>
+        </div>
+      </div>
+
+      <p class="text-muted mt-3 mb-0">Arrow keys / A &amp; D / drag to steer.
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.login') }}">Log in</a> to save your score to the leaderboard!
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/games.js') }}"></script>
+<script>window.IsmaGames && IsmaGames.initSpaceship();</script>
+{% endblock %}

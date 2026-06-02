@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Poppi Jump - IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-green), #a0ffcc);">
+      <h1 class="panel-title" style="color:var(--ink);">🐸 Poppi Jump</h1>
+      <span class="burst">FLAP!</span>
+    </div>
+
+    <div class="p-3 p-md-4 text-center">
+      <div class="arcade-hud d-flex flex-wrap justify-content-center align-items-center gap-3 mb-3">
+        <span class="memory-stat">Score: <strong id="poppiScore">0</strong></span>
+        <span class="memory-stat" data-best-source="{{ fav_source }}" data-game="poppi-jump">
+          Best: <strong data-best-value>{{ best }}</strong>
+        </span>
+      </div>
+
+      <div class="arcade-stage">
+        <canvas id="poppiCanvas" class="arcade-canvas" width="480" height="640"
+                aria-label="Poppi Jump game board"></canvas>
+        <div class="arcade-overlay" id="poppiOverlay">
+          <span class="burst">TAP TO START!</span>
+          <p class="fw-bold mt-2 mb-0">Tap, click or press Space to flap.<br>Dodge the pipes!</p>
+        </div>
+      </div>
+
+      <p class="text-muted mt-3 mb-0">Space / Tap / Click to flap.
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.login') }}">Log in</a> to save your score to the leaderboard!
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/games.js') }}"></script>
+<script>window.IsmaGames && IsmaGames.initPoppiJump();</script>
+{% endblock %}

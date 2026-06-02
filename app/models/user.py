@@ -27,6 +27,12 @@ class User(UserMixin, db.Model):
     streak = db.relationship(
         "ReadingStreak", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
+    game_scores = db.relationship(
+        "GameScore", back_populates="user", cascade="all, delete-orphan"
+    )
+    champion = db.relationship(
+        "GameChampion", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
