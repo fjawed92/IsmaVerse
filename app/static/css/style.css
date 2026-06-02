@@ -2401,3 +2401,74 @@ html[data-theme="dark"] .memory-back { background: var(--surface); }
   #matchupForm .form-select { max-width: 100% !important; width: 100%; }
   #matchupForm .vs-badge { padding: .25rem; }
 }
+
+
+/* =====================================================
+   ====  v2.2 — TABLET / IPAD LAYOUT + SPACING PASS  ====
+===================================================== */
+
+/* -----------------------------------------------------
+   FIX: nested .container double-padding
+   base.html already wraps content in <main class="container">,
+   yet ~34 page templates add their OWN .container inside it.
+   That doubles Bootstrap's gutters/padding and was the main
+   cause of the "weird padding/spacing" on iPad. Neutralise the
+   inner container so it becomes a transparent pass-through.
+----------------------------------------------------- */
+main.container > .container,
+main.container > .container-fluid,
+main.container > .container-sm,
+main.container > .container-md,
+main.container > .container-lg,
+main.container > .container-xl {
+  max-width: none;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+/* Collapse the doubled vertical rhythm (main has py-4, page adds py-4). */
+main.container > .container.py-4,
+main.container > .container.py-5 {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* -----------------------------------------------------
+   TABLET RANGE (≈768–991px, iPad portrait)
+   Falls between the phone (<576) and desktop tweaks, so it
+   previously inherited full desktop sizing. Right-size the
+   big comic typography and panel padding for the slate.
+----------------------------------------------------- */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .panel-title       { font-size: 1.9rem; }
+  .hero-title        { font-size: 2.1rem; }
+  .admin-hero-title  { font-size: 2.2rem; }
+  .hero-page-header  { padding: 1.15rem; }
+  .comic-panel > .p-4 { padding: 1.25rem !important; }
+  .hero-avatar       { height: 240px; }
+
+  /* Comfortable 2-up hero/comic grid on portrait tablets. */
+  .hero-card-body    { padding: .9rem; }
+}
+
+/* -----------------------------------------------------
+   iPad LANDSCAPE & up — keep big art frames in proportion
+----------------------------------------------------- */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .hero-avatar { height: 260px; }
+}
+
+/* -----------------------------------------------------
+   TYPOGRAPHY / READABILITY (all sizes)
+----------------------------------------------------- */
+body { line-height: 1.6; }
+p { line-height: 1.6; }
+/* Long words / URLs shouldn't blow out narrow tablet columns. */
+.hero-section-text,
+.comment-body,
+.timeline-desc,
+.speech p { overflow-wrap: anywhere; }
+
+/* Media never overflows its column on any device. (Height left to
+   each component so fixed-ratio art frames keep their proportions.) */
+img { max-width: 100%; }
