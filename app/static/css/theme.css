@@ -138,3 +138,64 @@ html[data-theme="dark"] .panel-header[data-accent] .panel-title,
 html[data-theme="dark"] .panel-header[data-accent] .burst {
   color: #111 !important;
 }
+
+/* =====================================================
+   v2.2 — DARK-MODE READABILITY PASS
+   Re-skin remaining light-background components so their
+   (now light) --ink text doesn't disappear on light panels.
+===================================================== */
+html[data-theme="dark"] .comment-card,
+html[data-theme="dark"] .hero-page-header,
+html[data-theme="dark"] .hero-card-header,
+html[data-theme="dark"] .hero-section,
+html[data-theme="dark"] .hero-avatar-wrap,
+html[data-theme="dark"] .hero-avatar-placeholder,
+html[data-theme="dark"] .power-editor-panel,
+html[data-theme="dark"] .power-editor-body {
+  background: var(--panel-bg);
+  color: var(--text);
+}
+
+/* Villain card pieces use !important in style.css, so match it here. */
+html[data-theme="dark"] .villain-card,
+html[data-theme="dark"] .villain-card-header,
+html[data-theme="dark"] .villain-placeholder {
+  background: var(--panel-bg) !important;
+  color: var(--text);
+}
+
+/* Hardcoded grey text tokens that never flipped -> use the muted token. */
+html[data-theme="dark"] .hero-subtitle,
+html[data-theme="dark"] .hero-muted,
+html[data-theme="dark"] .timeline-date,
+html[data-theme="dark"] .comment-date {
+  color: var(--text-muted) !important;
+}
+
+/* Stickers sit on bright fills (green/orange/grey) -> keep dark text. */
+html[data-theme="dark"] .hero-sticker { color: #111; }
+
+/* Foil footers stay yellow/red in dark mode -> keep their text dark. */
+html[data-theme="dark"] .hero-card-footer,
+html[data-theme="dark"] .villain-card-footer { color: #111; }
+
+/* Admin hero banner stays yellow -> keep its copy dark and readable. */
+html[data-theme="dark"] .admin-hero-title,
+html[data-theme="dark"] .admin-hero-subtitle { color: #111; }
+
+/* Outline-dark buttons would be dark-on-dark once panels flip. */
+html[data-theme="dark"] .btn-outline-dark {
+  --bs-btn-color: var(--text);
+  --bs-btn-border-color: var(--text);
+  --bs-btn-hover-bg: var(--text);
+  --bs-btn-hover-color: var(--bg);
+  --bs-btn-hover-border-color: var(--text);
+  --bs-btn-active-bg: var(--text);
+  --bs-btn-active-color: var(--bg);
+  --bs-btn-active-border-color: var(--text);
+}
+
+/* Bootstrap badges with light utility backgrounds keep dark text. */
+html[data-theme="dark"] .badge.bg-warning,
+html[data-theme="dark"] .badge.bg-light,
+html[data-theme="dark"] .badge.bg-info { color: #111 !important; }
