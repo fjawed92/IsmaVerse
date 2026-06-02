@@ -140,6 +140,27 @@ BADGE_DEFINITIONS = {
         "color": "green",
         "emoji": "🕹️",
     },
+    "arcade-ace": {
+        "name": "Arcade Ace",
+        "description": "Played an arcade game.",
+        "unlock_count": 1,
+        "color": "blue",
+        "emoji": "👾",
+    },
+    "high-flyer": {
+        "name": "High Flyer",
+        "description": "Scored 100+ in an arcade game.",
+        "unlock_count": 1,
+        "color": "yellow",
+        "emoji": "🏅",
+    },
+    "hero-champion": {
+        "name": "Hero Champion",
+        "description": "Claimed a hero as your champion.",
+        "unlock_count": 1,
+        "color": "pink",
+        "emoji": "🦸",
+    },
 }
 
 

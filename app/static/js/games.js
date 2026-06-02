@@ -25,6 +25,62 @@
     } catch (e) {}
   };
 
+  /* ---------- arcade score helpers ---------- */
+  // Local best mirrors the badge dual-source pattern: anonymous players keep
+  // a per-game best in localStorage; logged-in players also persist server-side.
+  const GAME_BEST_KEY = "ismaverseGameBest";
+  const readLocalBest = (game) => {
+    try { return JSON.parse(localStorage.getItem(GAME_BEST_KEY) || "{}")[game] || 0; }
+    catch (e) { return 0; }
+  };
+  const writeLocalBest = (game, score) => {
+    try {
+      const m = JSON.parse(localStorage.getItem(GAME_BEST_KEY) || "{}");
+      if (score > (m[game] || 0)) {
+        m[game] = score;
+        localStorage.setItem(GAME_BEST_KEY, JSON.stringify(m));
+      }
+    } catch (e) {}
+  };
+
+  const bestEl = (game) => {
+    const wrap = document.querySelector('[data-game="' + game + '"]');
+    return wrap ? { wrap, value: wrap.querySelector("[data-best-value]") } : null;
+  };
+
+  const setBest = (game, value) => {
+    const el = bestEl(game);
+    if (el && el.value) {
+      const shown = parseInt(el.value.textContent, 10) || 0;
+      if (value > shown) el.value.textContent = String(value);
+    }
+  };
+
+  // Show the local best on load for anonymous players (server best is rendered
+  // server-side for logged-in players).
+  const initBestDisplay = (game) => {
+    const el = bestEl(game);
+    if (el && el.wrap.dataset.bestSource !== "server") setBest(game, readLocalBest(game));
+  };
+
+  const submitScore = (game, score) => {
+    writeLocalBest(game, score);
+    setBest(game, score);
+    fetch("/games/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+      body: JSON.stringify({ game: game, score: score }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && d.ok) {
+          if (d.level_up) fanfare();
+          if (typeof d.best === "number") setBest(game, d.best);
+        }
+      })
+      .catch(() => {});
+  };
+
   /* ---------- shuffle helper ---------- */
   const shuffle = (arr) => {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -260,5 +316,267 @@
     drawScene();
   }
 
-  window.IsmaGames = { initMemory, initColoring };
+  /* =====================================================
+     POPPI JUMP  (flappy-style jumper)
+  ===================================================== */
+  function initPoppiJump() {
+    const canvas = document.getElementById("poppiCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    const scoreEl = document.getElementById("poppiScore");
+    const overlay = document.getElementById("poppiOverlay");
+
+    const GRAVITY = 1500;       // px / s^2
+    const FLAP = -430;          // px / s impulse
+    const PIPE_GAP = 180;
+    const PIPE_W = 70;
+    const PIPE_SPEED = 190;     // px / s
+    const PIPE_SPACING = 250;   // px between pipes
+
+    let bird, pipes, score, running, awaitingStart, last, raf;
+
+    function reset() {
+      bird = { x: 120, y: H / 2, vy: 0, r: 16 };
+      pipes = [];
+      score = 0;
+      running = false;
+      awaitingStart = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      spawnPipe(W + 40);
+      draw();
+    }
+
+    function spawnPipe(x) {
+      const margin = 70;
+      const gapY = margin + Math.random() * (H - PIPE_GAP - margin * 2);
+      pipes.push({ x: x, gapY: gapY, passed: false });
+    }
+
+    function flap() {
+      if (awaitingStart) {
+        awaitingStart = false;
+        running = true;
+        if (overlay) overlay.hidden = true;
+        awardGameBadge();
+        last = performance.now();
+        raf = requestAnimationFrame(loop);
+      }
+      if (running) { bird.vy = FLAP; sfx("click"); }
+    }
+
+    function gameOver() {
+      running = false;
+      cancelAnimationFrame(raf);
+      sfx("pow");
+      submitScore("poppi-jump", score);
+      if (overlay) {
+        overlay.innerHTML =
+          '<span class="burst">GAME OVER!</span>' +
+          '<p class="fw-bold mt-2 mb-0">Score: ' + score + '<br>Tap to play again!</p>';
+        overlay.hidden = false;
+      }
+      awaitingStart = true;
+    }
+
+    function loop(now) {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+
+      bird.vy += GRAVITY * dt;
+      bird.y += bird.vy * dt;
+
+      for (const p of pipes) p.x -= PIPE_SPEED * dt;
+      if (pipes.length && pipes[pipes.length - 1].x < W - PIPE_SPACING) spawnPipe(W + PIPE_W);
+      if (pipes.length && pipes[0].x < -PIPE_W) pipes.shift();
+
+      for (const p of pipes) {
+        if (!p.passed && p.x + PIPE_W < bird.x) {
+          p.passed = true; score += 1; sfx("pow");
+          if (scoreEl) scoreEl.textContent = String(score);
+        }
+      }
+
+      // Collisions: floor / ceiling / pipes.
+      if (bird.y + bird.r > H || bird.y - bird.r < 0) return gameOver();
+      for (const p of pipes) {
+        const inX = bird.x + bird.r > p.x && bird.x - bird.r < p.x + PIPE_W;
+        const inGap = bird.y - bird.r > p.gapY && bird.y + bird.r < p.gapY + PIPE_GAP;
+        if (inX && !inGap) return gameOver();
+      }
+
+      draw();
+      if (running) raf = requestAnimationFrame(loop);
+    }
+
+    function draw() {
+      ctx.fillStyle = "#9be7ff";
+      ctx.fillRect(0, 0, W, H);
+      // Pipes
+      ctx.fillStyle = "#22aa44";
+      ctx.strokeStyle = "#0d5e24";
+      ctx.lineWidth = 4;
+      for (const p of pipes) {
+        ctx.fillRect(p.x, 0, PIPE_W, p.gapY);
+        ctx.strokeRect(p.x, 0, PIPE_W, p.gapY);
+        ctx.fillRect(p.x, p.gapY + PIPE_GAP, PIPE_W, H - p.gapY - PIPE_GAP);
+        ctx.strokeRect(p.x, p.gapY + PIPE_GAP, PIPE_W, H - p.gapY - PIPE_GAP);
+      }
+      // Bird (a little frog/hero blob)
+      ctx.font = (bird.r * 2.2) + "px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("🐸", bird.x, bird.y);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space" || e.key === " ") { e.preventDefault(); flap(); }
+    });
+    canvas.addEventListener("mousedown", (e) => { e.preventDefault(); flap(); });
+    canvas.addEventListener("touchstart", (e) => { e.preventDefault(); flap(); }, { passive: false });
+
+    initBestDisplay("poppi-jump");
+    reset();
+  }
+
+  /* =====================================================
+     SPACESHIP DODGE
+  ===================================================== */
+  function initSpaceship() {
+    const canvas = document.getElementById("spaceCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    const scoreEl = document.getElementById("spaceScore");
+    const overlay = document.getElementById("spaceOverlay");
+
+    const SHIP_W = 44, SHIP_H = 40;
+    const BASE_FALL = 200;      // px / s
+    const SHIP_SPEED = 360;     // px / s for keyboard
+
+    let ship, rocks, score, spawnTimer, running, awaitingStart, last, raf;
+    let leftHeld = false, rightHeld = false;
+
+    function reset() {
+      ship = { x: W / 2, y: H - 70 };
+      rocks = [];
+      score = 0;
+      spawnTimer = 0;
+      running = false;
+      awaitingStart = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      draw();
+    }
+
+    function start() {
+      if (!awaitingStart) return;
+      awaitingStart = false;
+      running = true;
+      if (overlay) overlay.hidden = true;
+      awardGameBadge();
+      last = performance.now();
+      raf = requestAnimationFrame(loop);
+    }
+
+    function gameOver() {
+      running = false;
+      cancelAnimationFrame(raf);
+      sfx("pow");
+      submitScore("spaceship", score);
+      if (overlay) {
+        overlay.innerHTML =
+          '<span class="burst">CRASH!</span>' +
+          '<p class="fw-bold mt-2 mb-0">Score: ' + score + '<br>Tap to fly again!</p>';
+        overlay.hidden = false;
+      }
+      awaitingStart = true;
+    }
+
+    function loop(now) {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+
+      const fall = BASE_FALL + score * 4;   // gets faster as you survive
+      if (leftHeld) ship.x -= SHIP_SPEED * dt;
+      if (rightHeld) ship.x += SHIP_SPEED * dt;
+      ship.x = Math.max(SHIP_W / 2, Math.min(W - SHIP_W / 2, ship.x));
+
+      spawnTimer -= dt;
+      if (spawnTimer <= 0) {
+        const r = 18 + Math.random() * 16;
+        rocks.push({ x: r + Math.random() * (W - r * 2), y: -r, r: r });
+        spawnTimer = 0.55 + Math.random() * 0.4;
+      }
+
+      for (const rock of rocks) rock.y += fall * dt;
+
+      // Score for each rock that clears the bottom (dodged).
+      for (let i = rocks.length - 1; i >= 0; i--) {
+        if (rocks[i].y - rocks[i].r > H) {
+          rocks.splice(i, 1);
+          score += 1; sfx("click");
+          if (scoreEl) scoreEl.textContent = String(score);
+        }
+      }
+
+      // Collision (circle vs ship box, approximated by closest point).
+      for (const rock of rocks) {
+        const cx = Math.max(ship.x - SHIP_W / 2, Math.min(rock.x, ship.x + SHIP_W / 2));
+        const cy = Math.max(ship.y - SHIP_H / 2, Math.min(rock.y, ship.y + SHIP_H / 2));
+        const dx = rock.x - cx, dy = rock.y - cy;
+        if (dx * dx + dy * dy < rock.r * rock.r) return gameOver();
+      }
+
+      draw();
+      if (running) raf = requestAnimationFrame(loop);
+    }
+
+    function draw() {
+      ctx.fillStyle = "#0b0f2a";
+      ctx.fillRect(0, 0, W, H);
+      // Starfield (cheap deterministic dots)
+      ctx.fillStyle = "rgba(255,255,255,0.6)";
+      for (let i = 0; i < 40; i++) {
+        const x = (i * 97) % W, y = (i * 53 + (score * 2)) % H;
+        ctx.fillRect(x, y, 2, 2);
+      }
+      // Rocks
+      ctx.font = "0px serif";
+      for (const rock of rocks) {
+        ctx.font = (rock.r * 2) + "px serif";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("☄️", rock.x, rock.y);
+      }
+      // Ship
+      ctx.font = SHIP_H + "px serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("🚀", ship.x, ship.y);
+    }
+
+    function pointerMove(e) {
+      if (!running) return;
+      const rect = canvas.getBoundingClientRect();
+      const t = e.touches ? e.touches[0] : e;
+      ship.x = (t.clientX - rect.left) * (W / rect.width);
+      ship.x = Math.max(SHIP_W / 2, Math.min(W - SHIP_W / 2, ship.x));
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") { leftHeld = true; start(); }
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { rightHeld = true; start(); }
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") leftHeld = false;
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") rightHeld = false;
+    });
+    canvas.addEventListener("mousedown", (e) => { e.preventDefault(); start(); });
+    canvas.addEventListener("mousemove", pointerMove);
+    canvas.addEventListener("touchstart", (e) => { e.preventDefault(); start(); pointerMove(e); }, { passive: false });
+    canvas.addEventListener("touchmove", (e) => { e.preventDefault(); pointerMove(e); }, { passive: false });
+
+    initBestDisplay("spaceship");
+    reset();
+  }
+
+  window.IsmaGames = { initMemory, initColoring, initPoppiJump, initSpaceship };
 })();

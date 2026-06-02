@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Game Leaderboard - IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+
+  <div class="hero-page-header mb-4">
+    <div class="hero-kicker">HALL OF FAME</div>
+    <h1 class="hero-title">🏆 Game Leaderboard</h1>
+    <p class="hero-subtitle mb-0">The top heroes across the arcade — claim your champion below!</p>
+  </div>
+
+  <!-- =====================
+       MY CHAMPION
+  ===================== -->
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-pink), #ffd1f2);">
+      <h2 class="panel-title" style="color:var(--ink);">🦸 My Champion</h2>
+      <span class="burst">PICK YOURS!</span>
+    </div>
+    <div class="p-3 p-md-4">
+      {% if current_user.is_authenticated %}
+        <div class="row g-3 align-items-center">
+          <div class="col-12 col-md-5">
+            <div class="champion-card text-center">
+              {% set hero = champion.character if champion else None %}
+              {% if hero and hero.image_file %}
+                <img src="{{ url_for('static', filename='uploads/characters/' ~ hero.image_file) }}"
+                     alt="{{ hero.superhero_name }}" class="champion-img">
+              {% else %}
+                <div class="champion-img champion-img--empty">🦸</div>
+              {% endif %}
+              <div class="champion-name">{{ hero.superhero_name if hero else 'No champion yet' }}</div>
+              {% if champion %}
+              <div class="d-flex justify-content-center flex-wrap gap-2 mt-2">
+                <span class="level-badge">⭐ Lv {{ champion.level }}</span>
+                <span class="tier-badge">{{ champion.tier.emoji }} {{ champion.tier.name }}</span>
+              </div>
+              <p class="text-muted small mt-2 mb-0">
+                {{ champion.games_played }} games · {{ champion.total_score }} total points
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-7">
+            <form method="post" action="{{ url_for('games.champion_claim') }}">
+              <label for="character_id" class="fw-bold mb-1">Choose a hero to represent you:</label>
+              <select name="character_id" id="character_id" class="form-select mb-2">
+                {% for c in characters %}
+                <option value="{{ c.id }}"
+                  {% if champion and champion.character and champion.character.id == c.id %}selected{% endif %}>
+                  {{ c.superhero_name }}
+                </option>
+              {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-comic-cta">🦸 Claim Champion</button>
+              <p class="text-muted small mt-2 mb-0">Your champion levels up the more arcade games you play!</p>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted mb-2">Play arcade games and claim a hero as your very own champion!</p>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-comic-cta">Log in to claim your champion →</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- =====================
+       PER-GAME BOARDS
+  ===================== -->
+  {% for slug, name in game_names.items() %}
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center">
+      <h2 class="panel-title">{{ '🐸' if slug == 'poppi-jump' else '🚀' }} {{ name }}</h2>
+      <span class="burst burst-blue">TOP 10</span>
+    </div>
+    <div class="p-3 p-md-4">
+      {% set board = boards.get(slug, []) %}
+      {% if board %}
+      <div class="table-responsive">
+        <table class="table align-middle leaderboard-table mb-0">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Champion</th>
+              <th scope="col">Player</th>
+              <th scope="col">Level</th>
+              <th scope="col" class="text-end">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in board %}
+            <tr>
+              <td class="fw-bold">{{ row.rank }}</td>
+              <td>
+                {% if row.champion_image %}
+                  <img src="{{ url_for('static', filename='uploads/characters/' ~ row.champion_image) }}"
+                       alt="{{ row.champion_name }}" class="leaderboard-hero-img">
+                {% else %}
+                  <span class="leaderboard-hero-img leaderboard-hero-img--empty">🦸</span>
+                {% endif %}
+                <span class="fw-bold">{{ row.champion_name or '—' }}</span>
+              </td>
+              <td>{{ row.username }}</td>
+              <td>
+                <span class="level-badge">⭐ {{ row.level }}</span>
+                <span class="tier-badge">{{ row.tier.emoji }} {{ row.tier.name }}</span>
+              </td>
+              <td class="text-end fw-bold">{{ row.score }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="text-muted mb-0">No scores yet — be the first hero on the board!</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+{% endblock %}
