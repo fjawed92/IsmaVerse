@@ -355,6 +355,7 @@
 
     function flap() {
       if (awaitingStart) {
+        reset();                 // fresh board on first play AND on replay
         awaitingStart = false;
         running = true;
         if (overlay) overlay.hidden = true;
@@ -470,6 +471,7 @@
 
     function start() {
       if (!awaitingStart) return;
+      reset();                 // fresh board on first play AND on replay
       awaitingStart = false;
       running = true;
       if (overlay) overlay.hidden = true;
