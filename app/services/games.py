@@ -21,6 +21,21 @@ from .badges import record_badge_progress
 GAME_SLUGS = {
     "poppi-jump": "Poppi Jump",
     "spaceship": "Spaceship Dodge",
+    "whack-a-mole": "Whack-a-Mole",
+    "snake": "Snake",
+    "simon-says": "Simon Says",
+    "brick-breaker": "Brick Breaker",
+}
+
+# Hard ceilings per game; scores above these are impossible in normal play
+# and are rejected as invalid (basic anti-cheat for hand-crafted POSTs).
+GAME_MAX_SCORES = {
+    "poppi-jump": 1000,
+    "spaceship": 2000,
+    "whack-a-mole": 200,
+    "snake": 600,
+    "simon-says": 100,
+    "brick-breaker": 5000,
 }
 
 MAX_LEVEL = 50
@@ -73,6 +88,8 @@ def submit_score(user, game: str, score) -> dict:
         raise ValueError("Score must be a whole number.")
     if score < 0:
         raise ValueError("Score must be non-negative.")
+    if score > GAME_MAX_SCORES.get(game, 10000):
+        raise ValueError("Score looks too high to be real!")
 
     db.session.add(GameScore(user_id=user.id, game=game, score=score))
 

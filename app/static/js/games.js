@@ -81,6 +81,28 @@
       .catch(() => {});
   };
 
+  /* ---------- tiny tone helper (Simon pads etc.) ---------- */
+  let toneCtx = null;
+  const tone = (freq, ms) => {
+    try {
+      toneCtx = toneCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const osc = toneCtx.createOscillator();
+      const gain = toneCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.18, toneCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, toneCtx.currentTime + ms / 1000);
+      osc.connect(gain).connect(toneCtx.destination);
+      osc.start();
+      osc.stop(toneCtx.currentTime + ms / 1000);
+    } catch (e) {}
+  };
+
+  const prefersReducedMotion = () => {
+    try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+    catch (e) { return false; }
+  };
+
   /* ---------- shuffle helper ---------- */
   const shuffle = (arr) => {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -580,5 +602,595 @@
     reset();
   }
 
-  window.IsmaGames = { initMemory, initColoring, initPoppiJump, initSpaceship };
+  /* =====================================================
+     WHACK-A-MOLE
+  ===================================================== */
+  function initWhack() {
+    const grid = document.getElementById("whackGrid");
+    if (!grid) return;
+    const scoreEl  = document.getElementById("whackScore");
+    const timeEl   = document.getElementById("whackTime");
+    const statusEl = document.getElementById("whackStatus");
+    const startBtn = document.getElementById("whackStart");
+
+    const ROUND_SECONDS = 30;
+    const MOLE = "🦹", STAR = "⭐";
+
+    let score = 0, timeLeft = ROUND_SECONDS, running = false;
+    let countdown = null, popTimer = null;
+    const holes = [];
+
+    for (let i = 0; i < 9; i++) {
+      const hole = document.createElement("button");
+      hole.type = "button";
+      hole.className = "whack-hole";
+      hole.setAttribute("aria-label", "Mole hole " + (i + 1));
+      hole.innerHTML = '<span class="whack-mole"></span>';
+      hole.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        if (!running || !hole.classList.contains("is-up")) return;
+        score += hole.dataset.star === "1" ? 5 : 1;
+        if (scoreEl) scoreEl.textContent = String(score);
+        sfx("pow");
+        hideMole(hole);
+      });
+      grid.appendChild(hole);
+      holes.push(hole);
+    }
+
+    function hideMole(hole) {
+      hole.classList.remove("is-up");
+      hole.dataset.star = "0";
+      hole.querySelector(".whack-mole").textContent = "";
+    }
+
+    function popMole() {
+      if (!running) return;
+      const up = holes.filter((h) => h.classList.contains("is-up"));
+      const down = holes.filter((h) => !h.classList.contains("is-up"));
+      // Keep at most 2 moles up at once; retire the oldest first.
+      if (up.length >= 2) hideMole(up[0]);
+      if (down.length) {
+        const hole = down[Math.floor(Math.random() * down.length)];
+        const isStar = Math.random() < 0.12;
+        hole.dataset.star = isStar ? "1" : "0";
+        hole.querySelector(".whack-mole").textContent = isStar ? STAR : MOLE;
+        hole.classList.add("is-up");
+        // Mole sneaks back down if not bonked in time.
+        const stay = 700 + Math.random() * 500;
+        setTimeout(() => { if (running) hideMole(hole); }, stay);
+      }
+      // Pops speed up as the clock runs down (900ms -> 450ms).
+      const progress = 1 - timeLeft / ROUND_SECONDS;
+      const interval = 900 - 450 * progress;
+      popTimer = setTimeout(popMole, interval);
+    }
+
+    function endRound() {
+      running = false;
+      clearInterval(countdown);
+      clearTimeout(popTimer);
+      holes.forEach(hideMole);
+      sfx("pow");
+      submitScore("whack-a-mole", score);
+      if (statusEl) statusEl.textContent = "TIME'S UP! You bonked " + score + " points — great job!";
+      if (startBtn) { startBtn.hidden = false; startBtn.textContent = "🔨 PLAY AGAIN!"; }
+    }
+
+    function startRound() {
+      score = 0; timeLeft = ROUND_SECONDS; running = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      if (timeEl) timeEl.textContent = String(ROUND_SECONDS);
+      if (statusEl) statusEl.textContent = "GO GO GO!";
+      if (startBtn) startBtn.hidden = true;
+      awardGameBadge();
+      sfx("click");
+      countdown = setInterval(() => {
+        timeLeft -= 1;
+        if (timeEl) timeEl.textContent = String(timeLeft);
+        if (timeLeft <= 0) endRound();
+      }, 1000);
+      popMole();
+    }
+
+    if (startBtn) startBtn.addEventListener("click", startRound);
+    initBestDisplay("whack-a-mole");
+  }
+
+  /* =====================================================
+     SNAKE
+  ===================================================== */
+  function initSnake() {
+    const canvas = document.getElementById("snakeCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    const scoreEl = document.getElementById("snakeScore");
+    const overlay = document.getElementById("snakeOverlay");
+    const dpad = document.getElementById("snakeDpad");
+
+    const CELL = 20, COLS = W / CELL, ROWS = H / CELL;
+    const START_TICK = 160, MIN_TICK = 80;   // ms per move
+
+    const DIRS = {
+      up:    { x: 0, y: -1 },
+      down:  { x: 0, y: 1 },
+      left:  { x: -1, y: 0 },
+      right: { x: 1, y: 0 },
+    };
+
+    let snake, dir, pendingDir, apple, score, running, awaitingStart, tickTimer;
+
+    function reset() {
+      const cx = Math.floor(COLS / 2), cy = Math.floor(ROWS / 2);
+      snake = [{ x: cx, y: cy }, { x: cx - 1, y: cy }, { x: cx - 2, y: cy }];
+      dir = DIRS.right;
+      pendingDir = dir;
+      score = 0;
+      running = false;
+      awaitingStart = true;
+      placeApple();
+      if (scoreEl) scoreEl.textContent = "0";
+      draw();
+    }
+
+    function placeApple() {
+      do {
+        apple = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
+      } while (snake.some((s) => s.x === apple.x && s.y === apple.y));
+    }
+
+    function setDir(name) {
+      const d = DIRS[name];
+      if (!d) return;
+      // No 180° reversals — compare against the direction of the last real move.
+      if (d.x === -dir.x && d.y === -dir.y) return;
+      pendingDir = d;
+    }
+
+    function start() {
+      if (!awaitingStart) return;
+      reset();
+      awaitingStart = false;
+      running = true;
+      if (overlay) overlay.hidden = true;
+      awardGameBadge();
+      tickTimer = setTimeout(tick, START_TICK);
+    }
+
+    function gameOver() {
+      running = false;
+      clearTimeout(tickTimer);
+      sfx("pow");
+      submitScore("snake", score);
+      if (overlay) {
+        overlay.innerHTML =
+          '<span class="burst">GAME OVER!</span>' +
+          '<p class="fw-bold mt-2 mb-0">Score: ' + score + '<br>Tap to slither again!</p>';
+        overlay.hidden = false;
+      }
+      awaitingStart = true;
+    }
+
+    function tick() {
+      dir = pendingDir;
+      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+      if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) return gameOver();
+      if (snake.some((s) => s.x === head.x && s.y === head.y)) return gameOver();
+
+      snake.unshift(head);
+      if (head.x === apple.x && head.y === apple.y) {
+        score += 1;
+        sfx("pow");
+        if (scoreEl) scoreEl.textContent = String(score);
+        placeApple();
+      } else {
+        snake.pop();
+      }
+
+      draw();
+      if (running) {
+        // Speeds up a touch with every apple eaten.
+        const speed = Math.max(MIN_TICK, START_TICK - score * 4);
+        tickTimer = setTimeout(tick, speed);
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = "#0b2a14";
+      ctx.fillRect(0, 0, W, H);
+      // Apple
+      ctx.font = (CELL * 1.1) + "px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("🍎", apple.x * CELL + CELL / 2, apple.y * CELL + CELL / 2);
+      // Snake
+      snake.forEach((seg, i) => {
+        ctx.fillStyle = i === 0 ? "#7dff9f" : "#22ff66";
+        ctx.fillRect(seg.x * CELL + 1, seg.y * CELL + 1, CELL - 2, CELL - 2);
+      });
+      // Eyes on the head so kids can see which way it's going.
+      const head = snake[0];
+      ctx.fillStyle = "#0b2a14";
+      const ex = head.x * CELL + CELL / 2 + dir.x * 4;
+      const ey = head.y * CELL + CELL / 2 + dir.y * 4;
+      ctx.fillRect(ex - 4, ey - 2, 3, 3);
+      ctx.fillRect(ex + 2, ey - 2, 3, 3);
+    }
+
+    const KEY_DIRS = {
+      ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
+      w: "up", s: "down", a: "left", d: "right",
+      W: "up", S: "down", A: "left", D: "right",
+    };
+    window.addEventListener("keydown", (e) => {
+      const name = KEY_DIRS[e.key];
+      if (!name) return;
+      if (e.key.startsWith("Arrow")) e.preventDefault();
+      start();
+      setDir(name);
+    });
+
+    // Swipe controls on the canvas.
+    let touchStart = null;
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      start();
+      const t = e.touches[0];
+      touchStart = { x: t.clientX, y: t.clientY };
+    }, { passive: false });
+    canvas.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      if (!touchStart) return;
+      const t = e.touches[0];
+      const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+      if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
+      if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? "right" : "left");
+      else setDir(dy > 0 ? "down" : "up");
+      touchStart = { x: t.clientX, y: t.clientY };
+    }, { passive: false });
+    canvas.addEventListener("mousedown", (e) => { e.preventDefault(); start(); });
+
+    if (dpad) {
+      dpad.querySelectorAll("[data-dir]").forEach((btn) => {
+        btn.addEventListener("pointerdown", (e) => {
+          e.preventDefault();
+          start();
+          setDir(btn.dataset.dir);
+        });
+      });
+    }
+
+    initBestDisplay("snake");
+    reset();
+  }
+
+  /* =====================================================
+     SIMON SAYS
+  ===================================================== */
+  function initSimon() {
+    const board = document.getElementById("simonBoard");
+    if (!board) return;
+    const roundEl  = document.getElementById("simonRound");
+    const statusEl = document.getElementById("simonStatus");
+    const startBtn = document.getElementById("simonStart");
+    const pads = Array.from(board.querySelectorAll(".simon-pad"));
+
+    const FREQS = [261.6, 329.6, 392.0, 523.3];  // C4 E4 G4 C5
+    const BUZZ = 110;
+
+    let sequence = [], playerIdx = 0, round = 0, accepting = false, playing = false;
+
+    function litTime() {
+      // Reduced motion: hold the light longer instead of relying on animation.
+      const base = Math.max(280, 450 - round * 15);
+      return prefersReducedMotion() ? base + 150 : base;
+    }
+
+    function light(pad, ms) {
+      pad.classList.add("is-lit");
+      tone(FREQS[pads.indexOf(pad)], ms);
+      setTimeout(() => pad.classList.remove("is-lit"), ms);
+    }
+
+    function playSequence() {
+      playing = true;
+      accepting = false;
+      if (statusEl) statusEl.textContent = "Watch carefully…";
+      const step = litTime();
+      sequence.forEach((padIdx, i) => {
+        setTimeout(() => light(pads[padIdx], step * 0.8), (i + 1) * step * 1.4);
+      });
+      setTimeout(() => {
+        playing = false;
+        accepting = true;
+        playerIdx = 0;
+        if (statusEl) statusEl.textContent = "Your turn!";
+      }, (sequence.length + 1) * step * 1.4);
+    }
+
+    function nextRound() {
+      round += 1;
+      if (roundEl) roundEl.textContent = String(round);
+      sequence.push(Math.floor(Math.random() * 4));
+      setTimeout(playSequence, 600);
+    }
+
+    function endGame() {
+      accepting = false;
+      const reached = round - 1;   // last fully completed round
+      tone(BUZZ, 400);
+      submitScore("simon-says", reached);
+      if (statusEl) statusEl.textContent = "GREAT TRY! You completed " + reached + " round" + (reached === 1 ? "" : "s") + "!";
+      if (startBtn) { startBtn.hidden = false; startBtn.textContent = "🎵 PLAY AGAIN!"; }
+    }
+
+    function startGame() {
+      sequence = [];
+      round = 0;
+      if (roundEl) roundEl.textContent = "0";
+      if (startBtn) startBtn.hidden = true;
+      awardGameBadge();
+      sfx("click");
+      nextRound();
+    }
+
+    pads.forEach((pad, idx) => {
+      pad.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        if (!accepting || playing) return;
+        light(pad, 250);
+        if (idx === sequence[playerIdx]) {
+          playerIdx += 1;
+          if (playerIdx === sequence.length) {
+            accepting = false;
+            sfx("pow");
+            if (statusEl) statusEl.textContent = "Nice! Get ready…";
+            nextRound();
+          }
+        } else {
+          endGame();
+        }
+      });
+    });
+
+    if (startBtn) startBtn.addEventListener("click", startGame);
+    initBestDisplay("simon-says");
+  }
+
+  /* =====================================================
+     BRICK BREAKER
+  ===================================================== */
+  function initBrick() {
+    const canvas = document.getElementById("brickCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    const scoreEl = document.getElementById("brickScore");
+    const livesEl = document.getElementById("brickLives");
+    const overlay = document.getElementById("brickOverlay");
+
+    const PADDLE_W = 90, PADDLE_H = 14, PADDLE_Y = H - 40;
+    const BALL_R = 8;
+    const ROWS = 6, COLS = 8;
+    const BRICK_H = 24, BRICK_GAP = 6, BRICK_TOP = 70;
+    const BRICK_W = (W - BRICK_GAP * (COLS + 1)) / COLS;
+    const ROW_COLORS = ["#ff2d2d", "#ff8a00", "#ffd400", "#22ff66", "#1e6bff", "#ff5ad6"];
+    const PADDLE_SPEED = 420;
+
+    let paddleX, ball, bricks, score, lives, level, running, awaitingStart, ballHeld, last, raf;
+    let leftHeld = false, rightHeld = false;
+
+    function buildBricks() {
+      bricks = [];
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          bricks.push({
+            x: BRICK_GAP + c * (BRICK_W + BRICK_GAP),
+            y: BRICK_TOP + r * (BRICK_H + BRICK_GAP),
+            color: ROW_COLORS[r % ROW_COLORS.length],
+            alive: true,
+          });
+        }
+      }
+    }
+
+    function ballSpeed() {
+      return 320 + (level - 1) * 40;   // gentle ramp per cleared wall
+    }
+
+    function serveBall() {
+      ball = { x: paddleX, y: PADDLE_Y - BALL_R - 2, vx: 0, vy: 0 };
+      ballHeld = true;
+    }
+
+    function launchBall() {
+      if (!ballHeld) return;
+      ballHeld = false;
+      const angle = -Math.PI / 2 + (Math.random() * 0.6 - 0.3);
+      ball.vx = Math.cos(angle) * ballSpeed();
+      ball.vy = Math.sin(angle) * ballSpeed();
+      sfx("click");
+    }
+
+    function reset() {
+      paddleX = W / 2;
+      score = 0;
+      lives = 3;
+      level = 1;
+      running = false;
+      awaitingStart = true;
+      buildBricks();
+      serveBall();
+      if (scoreEl) scoreEl.textContent = "0";
+      if (livesEl) livesEl.textContent = "3";
+      draw();
+    }
+
+    function start() {
+      if (awaitingStart) {
+        reset();
+        awaitingStart = false;
+        running = true;
+        if (overlay) overlay.hidden = true;
+        awardGameBadge();
+        last = performance.now();
+        raf = requestAnimationFrame(loop);
+      }
+      launchBall();
+    }
+
+    function gameOver() {
+      running = false;
+      cancelAnimationFrame(raf);
+      sfx("pow");
+      submitScore("brick-breaker", score);
+      if (overlay) {
+        overlay.innerHTML =
+          '<span class="burst">GAME OVER!</span>' +
+          '<p class="fw-bold mt-2 mb-0">Score: ' + score + '<br>Tap to smash again!</p>';
+        overlay.hidden = false;
+      }
+      awaitingStart = true;
+    }
+
+    function loseBall() {
+      lives -= 1;
+      if (livesEl) livesEl.textContent = String(lives);
+      sfx("pow");
+      if (lives <= 0) return gameOver();
+      serveBall();
+    }
+
+    function levelClear() {
+      fanfare();
+      score += 50;
+      level += 1;
+      if (scoreEl) scoreEl.textContent = String(score);
+      buildBricks();
+      serveBall();
+    }
+
+    function loop(now) {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+
+      if (leftHeld) paddleX -= PADDLE_SPEED * dt;
+      if (rightHeld) paddleX += PADDLE_SPEED * dt;
+      paddleX = Math.max(PADDLE_W / 2, Math.min(W - PADDLE_W / 2, paddleX));
+
+      if (ballHeld) {
+        ball.x = paddleX;
+        ball.y = PADDLE_Y - BALL_R - 2;
+      } else {
+        ball.x += ball.vx * dt;
+        ball.y += ball.vy * dt;
+
+        // Walls
+        if (ball.x - BALL_R < 0) { ball.x = BALL_R; ball.vx = Math.abs(ball.vx); }
+        if (ball.x + BALL_R > W) { ball.x = W - BALL_R; ball.vx = -Math.abs(ball.vx); }
+        if (ball.y - BALL_R < 0) { ball.y = BALL_R; ball.vy = Math.abs(ball.vy); }
+        if (ball.y - BALL_R > H) loseBall();
+
+        // Paddle: bounce angle follows where the ball hits the paddle.
+        if (ball.vy > 0 &&
+            ball.y + BALL_R >= PADDLE_Y && ball.y + BALL_R <= PADDLE_Y + PADDLE_H + 6 &&
+            ball.x >= paddleX - PADDLE_W / 2 - BALL_R && ball.x <= paddleX + PADDLE_W / 2 + BALL_R) {
+          const offset = (ball.x - paddleX) / (PADDLE_W / 2);   // -1 .. 1
+          const angle = -Math.PI / 2 + offset * (Math.PI / 3);  // up to ±60°
+          const speed = ballSpeed();
+          ball.vx = Math.cos(angle) * speed;
+          ball.vy = Math.sin(angle) * speed;
+          ball.y = PADDLE_Y - BALL_R;
+          sfx("click");
+        }
+
+        // Bricks (axis-aligned box vs circle, flip the shallower axis).
+        for (const b of bricks) {
+          if (!b.alive) continue;
+          if (ball.x + BALL_R < b.x || ball.x - BALL_R > b.x + BRICK_W ||
+              ball.y + BALL_R < b.y || ball.y - BALL_R > b.y + BRICK_H) continue;
+          b.alive = false;
+          score += 10;
+          if (scoreEl) scoreEl.textContent = String(score);
+          sfx("pow");
+          const overlapX = Math.min(ball.x + BALL_R - b.x, b.x + BRICK_W - (ball.x - BALL_R));
+          const overlapY = Math.min(ball.y + BALL_R - b.y, b.y + BRICK_H - (ball.y - BALL_R));
+          if (overlapX < overlapY) ball.vx = -ball.vx;
+          else ball.vy = -ball.vy;
+          break;
+        }
+        if (running && bricks.every((b) => !b.alive)) levelClear();
+      }
+
+      draw();
+      if (running) raf = requestAnimationFrame(loop);
+    }
+
+    function draw() {
+      ctx.fillStyle = "#1a0b2a";
+      ctx.fillRect(0, 0, W, H);
+      // Bricks
+      for (const b of bricks) {
+        if (!b.alive) continue;
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, BRICK_W, BRICK_H);
+        ctx.strokeStyle = "#111";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(b.x, b.y, BRICK_W, BRICK_H);
+      }
+      // Paddle
+      ctx.fillStyle = "#ffd400";
+      ctx.strokeStyle = "#111";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(paddleX - PADDLE_W / 2, PADDLE_Y, PADDLE_W, PADDLE_H, 7);
+      else ctx.rect(paddleX - PADDLE_W / 2, PADDLE_Y, PADDLE_W, PADDLE_H);
+      ctx.fill();
+      ctx.stroke();
+      // Ball
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
+      ctx.fill();
+      // Hint while the ball waits on the paddle.
+      if (ballHeld && running) {
+        ctx.fillStyle = "rgba(255,255,255,0.8)";
+        ctx.font = "bold 18px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Tap to launch!", W / 2, H / 2);
+      }
+    }
+
+    function pointerMove(e) {
+      if (!running) return;
+      const rect = canvas.getBoundingClientRect();
+      const t = e.touches ? e.touches[0] : e;
+      paddleX = (t.clientX - rect.left) * (W / rect.width);
+      paddleX = Math.max(PADDLE_W / 2, Math.min(W - PADDLE_W / 2, paddleX));
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") { e.preventDefault(); leftHeld = true; start(); }
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { e.preventDefault(); rightHeld = true; start(); }
+      if (e.code === "Space" || e.key === " ") { e.preventDefault(); start(); }
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") leftHeld = false;
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") rightHeld = false;
+    });
+    canvas.addEventListener("mousedown", (e) => { e.preventDefault(); start(); });
+    canvas.addEventListener("mousemove", pointerMove);
+    canvas.addEventListener("touchstart", (e) => { e.preventDefault(); start(); pointerMove(e); }, { passive: false });
+    canvas.addEventListener("touchmove", (e) => { e.preventDefault(); pointerMove(e); }, { passive: false });
+
+    initBestDisplay("brick-breaker");
+    reset();
+  }
+
+  window.IsmaGames = {
+    initMemory, initColoring, initPoppiJump, initSpaceship,
+    initWhack, initSnake, initSimon, initBrick,
+  };
 })();
