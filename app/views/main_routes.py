@@ -6,6 +6,7 @@ from flask_login import current_user
 
 from ..models.character import Character
 from ..services.badges import get_user_badge_states, record_badge_progress, get_badge_meta
+from ..services.games import get_math_king
 
 main_bp = Blueprint("main", __name__)
 
@@ -33,4 +34,5 @@ def home():
         badge_meta=badge_meta,
         spotlight=spotlight,
         all_badges=list(badge_meta.keys()),
+        math_king=get_math_king(),
     )

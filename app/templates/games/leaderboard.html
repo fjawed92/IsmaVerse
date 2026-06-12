@@ -67,11 +67,37 @@
   </div>
 
   <!-- =====================
+       MATH KING THRONE
+  ===================== -->
+  <div class="comic-panel mb-4" style="border-color: var(--comic-yellow);">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-yellow), #ffd166);">
+      <h2 class="panel-title" style="color:var(--ink);">👑 Math King</h2>
+      <span class="burst">2× XP!</span>
+    </div>
+    <div class="p-3 p-md-4 text-center">
+      {% if math_king %}
+        <p class="fw-bold mb-1" style="font-family:'Bangers',cursive; font-size:1.6rem; letter-spacing:1px;">
+          👑 {{ math_king.username }}
+          {% if math_king.champion_name %}<span class="text-muted">with {{ math_king.champion_name }}</span>{% endif %}
+        </p>
+        <p class="fw-bold mb-2">{{ math_king.total }} math points across all math games — can YOU dethrone them?</p>
+      {% else %}
+        <p class="fw-bold mb-2">The math throne is empty — top the math games to claim it!</p>
+      {% endif %}
+      <p class="text-muted mb-2">Math games earn <strong>DOUBLE champion XP</strong>, so they're the fastest way to level up your hero!</p>
+      <a href="{{ url_for('games.games_hub') }}#math-games" class="btn btn-comic-cta">🧠 Play Math Games</a>
+    </div>
+  </div>
+
+  <!-- =====================
        PER-GAME BOARDS
   ===================== -->
   {% set game_icons = {
     'poppi-jump': '🐸', 'spaceship': '🚀', 'whack-a-mole': '🔨',
     'snake': '🐍', 'simon-says': '🎵', 'brick-breaker': '🧱',
+    'math-blitz': '⚡', 'equation-match': '🧮', 'pattern-quest': '🔢',
+    'number-defender': '☄️', 'math-compare': '⚖️', 'number-builder': '🎯',
   } %}
   {% for slug, name in game_names.items() %}
   <div class="comic-panel mb-4">

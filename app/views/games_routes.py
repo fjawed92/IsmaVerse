@@ -7,7 +7,7 @@ from ..models.character import Character
 from ..services.badges import record_badge_progress
 from ..services.games import (
     GAME_SLUGS, claim_champion, get_champion_view, get_leaderboard,
-    get_user_best, submit_score,
+    get_math_king, get_user_best, submit_score,
 )
 
 games_bp = Blueprint("games", __name__, url_prefix="/games")
@@ -82,6 +82,24 @@ def pattern_quest():
     return render_template("games/pattern_quest.html", best=best)
 
 
+@games_bp.route("/number-defender")
+def number_defender():
+    best = get_user_best(current_user, "number-defender") if current_user.is_authenticated else 0
+    return render_template("games/number_defender.html", best=best)
+
+
+@games_bp.route("/math-compare")
+def math_compare():
+    best = get_user_best(current_user, "math-compare") if current_user.is_authenticated else 0
+    return render_template("games/math_compare.html", best=best)
+
+
+@games_bp.route("/number-builder")
+def number_builder():
+    best = get_user_best(current_user, "number-builder") if current_user.is_authenticated else 0
+    return render_template("games/number_builder.html", best=best)
+
+
 @games_bp.route("/played", methods=["POST"])
 @login_required
 def played():
@@ -116,6 +134,7 @@ def leaderboard():
         boards=boards,
         champion=champion,
         characters=characters,
+        math_king=get_math_king(),
     )
 
 

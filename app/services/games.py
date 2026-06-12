@@ -28,10 +28,18 @@ GAME_SLUGS = {
     "math-blitz": "Math Blitz",
     "equation-match": "Equation Match",
     "pattern-quest": "Pattern Quest",
+    "number-defender": "Number Defender",
+    "math-compare": "Number Showdown",
+    "number-builder": "Number Builder",
 }
 
-# Educational games get their own badges on top of the arcade ones.
-MATH_GAME_SLUGS = {"math-blitz", "equation-match", "pattern-quest"}
+# Educational games get their own badges on top of the arcade ones,
+# and earn DOUBLE champion XP as an extra incentive to play them.
+MATH_GAME_SLUGS = {
+    "math-blitz", "equation-match", "pattern-quest",
+    "number-defender", "math-compare", "number-builder",
+}
+MATH_XP_MULTIPLIER = 2
 
 # Hard ceilings per game; scores above these are impossible in normal play
 # and are rejected as invalid (basic anti-cheat for hand-crafted POSTs).
@@ -45,6 +53,9 @@ GAME_MAX_SCORES = {
     "math-blitz": 900,
     "equation-match": 100,
     "pattern-quest": 1000,
+    "number-defender": 1500,
+    "math-compare": 700,
+    "number-builder": 400,
 }
 
 MAX_LEVEL = 50
@@ -104,7 +115,10 @@ def submit_score(user, game: str, score) -> dict:
 
     champ = get_or_create_champion(user)
     old_level = champ.level
-    champ.xp += 10 + (score // 10)
+    xp_gain = 10 + (score // 10)
+    if game in MATH_GAME_SLUGS:
+        xp_gain *= MATH_XP_MULTIPLIER
+    champ.xp += xp_gain
     champ.games_played += 1
     champ.total_score += score
     champ.level = compute_level(champ.xp)
@@ -118,8 +132,14 @@ def submit_score(user, game: str, score) -> dict:
         record_badge_progress(user, "high-flyer")
     if game in MATH_GAME_SLUGS:
         record_badge_progress(user, "math-star")
+        record_badge_progress(user, "math-marathon")
         if score >= 100:
             record_badge_progress(user, "math-whiz")
+        if score >= 300:
+            record_badge_progress(user, "math-genius")
+        king = get_math_king()
+        if king and king["user_id"] == user.id:
+            record_badge_progress(user, "math-king")
 
     return {
         "best": get_user_best(user, game),
@@ -203,6 +223,64 @@ def get_leaderboard(game: str, limit: int = 10) -> list:
             "tier": tier_for_level(lvl),
         })
     return board
+
+
+def get_math_king(limit: int = 1):
+    """The reigning Math King: highest combined personal-best score across
+    all math games. Returns a dict (or a list when limit > 1) with the
+    user, their math total and their champion hero — or None if nobody
+    has played a math game yet.
+    """
+    best_per_game = (
+        db.session.query(
+            GameScore.user_id.label("user_id"),
+            GameScore.game.label("game"),
+            func.max(GameScore.score).label("best"),
+        )
+        .filter(GameScore.game.in_(MATH_GAME_SLUGS))
+        .group_by(GameScore.user_id, GameScore.game)
+        .subquery()
+    )
+    totals = (
+        db.session.query(
+            best_per_game.c.user_id.label("user_id"),
+            func.sum(best_per_game.c.best).label("total"),
+        )
+        .group_by(best_per_game.c.user_id)
+        .subquery()
+    )
+    rows = (
+        db.session.query(
+            totals.c.user_id,
+            totals.c.total,
+            User.username,
+            GameChampion.level,
+            Character.superhero_name,
+            Character.image_file,
+        )
+        .join(User, User.id == totals.c.user_id)
+        .outerjoin(GameChampion, GameChampion.user_id == totals.c.user_id)
+        .outerjoin(Character, Character.id == GameChampion.character_id)
+        .order_by(totals.c.total.desc(), User.username.asc())
+        .limit(limit)
+        .all()
+    )
+
+    kings = []
+    for user_id, total, username, level, hero_name, hero_img in rows:
+        lvl = level or 1
+        kings.append({
+            "user_id": user_id,
+            "username": username,
+            "total": int(total or 0),
+            "champion_name": hero_name,
+            "champion_image": hero_img,
+            "level": lvl,
+            "tier": tier_for_level(lvl),
+        })
+    if limit == 1:
+        return kings[0] if kings else None
+    return kings
 
 
 def claim_champion(user, character_id) -> GameChampion:
