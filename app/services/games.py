@@ -25,7 +25,13 @@ GAME_SLUGS = {
     "snake": "Snake",
     "simon-says": "Simon Says",
     "brick-breaker": "Brick Breaker",
+    "math-blitz": "Math Blitz",
+    "equation-match": "Equation Match",
+    "pattern-quest": "Pattern Quest",
 }
+
+# Educational games get their own badges on top of the arcade ones.
+MATH_GAME_SLUGS = {"math-blitz", "equation-match", "pattern-quest"}
 
 # Hard ceilings per game; scores above these are impossible in normal play
 # and are rejected as invalid (basic anti-cheat for hand-crafted POSTs).
@@ -36,6 +42,9 @@ GAME_MAX_SCORES = {
     "snake": 600,
     "simon-says": 100,
     "brick-breaker": 5000,
+    "math-blitz": 900,
+    "equation-match": 100,
+    "pattern-quest": 1000,
 }
 
 MAX_LEVEL = 50
@@ -107,6 +116,10 @@ def submit_score(user, game: str, score) -> dict:
     record_badge_progress(user, "arcade-ace")
     if score >= 100:
         record_badge_progress(user, "high-flyer")
+    if game in MATH_GAME_SLUGS:
+        record_badge_progress(user, "math-star")
+        if score >= 100:
+            record_badge_progress(user, "math-whiz")
 
     return {
         "best": get_user_best(user, game),

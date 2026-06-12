@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Pattern Quest - IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-pink), #ffd1ef);">
+      <h1 class="panel-title" style="color:var(--ink);">🔢 Pattern Quest</h1>
+      <span class="burst">THINK!</span>
+    </div>
+
+    <div class="p-3 p-md-4 text-center">
+      <div class="arcade-hud d-flex flex-wrap justify-content-center align-items-center gap-3 mb-3">
+        <span class="memory-stat">Score: <strong id="patternScore">0</strong></span>
+        <span class="memory-stat">Lives: <strong id="patternLives">❤️❤️❤️</strong></span>
+        <span class="memory-stat" data-best-source="{{ 'server' if current_user.is_authenticated else 'local' }}" data-game="pattern-quest">
+          Best: <strong data-best-value>{{ best }}</strong>
+        </span>
+      </div>
+
+      <div id="patternSeq" class="pattern-seq mb-3" aria-live="polite">Ready?</div>
+
+      <div id="patternChoices" class="math-answers mx-auto mb-3" aria-label="Answer choices"></div>
+
+      <p id="patternStatus" class="fw-bold mb-3" aria-live="polite">Find the missing number in the pattern — it gets harder every round!</p>
+      <button type="button" id="patternStart" class="btn btn-comic-cta">🔢 START!</button>
+
+      <p class="text-muted mt-3 mb-0">You have 3 lives — harder patterns are worth more points!
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.login') }}">Log in</a> to save your score to the leaderboard!
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/games.js') }}"></script>
+<script>window.IsmaGames && IsmaGames.initPatternQuest();</script>
+{% endblock %}

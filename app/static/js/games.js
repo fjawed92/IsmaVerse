@@ -1189,8 +1189,402 @@
     reset();
   }
 
+  /* =====================================================
+     MATH HELPERS (shared by the educational games)
+  ===================================================== */
+  const randInt = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  // 4 multiple-choice answers: the real one + 3 nearby look-alikes.
+  const makeChoices = (answer) => {
+    const choices = new Set([answer]);
+    const spread = Math.max(3, Math.round(Math.abs(answer) * 0.25));
+    let guard = 0;
+    while (choices.size < 4 && guard++ < 100) {
+      const d = answer + randInt(-spread, spread);
+      if (d !== answer && d >= 0) choices.add(d);
+    }
+    // Fallback for tiny answers where the spread can't produce 3 options.
+    let bump = 1;
+    while (choices.size < 4) choices.add(answer + spread + bump++);
+    return shuffle(Array.from(choices));
+  };
+
+  // Render answer buttons into a .math-answers grid; onPick(value, button).
+  const renderChoices = (wrap, choices, onPick) => {
+    wrap.innerHTML = "";
+    choices.forEach((value) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "math-answer-btn";
+      btn.textContent = String(value);
+      btn.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        onPick(value, btn);
+      });
+      wrap.appendChild(btn);
+    });
+  };
+
+  const flashAnswers = (wrap, answer, pickedBtn) => {
+    wrap.querySelectorAll(".math-answer-btn").forEach((b) => {
+      b.disabled = true;
+      if (parseInt(b.textContent, 10) === answer) b.classList.add("is-right");
+    });
+    if (pickedBtn) pickedBtn.classList.add("is-wrong");
+  };
+
+  /* =====================================================
+     MATH BLITZ  (60-second arithmetic sprint)
+  ===================================================== */
+  function initMathBlitz() {
+    const problemEl = document.getElementById("blitzProblem");
+    if (!problemEl) return;
+    const answersEl = document.getElementById("blitzAnswers");
+    const scoreEl   = document.getElementById("blitzScore");
+    const timeEl    = document.getElementById("blitzTime");
+    const streakEl  = document.getElementById("blitzStreak");
+    const statusEl  = document.getElementById("blitzStatus");
+    const startBtn  = document.getElementById("blitzStart");
+
+    const ROUND_SECONDS = 60;
+
+    let score = 0, streak = 0, solved = 0, timeLeft = ROUND_SECONDS;
+    let running = false, accepting = false, countdown = null, answer = 0;
+
+    // Difficulty climbs with every few problems solved (right OR wrong moves
+    // you on, so nobody gets stuck staring at the same level).
+    function makeQuestion() {
+      const level = solved < 5 ? 1 : solved < 10 ? 2 : solved < 16 ? 3 : solved < 23 ? 4 : 5;
+      let op;
+      if (level <= 2) op = pick(["+", "−"]);
+      else if (level === 3) op = "×";
+      else if (level === 4) op = pick(["×", "÷"]);
+      else op = pick(["+", "−", "×", "÷"]);
+
+      let a, b;
+      if (op === "+") {
+        const max = level === 1 ? 10 : level === 2 ? 25 : 99;
+        a = randInt(1, max); b = randInt(1, max);
+        answer = a + b;
+      } else if (op === "−") {
+        const max = level === 1 ? 10 : level === 2 ? 25 : 99;
+        a = randInt(1, max); b = randInt(1, max);
+        if (b > a) { const t = a; a = b; b = t; }
+        answer = a - b;
+      } else if (op === "×") {
+        a = randInt(2, level >= 4 ? 12 : 5); b = randInt(2, 9);
+        answer = a * b;
+      } else {
+        b = randInt(2, 9); answer = randInt(2, 12);
+        a = b * answer;          // guarantees a whole-number quotient
+      }
+      problemEl.textContent = a + " " + op + " " + b + " = ?";
+      renderChoices(answersEl, makeChoices(answer), onPick);
+      accepting = true;
+    }
+
+    function onPick(value, btn) {
+      if (!running || !accepting) return;
+      accepting = false;
+      if (value === answer) {
+        streak += 1;
+        score += 10 + Math.min(streak - 1, 5);   // streak bonus, capped
+        solved += 1;
+        if (scoreEl) scoreEl.textContent = String(score);
+        if (streakEl) streakEl.textContent = String(streak);
+        btn.classList.add("is-right");
+        sfx("pow");
+        setTimeout(() => { if (running) makeQuestion(); }, 200);
+      } else {
+        streak = 0;
+        solved += 1;
+        if (streakEl) streakEl.textContent = "0";
+        flashAnswers(answersEl, answer, btn);
+        tone(110, 300);
+        setTimeout(() => { if (running) makeQuestion(); }, 800);
+      }
+    }
+
+    function endRound() {
+      running = false;
+      accepting = false;
+      clearInterval(countdown);
+      answersEl.innerHTML = "";
+      problemEl.textContent = "TIME'S UP!";
+      sfx("pow");
+      submitScore("math-blitz", score);
+      if (statusEl) statusEl.textContent = "You scored " + score + " points — super brain power!";
+      if (startBtn) { startBtn.hidden = false; startBtn.textContent = "⚡ PLAY AGAIN!"; }
+    }
+
+    function startRound() {
+      score = 0; streak = 0; solved = 0; timeLeft = ROUND_SECONDS;
+      running = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      if (streakEl) streakEl.textContent = "0";
+      if (timeEl) timeEl.textContent = String(ROUND_SECONDS);
+      if (statusEl) statusEl.textContent = "GO GO GO!";
+      if (startBtn) startBtn.hidden = true;
+      awardGameBadge();
+      sfx("click");
+      countdown = setInterval(() => {
+        timeLeft -= 1;
+        if (timeEl) timeEl.textContent = String(timeLeft);
+        if (timeLeft <= 0) endRound();
+      }, 1000);
+      makeQuestion();
+    }
+
+    if (startBtn) startBtn.addEventListener("click", startRound);
+    initBestDisplay("math-blitz");
+  }
+
+  /* =====================================================
+     EQUATION MATCH  (memory match: equation <-> answer)
+  ===================================================== */
+  function initEquationMatch() {
+    const grid = document.getElementById("equationGrid");
+    if (!grid) return;
+    const movesEl   = document.getElementById("equationMoves");
+    const matchesEl = document.getElementById("equationMatches");
+    const winEl     = document.getElementById("equationWin");
+    const finalEl   = document.getElementById("equationFinalMoves");
+    const scoreEl   = document.getElementById("equationFinalScore");
+    const restart   = document.getElementById("equationRestart");
+
+    const PAIRS = 6;
+
+    let first = null, lock = false, moves = 0, matches = 0;
+
+    // Fresh equations every game, all with distinct answers so each
+    // answer card matches exactly one equation.
+    function makePairs() {
+      const pairs = [];
+      const used = new Set();
+      let guard = 0;
+      while (pairs.length < PAIRS && guard++ < 200) {
+        const kind = pairs.length % 3;
+        let a, b, text, ans;
+        if (kind === 0) {
+          a = randInt(2, 12); b = randInt(2, 12);
+          ans = a + b; text = a + " + " + b;
+        } else if (kind === 1) {
+          a = randInt(5, 20); b = randInt(1, a - 1);
+          ans = a - b; text = a + " − " + b;
+        } else {
+          a = randInt(2, 9); b = randInt(2, 9);
+          ans = a * b; text = a + " × " + b;
+        }
+        if (used.has(ans)) continue;
+        used.add(ans);
+        pairs.push({ text: text, ans: ans });
+      }
+      return pairs;
+    }
+
+    function build() {
+      grid.innerHTML = "";
+      if (winEl) winEl.hidden = true;
+      first = null; lock = false; moves = 0; matches = 0;
+      if (movesEl) movesEl.textContent = "0";
+      if (matchesEl) matchesEl.textContent = "0";
+
+      const cards = [];
+      makePairs().forEach((p, i) => {
+        cards.push({ face: p.text, pair: i });
+        cards.push({ face: String(p.ans), pair: i });
+      });
+      shuffle(cards).forEach((c) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "memory-card";
+        card.setAttribute("aria-label", "Equation card");
+        card.dataset.pair = String(c.pair);
+        card.innerHTML =
+          '<span class="memory-card-inner">' +
+            '<span class="memory-front">?</span>' +
+            '<span class="memory-back">' + c.face + "</span>" +
+          "</span>";
+        card.addEventListener("click", () => flip(card));
+        grid.appendChild(card);
+      });
+    }
+
+    function flip(card) {
+      if (lock || card === first || card.classList.contains("is-flipped") || card.classList.contains("is-matched")) return;
+      card.classList.add("is-flipped");
+      sfx("click");
+
+      if (!first) { first = card; return; }
+
+      moves += 1;
+      if (movesEl) movesEl.textContent = String(moves);
+
+      if (first.dataset.pair === card.dataset.pair) {
+        first.classList.add("is-matched");
+        card.classList.add("is-matched");
+        sfx("pow");
+        matches += 1;
+        if (matchesEl) matchesEl.textContent = String(matches);
+        first = null;
+        if (matches === PAIRS) {
+          // Perfect game (6 moves) = 100; each extra move costs 5.
+          const score = Math.max(10, 100 - (moves - PAIRS) * 5);
+          fanfare();
+          awardGameBadge();
+          submitScore("equation-match", score);
+          if (finalEl) finalEl.textContent = String(moves);
+          if (scoreEl) scoreEl.textContent = String(score);
+          if (winEl) winEl.hidden = false;
+        }
+      } else {
+        lock = true;
+        const a = first, b = card;
+        setTimeout(() => {
+          a.classList.remove("is-flipped");
+          b.classList.remove("is-flipped");
+          lock = false;
+        }, 900);
+        first = null;
+      }
+    }
+
+    if (restart) restart.addEventListener("click", () => { sfx("click"); build(); });
+    initBestDisplay("equation-match");
+    build();
+  }
+
+  /* =====================================================
+     PATTERN QUEST  (find the missing number, 3 lives)
+  ===================================================== */
+  function initPatternQuest() {
+    const seqEl = document.getElementById("patternSeq");
+    if (!seqEl) return;
+    const choicesEl = document.getElementById("patternChoices");
+    const scoreEl   = document.getElementById("patternScore");
+    const livesEl   = document.getElementById("patternLives");
+    const statusEl  = document.getElementById("patternStatus");
+    const startBtn  = document.getElementById("patternStart");
+
+    const TERMS = 5;
+
+    let score = 0, lives = 3, solved = 0;
+    let running = false, accepting = false, answer = 0;
+
+    function currentTier() {
+      return solved < 3 ? 1 : solved < 6 ? 2 : solved < 10 ? 3 : solved < 14 ? 4 : 5;
+    }
+
+    function makeSequence(tier) {
+      const seq = [];
+      if (tier === 1) {
+        const step = pick([1, 2, 5, 10]);
+        let n = randInt(1, 10);
+        for (let i = 0; i < TERMS; i++) { seq.push(n); n += step; }
+      } else if (tier === 2) {
+        const step = pick([2, 3, 4, 5]);
+        if (Math.random() < 0.5) {
+          let n = randInt(step * TERMS, step * TERMS + 20);   // descending
+          for (let i = 0; i < TERMS; i++) { seq.push(n); n -= step; }
+        } else {
+          let n = randInt(1, 12);
+          const bigStep = pick([6, 7, 8, 9]);
+          for (let i = 0; i < TERMS; i++) { seq.push(n); n += bigStep; }
+        }
+      } else if (tier === 3) {
+        let n = pick([1, 2, 3, 4, 5]);                        // doubling
+        for (let i = 0; i < TERMS; i++) { seq.push(n); n *= 2; }
+      } else if (tier === 4) {
+        if (Math.random() < 0.5) {
+          const start = randInt(1, 4);                        // square numbers
+          for (let i = 0; i < TERMS; i++) seq.push((start + i) * (start + i));
+        } else {
+          let n = pick([1, 2, 3]);                            // tripling
+          for (let i = 0; i < TERMS; i++) { seq.push(n); n *= 3; }
+        }
+      } else {
+        let a = randInt(1, 5), b = randInt(1, 5);             // Fibonacci-style
+        for (let i = 0; i < TERMS; i++) {
+          seq.push(a);
+          const next = a + b;
+          a = b; b = next;
+        }
+      }
+      return seq;
+    }
+
+    function makePattern() {
+      const tier = currentTier();
+      const seq = makeSequence(tier);
+      const gap = randInt(1, TERMS - 2);   // never the first or last term
+      answer = seq[gap];
+
+      seqEl.innerHTML = seq
+        .map((n, i) => (i === gap ? '<span class="pattern-gap">?</span>' : String(n)))
+        .join('<span class="pattern-comma">, </span>');
+      renderChoices(choicesEl, makeChoices(answer), onPick);
+      if (statusEl) statusEl.textContent = "What number fills the gap? (Worth " + tier * 10 + " points)";
+      accepting = true;
+    }
+
+    function drawLives() {
+      if (livesEl) livesEl.textContent = lives > 0 ? "❤️".repeat(lives) : "💔";
+    }
+
+    function onPick(value, btn) {
+      if (!running || !accepting) return;
+      accepting = false;
+      if (value === answer) {
+        score += currentTier() * 10;
+        solved += 1;
+        if (scoreEl) scoreEl.textContent = String(score);
+        btn.classList.add("is-right");
+        sfx("pow");
+        setTimeout(() => { if (running) makePattern(); }, 400);
+      } else {
+        lives -= 1;
+        drawLives();
+        flashAnswers(choicesEl, answer, btn);
+        tone(110, 300);
+        if (lives <= 0) {
+          setTimeout(endGame, 900);
+        } else {
+          if (statusEl) statusEl.textContent = "So close! The answer was " + answer + " — keep going!";
+          setTimeout(() => { if (running) makePattern(); }, 1300);
+        }
+      }
+    }
+
+    function endGame() {
+      running = false;
+      accepting = false;
+      choicesEl.innerHTML = "";
+      seqEl.textContent = "GAME OVER!";
+      sfx("pow");
+      submitScore("pattern-quest", score);
+      if (statusEl) statusEl.textContent = "You solved " + solved + " pattern" + (solved === 1 ? "" : "s") + " and scored " + score + " points!";
+      if (startBtn) { startBtn.hidden = false; startBtn.textContent = "🔢 PLAY AGAIN!"; }
+    }
+
+    function startGame() {
+      score = 0; lives = 3; solved = 0;
+      running = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      drawLives();
+      if (startBtn) startBtn.hidden = true;
+      awardGameBadge();
+      sfx("click");
+      makePattern();
+    }
+
+    if (startBtn) startBtn.addEventListener("click", startGame);
+    initBestDisplay("pattern-quest");
+  }
+
   window.IsmaGames = {
     initMemory, initColoring, initPoppiJump, initSpaceship,
     initWhack, initSnake, initSimon, initBrick,
+    initMathBlitz, initEquationMatch, initPatternQuest,
   };
 })();

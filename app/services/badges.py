@@ -161,6 +161,21 @@ BADGE_DEFINITIONS = {
         "color": "pink",
         "emoji": "🦸",
     },
+    # Educational math games
+    "math-star": {
+        "name": "Math Star",
+        "description": "Played a math game.",
+        "unlock_count": 1,
+        "color": "green",
+        "emoji": "🔢",
+    },
+    "math-whiz": {
+        "name": "Math Whiz",
+        "description": "Scored 100+ in a math game!",
+        "unlock_count": 1,
+        "color": "purple",
+        "emoji": "🧮",
+    },
 }
 
 

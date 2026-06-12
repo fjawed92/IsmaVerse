@@ -64,6 +64,24 @@ def brick_breaker():
     return render_template("games/brick_breaker.html", best=best)
 
 
+@games_bp.route("/math-blitz")
+def math_blitz():
+    best = get_user_best(current_user, "math-blitz") if current_user.is_authenticated else 0
+    return render_template("games/math_blitz.html", best=best)
+
+
+@games_bp.route("/equation-match")
+def equation_match():
+    best = get_user_best(current_user, "equation-match") if current_user.is_authenticated else 0
+    return render_template("games/equation_match.html", best=best)
+
+
+@games_bp.route("/pattern-quest")
+def pattern_quest():
+    best = get_user_best(current_user, "pattern-quest") if current_user.is_authenticated else 0
+    return render_template("games/pattern_quest.html", best=best)
+
+
 @games_bp.route("/played", methods=["POST"])
 @login_required
 def played():

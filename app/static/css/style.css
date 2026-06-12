@@ -2453,6 +2453,62 @@ html[data-theme="dark"] .memory-back { background: var(--surface); }
 }
 
 /* -----------------------------------------------------
+   MINI-GAMES — MATH & BRAIN (Math Blitz / Equation Match / Pattern Quest)
+----------------------------------------------------- */
+.math-problem {
+  font-family: "Bangers", cursive;
+  letter-spacing: 2px;
+  font-size: clamp(2.2rem, 10vw, 3.4rem);
+  line-height: 1.1;
+  min-height: 1.2em;
+}
+.math-answers {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(.5rem, 2vw, 1rem);
+  max-width: 420px;
+  min-height: 76px;
+}
+.math-answer-btn {
+  min-height: 64px;
+  border: 4px solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  background: var(--surface, #fff);
+  font-family: "Bangers", cursive;
+  letter-spacing: 1px;
+  font-size: 1.7rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.math-answer-btn:disabled { cursor: default; }
+.math-answer-btn.is-right { background: var(--comic-green); }
+.math-answer-btn.is-wrong { background: var(--comic-red); color: #fff; }
+@media (prefers-reduced-motion: no-preference) {
+  .math-answer-btn { transition: transform .1s ease; }
+  .math-answer-btn:not(:disabled):active { transform: scale(.95); }
+}
+.pattern-seq {
+  font-family: "Bangers", cursive;
+  letter-spacing: 1px;
+  font-size: clamp(1.8rem, 8vw, 2.8rem);
+  line-height: 1.2;
+  min-height: 1.3em;
+}
+.pattern-gap {
+  display: inline-block;
+  min-width: 1.4em;
+  border: 4px dashed var(--comic-red);
+  border-radius: var(--radius-md);
+  color: var(--comic-red);
+}
+/* Equations need more room than single emoji on the card backs. */
+.equation-grid .memory-back {
+  font-size: clamp(1rem, 4.5vw, 1.5rem);
+  letter-spacing: 1px;
+}
+
+/* -----------------------------------------------------
    MINI-GAMES — SNAKE D-PAD
 ----------------------------------------------------- */
 .arcade-dpad {
