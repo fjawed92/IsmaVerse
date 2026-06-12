@@ -1189,8 +1189,818 @@
     reset();
   }
 
+  /* =====================================================
+     MATH HELPERS (shared by the educational games)
+  ===================================================== */
+  const randInt = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  // One arithmetic problem at difficulty 1-5: {text, answer}.
+  // Levels ramp from easy addition up to multiplication and division.
+  const makeArithmetic = (level) => {
+    let op;
+    if (level <= 2) op = pick(["+", "−"]);
+    else if (level === 3) op = "×";
+    else if (level === 4) op = pick(["×", "÷"]);
+    else op = pick(["+", "−", "×", "÷"]);
+
+    let a, b, answer;
+    if (op === "+") {
+      const max = level === 1 ? 10 : level === 2 ? 25 : 99;
+      a = randInt(1, max); b = randInt(1, max);
+      answer = a + b;
+    } else if (op === "−") {
+      const max = level === 1 ? 10 : level === 2 ? 25 : 99;
+      a = randInt(1, max); b = randInt(1, max);
+      if (b > a) { const t = a; a = b; b = t; }
+      answer = a - b;
+    } else if (op === "×") {
+      a = randInt(2, level >= 4 ? 12 : 5); b = randInt(2, 9);
+      answer = a * b;
+    } else {
+      b = randInt(2, 9); answer = randInt(2, 12);
+      a = b * answer;          // guarantees a whole-number quotient
+    }
+    return { text: a + " " + op + " " + b, answer: answer };
+  };
+
+  // 4 multiple-choice answers: the real one + 3 nearby look-alikes.
+  const makeChoices = (answer) => {
+    const choices = new Set([answer]);
+    const spread = Math.max(3, Math.round(Math.abs(answer) * 0.25));
+    let guard = 0;
+    while (choices.size < 4 && guard++ < 100) {
+      const d = answer + randInt(-spread, spread);
+      if (d !== answer && d >= 0) choices.add(d);
+    }
+    // Fallback for tiny answers where the spread can't produce 3 options.
+    let bump = 1;
+    while (choices.size < 4) choices.add(answer + spread + bump++);
+    return shuffle(Array.from(choices));
+  };
+
+  // Render answer buttons into a .math-answers grid; onPick(value, button).
+  const renderChoices = (wrap, choices, onPick) => {
+    wrap.innerHTML = "";
+    choices.forEach((value) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "math-answer-btn";
+      btn.textContent = String(value);
+      btn.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        onPick(value, btn);
+      });
+      wrap.appendChild(btn);
+    });
+  };
+
+  const flashAnswers = (wrap, answer, pickedBtn) => {
+    wrap.querySelectorAll(".math-answer-btn").forEach((b) => {
+      b.disabled = true;
+      if (parseInt(b.textContent, 10) === answer) b.classList.add("is-right");
+    });
+    if (pickedBtn) pickedBtn.classList.add("is-wrong");
+  };
+
+  /* =====================================================
+     MATH BLITZ  (60-second arithmetic sprint)
+  ===================================================== */
+  function initMathBlitz() {
+    const problemEl = document.getElementById("blitzProblem");
+    if (!problemEl) return;
+    const answersEl = document.getElementById("blitzAnswers");
+    const scoreEl   = document.getElementById("blitzScore");
+    const timeEl    = document.getElementById("blitzTime");
+    const streakEl  = document.getElementById("blitzStreak");
+    const statusEl  = document.getElementById("blitzStatus");
+    const startBtn  = document.getElementById("blitzStart");
+
+    const ROUND_SECONDS = 60;
+
+    let score = 0, streak = 0, solved = 0, timeLeft = ROUND_SECONDS;
+    let running = false, accepting = false, countdown = null, answer = 0;
+
+    // Difficulty climbs with every few problems solved (right OR wrong moves
+    // you on, so nobody gets stuck staring at the same level).
+    function makeQuestion() {
+      const level = solved < 5 ? 1 : solved < 10 ? 2 : solved < 16 ? 3 : solved < 23 ? 4 : 5;
+      const q = makeArithmetic(level);
+      answer = q.answer;
+      problemEl.textContent = q.text + " = ?";
+      renderChoices(answersEl, makeChoices(answer), onPick);
+      accepting = true;
+    }
+
+    function onPick(value, btn) {
+      if (!running || !accepting) return;
+      accepting = false;
+      if (value === answer) {
+        streak += 1;
+        score += 10 + Math.min(streak - 1, 5);   // streak bonus, capped
+        solved += 1;
+        if (scoreEl) scoreEl.textContent = String(score);
+        if (streakEl) streakEl.textContent = String(streak);
+        btn.classList.add("is-right");
+        sfx("pow");
+        setTimeout(() => { if (running) makeQuestion(); }, 200);
+      } else {
+        streak = 0;
+        solved += 1;
+        if (streakEl) streakEl.textContent = "0";
+        flashAnswers(answersEl, answer, btn);
+        tone(110, 300);
+        setTimeout(() => { if (running) makeQuestion(); }, 800);
+      }
+    }
+
+    function endRound() {
+      running = false;
+      accepting = false;
+      clearInterval(countdown);
+      answersEl.innerHTML = "";
+      problemEl.textContent = "TIME'S UP!";
+      sfx("pow");
+      submitScore("math-blitz", score);
+      if (statusEl) statusEl.textContent = "You scored " + score + " points — super brain power!";
+      if (startBtn) { startBtn.hidden = false; startBtn.textContent = "⚡ PLAY AGAIN!"; }
+    }
+
+    function startRound() {
+      score = 0; streak = 0; solved = 0; timeLeft = ROUND_SECONDS;
+      running = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      if (streakEl) streakEl.textContent = "0";
+      if (timeEl) timeEl.textContent = String(ROUND_SECONDS);
+      if (statusEl) statusEl.textContent = "GO GO GO!";
+      if (startBtn) startBtn.hidden = true;
+      awardGameBadge();
+      sfx("click");
+      countdown = setInterval(() => {
+        timeLeft -= 1;
+        if (timeEl) timeEl.textContent = String(timeLeft);
+        if (timeLeft <= 0) endRound();
+      }, 1000);
+      makeQuestion();
+    }
+
+    if (startBtn) startBtn.addEventListener("click", startRound);
+    initBestDisplay("math-blitz");
+  }
+
+  /* =====================================================
+     EQUATION MATCH  (memory match: equation <-> answer)
+  ===================================================== */
+  function initEquationMatch() {
+    const grid = document.getElementById("equationGrid");
+    if (!grid) return;
+    const movesEl   = document.getElementById("equationMoves");
+    const matchesEl = document.getElementById("equationMatches");
+    const winEl     = document.getElementById("equationWin");
+    const finalEl   = document.getElementById("equationFinalMoves");
+    const scoreEl   = document.getElementById("equationFinalScore");
+    const restart   = document.getElementById("equationRestart");
+
+    const PAIRS = 6;
+
+    let first = null, lock = false, moves = 0, matches = 0;
+
+    // Fresh equations every game, all with distinct answers so each
+    // answer card matches exactly one equation.
+    function makePairs() {
+      const pairs = [];
+      const used = new Set();
+      let guard = 0;
+      while (pairs.length < PAIRS && guard++ < 200) {
+        const kind = pairs.length % 3;
+        let a, b, text, ans;
+        if (kind === 0) {
+          a = randInt(2, 12); b = randInt(2, 12);
+          ans = a + b; text = a + " + " + b;
+        } else if (kind === 1) {
+          a = randInt(5, 20); b = randInt(1, a - 1);
+          ans = a - b; text = a + " − " + b;
+        } else {
+          a = randInt(2, 9); b = randInt(2, 9);
+          ans = a * b; text = a + " × " + b;
+        }
+        if (used.has(ans)) continue;
+        used.add(ans);
+        pairs.push({ text: text, ans: ans });
+      }
+      return pairs;
+    }
+
+    function build() {
+      grid.innerHTML = "";
+      if (winEl) winEl.hidden = true;
+      first = null; lock = false; moves = 0; matches = 0;
+      if (movesEl) movesEl.textContent = "0";
+      if (matchesEl) matchesEl.textContent = "0";
+
+      const cards = [];
+      makePairs().forEach((p, i) => {
+        cards.push({ face: p.text, pair: i });
+        cards.push({ face: String(p.ans), pair: i });
+      });
+      shuffle(cards).forEach((c) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "memory-card";
+        card.setAttribute("aria-label", "Equation card");
+        card.dataset.pair = String(c.pair);
+        card.innerHTML =
+          '<span class="memory-card-inner">' +
+            '<span class="memory-front">?</span>' +
+            '<span class="memory-back">' + c.face + "</span>" +
+          "</span>";
+        card.addEventListener("click", () => flip(card));
+        grid.appendChild(card);
+      });
+    }
+
+    function flip(card) {
+      if (lock || card === first || card.classList.contains("is-flipped") || card.classList.contains("is-matched")) return;
+      card.classList.add("is-flipped");
+      sfx("click");
+
+      if (!first) { first = card; return; }
+
+      moves += 1;
+      if (movesEl) movesEl.textContent = String(moves);
+
+      if (first.dataset.pair === card.dataset.pair) {
+        first.classList.add("is-matched");
+        card.classList.add("is-matched");
+        sfx("pow");
+        matches += 1;
+        if (matchesEl) matchesEl.textContent = String(matches);
+        first = null;
+        if (matches === PAIRS) {
+          // Perfect game (6 moves) = 100; each extra move costs 5.
+          const score = Math.max(10, 100 - (moves - PAIRS) * 5);
+          fanfare();
+          awardGameBadge();
+          submitScore("equation-match", score);
+          if (finalEl) finalEl.textContent = String(moves);
+          if (scoreEl) scoreEl.textContent = String(score);
+          if (winEl) winEl.hidden = false;
+        }
+      } else {
+        lock = true;
+        const a = first, b = card;
+        setTimeout(() => {
+          a.classList.remove("is-flipped");
+          b.classList.remove("is-flipped");
+          lock = false;
+        }, 900);
+        first = null;
+      }
+    }
+
+    if (restart) restart.addEventListener("click", () => { sfx("click"); build(); });
+    initBestDisplay("equation-match");
+    build();
+  }
+
+  /* =====================================================
+     PATTERN QUEST  (find the missing number, 3 lives)
+  ===================================================== */
+  function initPatternQuest() {
+    const seqEl = document.getElementById("patternSeq");
+    if (!seqEl) return;
+    const choicesEl = document.getElementById("patternChoices");
+    const scoreEl   = document.getElementById("patternScore");
+    const livesEl   = document.getElementById("patternLives");
+    const statusEl  = document.getElementById("patternStatus");
+    const startBtn  = document.getElementById("patternStart");
+
+    const TERMS = 5;
+
+    let score = 0, lives = 3, solved = 0;
+    let running = false, accepting = false, answer = 0;
+
+    function currentTier() {
+      return solved < 3 ? 1 : solved < 6 ? 2 : solved < 10 ? 3 : solved < 14 ? 4 : 5;
+    }
+
+    function makeSequence(tier) {
+      const seq = [];
+      if (tier === 1) {
+        const step = pick([1, 2, 5, 10]);
+        let n = randInt(1, 10);
+        for (let i = 0; i < TERMS; i++) { seq.push(n); n += step; }
+      } else if (tier === 2) {
+        const step = pick([2, 3, 4, 5]);
+        if (Math.random() < 0.5) {
+          let n = randInt(step * TERMS, step * TERMS + 20);   // descending
+          for (let i = 0; i < TERMS; i++) { seq.push(n); n -= step; }
+        } else {
+          let n = randInt(1, 12);
+          const bigStep = pick([6, 7, 8, 9]);
+          for (let i = 0; i < TERMS; i++) { seq.push(n); n += bigStep; }
+        }
+      } else if (tier === 3) {
+        let n = pick([1, 2, 3, 4, 5]);                        // doubling
+        for (let i = 0; i < TERMS; i++) { seq.push(n); n *= 2; }
+      } else if (tier === 4) {
+        if (Math.random() < 0.5) {
+          const start = randInt(1, 4);                        // square numbers
+          for (let i = 0; i < TERMS; i++) seq.push((start + i) * (start + i));
+        } else {
+          let n = pick([1, 2, 3]);                            // tripling
+          for (let i = 0; i < TERMS; i++) { seq.push(n); n *= 3; }
+        }
+      } else {
+        let a = randInt(1, 5), b = randInt(1, 5);             // Fibonacci-style
+        for (let i = 0; i < TERMS; i++) {
+          seq.push(a);
+          const next = a + b;
+          a = b; b = next;
+        }
+      }
+      return seq;
+    }
+
+    function makePattern() {
+      const tier = currentTier();
+      const seq = makeSequence(tier);
+      const gap = randInt(1, TERMS - 2);   // never the first or last term
+      answer = seq[gap];
+
+      seqEl.innerHTML = seq
+        .map((n, i) => (i === gap ? '<span class="pattern-gap">?</span>' : String(n)))
+        .join('<span class="pattern-comma">, </span>');
+      renderChoices(choicesEl, makeChoices(answer), onPick);
+      if (statusEl) statusEl.textContent = "What number fills the gap? (Worth " + tier * 10 + " points)";
+      accepting = true;
+    }
+
+    function drawLives() {
+      if (livesEl) livesEl.textContent = lives > 0 ? "❤️".repeat(lives) : "💔";
+    }
+
+    function onPick(value, btn) {
+      if (!running || !accepting) return;
+      accepting = false;
+      if (value === answer) {
+        score += currentTier() * 10;
+        solved += 1;
+        if (scoreEl) scoreEl.textContent = String(score);
+        btn.classList.add("is-right");
+        sfx("pow");
+        setTimeout(() => { if (running) makePattern(); }, 400);
+      } else {
+        lives -= 1;
+        drawLives();
+        flashAnswers(choicesEl, answer, btn);
+        tone(110, 300);
+        if (lives <= 0) {
+          setTimeout(endGame, 900);
+        } else {
+          if (statusEl) statusEl.textContent = "So close! The answer was " + answer + " — keep going!";
+          setTimeout(() => { if (running) makePattern(); }, 1300);
+        }
+      }
+    }
+
+    function endGame() {
+      running = false;
+      accepting = false;
+      choicesEl.innerHTML = "";
+      seqEl.textContent = "GAME OVER!";
+      sfx("pow");
+      submitScore("pattern-quest", score);
+      if (statusEl) statusEl.textContent = "You solved " + solved + " pattern" + (solved === 1 ? "" : "s") + " and scored " + score + " points!";
+      if (startBtn) { startBtn.hidden = false; startBtn.textContent = "🔢 PLAY AGAIN!"; }
+    }
+
+    function startGame() {
+      score = 0; lives = 3; solved = 0;
+      running = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      drawLives();
+      if (startBtn) startBtn.hidden = true;
+      awardGameBadge();
+      sfx("click");
+      makePattern();
+    }
+
+    if (startBtn) startBtn.addEventListener("click", startGame);
+    initBestDisplay("pattern-quest");
+  }
+
+  /* =====================================================
+     NUMBER DEFENDER  (blast falling equation meteors)
+  ===================================================== */
+  function initNumberDefender() {
+    const canvas = document.getElementById("defenderCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    const answersEl = document.getElementById("defenderAnswers");
+    const scoreEl   = document.getElementById("defenderScore");
+    const shieldsEl = document.getElementById("defenderShields");
+    const statusEl  = document.getElementById("defenderStatus");
+    const startBtn  = document.getElementById("defenderStart");
+    const overlay   = document.getElementById("defenderOverlay");
+
+    const GROUND = H - 70;
+
+    let meteor = null, boom = null;
+    let score = 0, shields = 3, wave = 0;
+    let running = false, accepting = false, last = 0, raf = null;
+
+    function level() {
+      return wave < 4 ? 1 : wave < 8 ? 2 : wave < 12 ? 3 : wave < 16 ? 4 : 5;
+    }
+
+    function drawShields() {
+      if (shieldsEl) shieldsEl.textContent = shields > 0 ? "🛡️".repeat(shields) : "💥";
+    }
+
+    function spawnMeteor() {
+      const q = makeArithmetic(level());
+      meteor = { x: randInt(80, W - 80), y: -20, q: q };
+      renderChoices(answersEl, makeChoices(q.answer), onPick);
+      accepting = true;
+    }
+
+    function onPick(value, btn) {
+      if (!running || !accepting || !meteor) return;
+      if (value === meteor.q.answer) {
+        accepting = false;
+        // Blasting a meteor high in the sky earns up to +10 bonus.
+        const bonus = Math.max(0, Math.round((1 - meteor.y / GROUND) * 10));
+        score += 10 + bonus;
+        wave += 1;
+        if (scoreEl) scoreEl.textContent = String(score);
+        btn.classList.add("is-right");
+        boom = { x: meteor.x, y: meteor.y, until: performance.now() + 350 };
+        meteor = null;
+        sfx("pow");
+        setTimeout(() => { if (running) spawnMeteor(); }, 350);
+      } else {
+        // Wrong answer costs a shield, but the meteor keeps falling —
+        // you can still try the remaining choices to save the city.
+        shields -= 1;
+        drawShields();
+        btn.disabled = true;
+        btn.classList.add("is-wrong");
+        tone(110, 300);
+        if (shields <= 0) gameOver();
+      }
+    }
+
+    function meteorLanded() {
+      accepting = false;
+      shields -= 1;
+      drawShields();
+      boom = { x: meteor.x, y: GROUND, until: performance.now() + 350 };
+      meteor = null;
+      tone(110, 400);
+      if (shields <= 0) return gameOver();
+      setTimeout(() => { if (running) spawnMeteor(); }, 600);
+    }
+
+    function gameOver() {
+      running = false;
+      accepting = false;
+      cancelAnimationFrame(raf);
+      answersEl.innerHTML = "";
+      sfx("pow");
+      submitScore("number-defender", score);
+      if (overlay) {
+        overlay.innerHTML =
+          '<span class="burst">GAME OVER!</span>' +
+          '<p class="fw-bold mt-2 mb-0">You scored ' + score + ' defending the city!</p>';
+        overlay.hidden = false;
+      }
+      if (statusEl) statusEl.textContent = "You blasted " + wave + " meteor" + (wave === 1 ? "" : "s") + "!";
+      if (startBtn) { startBtn.hidden = false; startBtn.textContent = "☄️ DEFEND AGAIN!"; }
+    }
+
+    function loop(now) {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      if (meteor) {
+        meteor.y += (35 + wave * 5) * dt;   // falls faster every wave
+        if (meteor.y >= GROUND) meteorLanded();
+      }
+      draw(now);
+      if (running) raf = requestAnimationFrame(loop);
+    }
+
+    function draw(now) {
+      // Night sky
+      ctx.fillStyle = "#0b0f2a";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(255,255,255,0.6)";
+      for (let i = 0; i < 40; i++) ctx.fillRect((i * 97) % W, (i * 53) % (H - 120), 2, 2);
+      // City skyline
+      ctx.fillStyle = "#1c2447";
+      for (let i = 0; i < 8; i++) {
+        const bw = W / 8;
+        const bh = 30 + ((i * 37) % 40);
+        ctx.fillRect(i * bw + 4, H - bh, bw - 8, bh);
+        ctx.fillStyle = "#ffd400";
+        for (let wy = H - bh + 8; wy < H - 8; wy += 14) {
+          ctx.fillRect(i * bw + 10, wy, 5, 6);
+          ctx.fillRect(i * bw + bw - 18, wy, 5, 6);
+        }
+        ctx.fillStyle = "#1c2447";
+      }
+      // Meteor with its equation
+      if (meteor) {
+        ctx.font = "36px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("☄️", meteor.x, meteor.y);
+        ctx.font = "bold 22px sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.strokeStyle = "#0b0f2a";
+        ctx.lineWidth = 4;
+        ctx.strokeText(meteor.q.text + " = ?", meteor.x, meteor.y - 34);
+        ctx.fillText(meteor.q.text + " = ?", meteor.x, meteor.y - 34);
+      }
+      // Blast flash
+      if (boom && now < boom.until) {
+        ctx.font = "44px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("💥", boom.x, boom.y);
+      }
+    }
+
+    function start() {
+      score = 0; shields = 3; wave = 0;
+      meteor = null; boom = null;
+      running = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      drawShields();
+      if (statusEl) statusEl.textContent = "Solve the meteor's equation before it hits the city!";
+      if (startBtn) startBtn.hidden = true;
+      if (overlay) overlay.hidden = true;
+      awardGameBadge();
+      sfx("click");
+      spawnMeteor();
+      last = performance.now();
+      raf = requestAnimationFrame(loop);
+    }
+
+    if (startBtn) startBtn.addEventListener("click", start);
+    initBestDisplay("number-defender");
+    draw(performance.now());
+  }
+
+  /* =====================================================
+     NUMBER SHOWDOWN  (tap the bigger value)
+  ===================================================== */
+  function initMathCompare() {
+    const aBtn = document.getElementById("compareA");
+    if (!aBtn) return;
+    const bBtn     = document.getElementById("compareB");
+    const scoreEl  = document.getElementById("compareScore");
+    const timeEl   = document.getElementById("compareTime");
+    const streakEl = document.getElementById("compareStreak");
+    const statusEl = document.getElementById("compareStatus");
+    const startBtn = document.getElementById("compareStart");
+
+    const ROUND_SECONDS = 45;
+
+    let left, right, score = 0, streak = 0, solved = 0, timeLeft = ROUND_SECONDS;
+    let running = false, accepting = false, countdown = null;
+
+    function resetCards() {
+      [aBtn, bBtn].forEach((b) => {
+        b.classList.remove("is-right", "is-wrong");
+        b.disabled = false;
+      });
+    }
+
+    function makeRound() {
+      const level = solved < 6 ? 1 : solved < 12 ? 2 : solved < 18 ? 3 : solved < 24 ? 4 : 5;
+      const exprA = makeArithmetic(level);
+      // Opponent: a nearby plain number, or (at higher levels) a second
+      // expression so BOTH sides need working out.
+      let exprB;
+      if (level >= 3 && Math.random() < 0.5) {
+        let tries = 0;
+        do { exprB = makeArithmetic(level); } while (exprB.answer === exprA.answer && ++tries < 20);
+        if (exprB.answer === exprA.answer) exprB = null;
+      }
+      if (!exprB) {
+        let n;
+        do { n = exprA.answer + randInt(-5, 5); } while (n === exprA.answer || n < 0);
+        exprB = { text: String(n), answer: n };
+      }
+      if (Math.random() < 0.5) { left = exprA; right = exprB; }
+      else { left = exprB; right = exprA; }
+      resetCards();
+      aBtn.textContent = left.text;
+      bBtn.textContent = right.text;
+      accepting = true;
+    }
+
+    function revealValues() {
+      if (left.text !== String(left.answer)) aBtn.textContent = left.text + " = " + left.answer;
+      if (right.text !== String(right.answer)) bBtn.textContent = right.text + " = " + right.answer;
+    }
+
+    function onPick(side) {
+      if (!running || !accepting) return;
+      accepting = false;
+      solved += 1;
+      const pickedBtn  = side === "a" ? aBtn : bBtn;
+      const pickedVal  = side === "a" ? left.answer : right.answer;
+      const otherVal   = side === "a" ? right.answer : left.answer;
+      const correctBtn = left.answer > right.answer ? aBtn : bBtn;
+      if (pickedVal > otherVal) {
+        streak += 1;
+        score += 10 + Math.min(streak - 1, 5);
+        if (scoreEl) scoreEl.textContent = String(score);
+        if (streakEl) streakEl.textContent = String(streak);
+        pickedBtn.classList.add("is-right");
+        sfx("pow");
+        setTimeout(() => { if (running) makeRound(); }, 250);
+      } else {
+        streak = 0;
+        if (streakEl) streakEl.textContent = "0";
+        pickedBtn.classList.add("is-wrong");
+        correctBtn.classList.add("is-right");
+        aBtn.disabled = bBtn.disabled = true;
+        revealValues();
+        tone(110, 300);
+        setTimeout(() => { if (running) makeRound(); }, 1100);
+      }
+    }
+
+    function endRound() {
+      running = false;
+      accepting = false;
+      clearInterval(countdown);
+      aBtn.disabled = bBtn.disabled = true;
+      sfx("pow");
+      submitScore("math-compare", score);
+      if (statusEl) statusEl.textContent = "TIME'S UP! You scored " + score + " points — sharp eyes!";
+      if (startBtn) { startBtn.hidden = false; startBtn.textContent = "⚖️ PLAY AGAIN!"; }
+    }
+
+    function startRound() {
+      score = 0; streak = 0; solved = 0; timeLeft = ROUND_SECONDS;
+      running = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      if (streakEl) streakEl.textContent = "0";
+      if (timeEl) timeEl.textContent = String(ROUND_SECONDS);
+      if (statusEl) statusEl.textContent = "Tap the BIGGER side!";
+      if (startBtn) startBtn.hidden = true;
+      awardGameBadge();
+      sfx("click");
+      countdown = setInterval(() => {
+        timeLeft -= 1;
+        if (timeEl) timeEl.textContent = String(timeLeft);
+        if (timeLeft <= 0) endRound();
+      }, 1000);
+      makeRound();
+    }
+
+    aBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); onPick("a"); });
+    bBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); onPick("b"); });
+    if (startBtn) startBtn.addEventListener("click", startRound);
+    initBestDisplay("math-compare");
+  }
+
+  /* =====================================================
+     NUMBER BUILDER  (pick tiles that sum to the target)
+  ===================================================== */
+  function initNumberBuilder() {
+    const tilesEl = document.getElementById("builderTiles");
+    if (!tilesEl) return;
+    const targetEl = document.getElementById("builderTarget");
+    const sumEl    = document.getElementById("builderSum");
+    const scoreEl  = document.getElementById("builderScore");
+    const timeEl   = document.getElementById("builderTime");
+    const statusEl = document.getElementById("builderStatus");
+    const startBtn = document.getElementById("builderStart");
+
+    const ROUND_SECONDS = 90;
+    const TILE_COUNT = 6;
+
+    let tiles = [], picked = new Set(), target = 0;
+    let score = 0, solved = 0, timeLeft = ROUND_SECONDS;
+    let running = false, locked = false, countdown = null;
+
+    function pickedSum() {
+      let s = 0;
+      picked.forEach((i) => { s += tiles[i]; });
+      return s;
+    }
+
+    function updateSum() {
+      if (sumEl) sumEl.textContent = picked.size ? "Picked: " + pickedSum() + " / " + target : "Pick some tiles!";
+    }
+
+    function makePuzzle() {
+      const tier = solved < 4 ? 1 : solved < 8 ? 2 : 3;
+      const lo = tier === 3 ? 5 : 1;
+      const hi = tier === 1 ? 9 : tier === 2 ? 15 : 25;
+      tiles = [];
+      for (let i = 0; i < TILE_COUNT; i++) tiles.push(randInt(lo, hi));
+      const need = tier === 1 ? 2 : tier === 2 ? pick([2, 3]) : 3;
+      const idxs = shuffle([0, 1, 2, 3, 4, 5]).slice(0, need);
+      target = idxs.reduce((s, i) => s + tiles[i], 0);
+      picked.clear();
+      locked = false;
+
+      if (targetEl) targetEl.textContent = "Make " + target + "!";
+      updateSum();
+      tilesEl.innerHTML = "";
+      tiles.forEach((n, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "builder-tile";
+        btn.textContent = String(n);
+        btn.addEventListener("pointerdown", (e) => {
+          e.preventDefault();
+          onTile(i, btn);
+        });
+        tilesEl.appendChild(btn);
+      });
+    }
+
+    function clearPicks() {
+      picked.clear();
+      tilesEl.querySelectorAll(".builder-tile").forEach((b) => b.classList.remove("is-picked", "is-wrong"));
+      updateSum();
+      locked = false;
+    }
+
+    function onTile(i, btn) {
+      if (!running || locked) return;
+      if (picked.has(i)) {
+        picked.delete(i);
+        btn.classList.remove("is-picked");
+      } else {
+        picked.add(i);
+        btn.classList.add("is-picked");
+      }
+      sfx("click");
+      updateSum();
+
+      const sum = pickedSum();
+      if (picked.size && sum === target) {
+        locked = true;
+        score += 20;
+        solved += 1;
+        if (scoreEl) scoreEl.textContent = String(score);
+        tilesEl.querySelectorAll(".builder-tile.is-picked").forEach((b) => b.classList.add("is-right"));
+        sfx("pow");
+        setTimeout(() => { if (running) makePuzzle(); }, 450);
+      } else if (sum > target) {
+        locked = true;
+        tilesEl.querySelectorAll(".builder-tile.is-picked").forEach((b) => b.classList.add("is-wrong"));
+        tone(110, 250);
+        setTimeout(() => { if (running) clearPicks(); }, 400);
+      }
+    }
+
+    function endRound() {
+      running = false;
+      clearInterval(countdown);
+      tilesEl.innerHTML = "";
+      if (targetEl) targetEl.textContent = "TIME'S UP!";
+      if (sumEl) sumEl.textContent = "";
+      sfx("pow");
+      submitScore("number-builder", score);
+      if (statusEl) statusEl.textContent = "You built " + solved + " target" + (solved === 1 ? "" : "s") + " and scored " + score + " points!";
+      if (startBtn) { startBtn.hidden = false; startBtn.textContent = "🎯 PLAY AGAIN!"; }
+    }
+
+    function startRound() {
+      score = 0; solved = 0; timeLeft = ROUND_SECONDS;
+      running = true;
+      if (scoreEl) scoreEl.textContent = "0";
+      if (timeEl) timeEl.textContent = String(ROUND_SECONDS);
+      if (statusEl) statusEl.textContent = "Tap tiles to add them up — hit the target exactly!";
+      if (startBtn) startBtn.hidden = true;
+      awardGameBadge();
+      sfx("click");
+      countdown = setInterval(() => {
+        timeLeft -= 1;
+        if (timeEl) timeEl.textContent = String(timeLeft);
+        if (timeLeft <= 0) endRound();
+      }, 1000);
+      makePuzzle();
+    }
+
+    if (startBtn) startBtn.addEventListener("click", startRound);
+    initBestDisplay("number-builder");
+  }
+
   window.IsmaGames = {
     initMemory, initColoring, initPoppiJump, initSpaceship,
     initWhack, initSnake, initSimon, initBrick,
+    initMathBlitz, initEquationMatch, initPatternQuest,
+    initNumberDefender, initMathCompare, initNumberBuilder,
   };
 })();

@@ -118,6 +118,50 @@
 {% endif %}
 
 <!-- =====================
+     MATH KING THRONE
+===================== -->
+<div class="comic-panel mb-4" style="border-color: var(--comic-yellow);">
+  <div class="panel-header d-flex justify-content-between align-items-center" data-accent style="background: linear-gradient(90deg, var(--comic-yellow), #ffd166);">
+    <h2 class="panel-title" style="color:var(--ink);">👑 Math King!</h2>
+    <span class="burst" style="transform:rotate(6deg);">BRAIN POWER</span>
+  </div>
+  <div class="p-4">
+    {% if math_king %}
+    <div class="row g-3 align-items-center">
+      <div class="col-12 col-md-3 text-center">
+        {% if math_king.champion_image %}
+        <img src="{{ url_for('static', filename='uploads/characters/' ~ math_king.champion_image) }}"
+             alt="{{ math_king.champion_name }}" class="champion-img math-king-img">
+        {% else %}
+        <div class="champion-img champion-img--empty math-king-img mx-auto">👑</div>
+        {% endif %}
+      </div>
+      <div class="col-12 col-md-9 text-center text-md-start">
+        <h3 class="fw-900 mb-1" style="font-family:'Bangers',cursive; font-size:2rem; letter-spacing:1px;">
+          👑 {{ math_king.username }}
+        </h3>
+        <p class="fw-bold mb-2">Rules the math throne with <strong>{{ math_king.total }}</strong> math points!</p>
+        <div class="d-flex flex-wrap justify-content-center justify-content-md-start gap-2 mb-3">
+          <span class="level-badge">⭐ Lv {{ math_king.level }}</span>
+          <span class="tier-badge">{{ math_king.tier.emoji }} {{ math_king.tier.name }}</span>
+        </div>
+        <a href="{{ url_for('games.games_hub') }}#math-games" class="btn btn-comic-cta">
+          ⚡ Challenge the King!
+        </a>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center">
+      <p class="fw-bold mb-3">The math throne is EMPTY! Beat the math games to become the very first Math King! 👑</p>
+      <a href="{{ url_for('games.games_hub') }}#math-games" class="btn btn-comic-cta">
+        ⚡ Claim the Throne!
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- =====================
      DAILY MISSION TEASER
 ===================== -->
 <div class="comic-panel mb-4" style="border-color: var(--comic-green);">

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Number Builder - IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-blue), #b3d4ff);">
+      <h1 class="panel-title" style="color:var(--ink);">🎯 Number Builder</h1>
+      <span class="burst">BUILD!</span>
+    </div>
+
+    <div class="p-3 p-md-4 text-center">
+      <div class="arcade-hud d-flex flex-wrap justify-content-center align-items-center gap-3 mb-3">
+        <span class="memory-stat">Score: <strong id="builderScore">0</strong></span>
+        <span class="memory-stat">Time: <strong id="builderTime">90</strong></span>
+        <span class="memory-stat" data-best-source="{{ 'server' if current_user.is_authenticated else 'local' }}" data-game="number-builder">
+          Best: <strong data-best-value>{{ best }}</strong>
+        </span>
+      </div>
+
+      <div id="builderTarget" class="math-problem mb-2" aria-live="polite">Ready?</div>
+      <div id="builderSum" class="builder-sum mb-3" aria-live="polite"></div>
+
+      <div id="builderTiles" class="builder-tiles mx-auto mb-3" aria-label="Number tiles"></div>
+
+      <p id="builderStatus" class="fw-bold mb-3" aria-live="polite">Tap number tiles that add up EXACTLY to the target — go over and they reset!</p>
+      <button type="button" id="builderStart" class="btn btn-comic-cta">🎯 START!</button>
+
+      <p class="text-muted mt-3 mb-0">90 seconds — solve as many targets as you can!
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.login') }}">Log in</a> to save your score to the leaderboard!
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/games.js') }}"></script>
+<script>window.IsmaGames && IsmaGames.initNumberBuilder();</script>
+{% endblock %}

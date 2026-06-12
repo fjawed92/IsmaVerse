@@ -161,6 +161,42 @@ BADGE_DEFINITIONS = {
         "color": "pink",
         "emoji": "🦸",
     },
+    # Educational math games
+    "math-star": {
+        "name": "Math Star",
+        "description": "Played a math game.",
+        "unlock_count": 1,
+        "color": "green",
+        "emoji": "🔢",
+    },
+    "math-whiz": {
+        "name": "Math Whiz",
+        "description": "Scored 100+ in a math game!",
+        "unlock_count": 1,
+        "color": "purple",
+        "emoji": "🧮",
+    },
+    "math-genius": {
+        "name": "Math Genius",
+        "description": "Scored 300+ in a math game!",
+        "unlock_count": 1,
+        "color": "blue",
+        "emoji": "🤯",
+    },
+    "math-marathon": {
+        "name": "Math Marathon",
+        "description": "Played 10 math games.",
+        "unlock_count": 10,
+        "color": "red",
+        "emoji": "🏃",
+    },
+    "math-king": {
+        "name": "Math King",
+        "description": "Claimed the math throne with the top math score!",
+        "unlock_count": 1,
+        "color": "yellow",
+        "emoji": "👑",
+    },
 }
 
 

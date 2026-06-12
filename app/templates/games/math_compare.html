@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Number Showdown - IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-yellow), #fff3b0);">
+      <h1 class="panel-title" style="color:var(--ink);">⚖️ Number Showdown</h1>
+      <span class="burst">VS!</span>
+    </div>
+
+    <div class="p-3 p-md-4 text-center">
+      <div class="arcade-hud d-flex flex-wrap justify-content-center align-items-center gap-3 mb-3">
+        <span class="memory-stat">Score: <strong id="compareScore">0</strong></span>
+        <span class="memory-stat">Time: <strong id="compareTime">45</strong></span>
+        <span class="memory-stat">Streak: <strong id="compareStreak">0</strong>🔥</span>
+        <span class="memory-stat" data-best-source="{{ 'server' if current_user.is_authenticated else 'local' }}" data-game="math-compare">
+          Best: <strong data-best-value>{{ best }}</strong>
+        </span>
+      </div>
+
+      <div class="compare-grid mx-auto mb-3" aria-label="Number showdown arena">
+        <button type="button" id="compareA" class="compare-card" disabled>?</button>
+        <div class="compare-vs" aria-hidden="true">VS</div>
+        <button type="button" id="compareB" class="compare-card" disabled>?</button>
+      </div>
+
+      <p id="compareStatus" class="fw-bold mb-3" aria-live="polite">Tap the side with the BIGGER value — quick thinking wins!</p>
+      <button type="button" id="compareStart" class="btn btn-comic-cta">⚖️ START!</button>
+
+      <p class="text-muted mt-3 mb-0">45 seconds on the clock — streaks earn bonus points!
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.login') }}">Log in</a> to save your score to the leaderboard!
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/games.js') }}"></script>
+<script>window.IsmaGames && IsmaGames.initMathCompare();</script>
+{% endblock %}
