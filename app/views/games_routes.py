@@ -40,6 +40,30 @@ def spaceship():
     return render_template("games/spaceship.html", best=best)
 
 
+@games_bp.route("/whack-a-mole")
+def whack_a_mole():
+    best = get_user_best(current_user, "whack-a-mole") if current_user.is_authenticated else 0
+    return render_template("games/whack_a_mole.html", best=best)
+
+
+@games_bp.route("/snake")
+def snake():
+    best = get_user_best(current_user, "snake") if current_user.is_authenticated else 0
+    return render_template("games/snake.html", best=best)
+
+
+@games_bp.route("/simon-says")
+def simon_says():
+    best = get_user_best(current_user, "simon-says") if current_user.is_authenticated else 0
+    return render_template("games/simon_says.html", best=best)
+
+
+@games_bp.route("/brick-breaker")
+def brick_breaker():
+    best = get_user_best(current_user, "brick-breaker") if current_user.is_authenticated else 0
+    return render_template("games/brick_breaker.html", best=best)
+
+
 @games_bp.route("/played", methods=["POST"])
 @login_required
 def played():

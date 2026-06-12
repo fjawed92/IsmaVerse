@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Simon Says - IsmaVerse{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="comic-panel mb-4">
+    <div class="panel-header d-flex justify-content-between align-items-center"
+         data-accent style="background: linear-gradient(90deg, var(--comic-yellow), #fff3b0);">
+      <h1 class="panel-title" style="color:var(--ink);">🎵 Simon Says</h1>
+      <span class="burst">WATCH!</span>
+    </div>
+
+    <div class="p-3 p-md-4 text-center">
+      <div class="arcade-hud d-flex flex-wrap justify-content-center align-items-center gap-3 mb-3">
+        <span class="memory-stat">Round: <strong id="simonRound">0</strong></span>
+        <span class="memory-stat" data-best-source="{{ 'server' if current_user.is_authenticated else 'local' }}" data-game="simon-says">
+          Best: <strong data-best-value>{{ best }}</strong>
+        </span>
+      </div>
+
+      <div id="simonBoard" class="simon-grid mx-auto mb-3" aria-label="Simon Says board">
+        <button type="button" class="simon-pad simon-pad--red" data-pad="0" aria-label="Red pad"></button>
+        <button type="button" class="simon-pad simon-pad--blue" data-pad="1" aria-label="Blue pad"></button>
+        <button type="button" class="simon-pad simon-pad--yellow" data-pad="2" aria-label="Yellow pad"></button>
+        <button type="button" class="simon-pad simon-pad--green" data-pad="3" aria-label="Green pad"></button>
+      </div>
+
+      <p id="simonStatus" class="fw-bold mb-3" aria-live="polite">Watch the pattern, then repeat it!</p>
+      <button type="button" id="simonStart" class="btn btn-comic-cta">🎵 START!</button>
+
+      <p class="text-muted mt-3 mb-0">Each round adds one more step — how far can you go?
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.login') }}">Log in</a> to save your score to the leaderboard!
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/games.js') }}"></script>
+<script>window.IsmaGames && IsmaGames.initSimon();</script>
+{% endblock %}

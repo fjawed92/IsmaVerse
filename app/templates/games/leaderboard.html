@@ -69,10 +69,14 @@
   <!-- =====================
        PER-GAME BOARDS
   ===================== -->
+  {% set game_icons = {
+    'poppi-jump': '🐸', 'spaceship': '🚀', 'whack-a-mole': '🔨',
+    'snake': '🐍', 'simon-says': '🎵', 'brick-breaker': '🧱',
+  } %}
   {% for slug, name in game_names.items() %}
   <div class="comic-panel mb-4">
     <div class="panel-header d-flex justify-content-between align-items-center">
-      <h2 class="panel-title">{{ '🐸' if slug == 'poppi-jump' else '🚀' }} {{ name }}</h2>
+      <h2 class="panel-title">{{ game_icons.get(slug, '🎮') }} {{ name }}</h2>
       <span class="burst burst-blue">TOP 10</span>
     </div>
     <div class="p-3 p-md-4">

@@ -2386,6 +2386,94 @@ html[data-theme="dark"] .memory-back { background: var(--surface); }
 .arcade-overlay[hidden] { display: none; }
 
 /* -----------------------------------------------------
+   MINI-GAMES — WHACK-A-MOLE
+----------------------------------------------------- */
+.whack-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(.5rem, 2vw, 1rem);
+  max-width: 420px;
+}
+.whack-hole {
+  aspect-ratio: 1;
+  min-width: 90px;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  background: radial-gradient(circle at 50% 65%, #6b4a2b, #3e2a17 75%);
+  cursor: pointer;
+  touch-action: manipulation;
+  overflow: hidden;
+  padding: 0;
+}
+.whack-mole {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%; height: 100%;
+  font-size: clamp(2rem, 9vw, 3rem);
+  transform: translateY(100%);
+}
+.whack-hole.is-up .whack-mole { transform: translateY(0); }
+@media (prefers-reduced-motion: no-preference) {
+  .whack-mole { transition: transform .12s ease-out; }
+  .whack-hole:active { transform: scale(.95); }
+}
+
+/* -----------------------------------------------------
+   MINI-GAMES — SIMON SAYS
+----------------------------------------------------- */
+.simon-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(.5rem, 2vw, 1rem);
+  max-width: 420px;
+}
+.simon-pad {
+  aspect-ratio: 1;
+  min-height: 120px;
+  border: 4px solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  touch-action: manipulation;
+  filter: brightness(.55) saturate(.8);
+}
+.simon-pad--red    { background: var(--comic-red); }
+.simon-pad--blue   { background: var(--comic-blue); }
+.simon-pad--yellow { background: var(--comic-yellow); }
+.simon-pad--green  { background: var(--comic-green); }
+.simon-pad.is-lit {
+  filter: brightness(1.15) saturate(1.2);
+  box-shadow: var(--shadow), 0 0 24px rgba(255, 255, 255, .6);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .simon-pad { transition: filter .1s ease; }
+  .simon-pad.is-lit { transform: scale(1.04); }
+}
+
+/* -----------------------------------------------------
+   MINI-GAMES — SNAKE D-PAD
+----------------------------------------------------- */
+.arcade-dpad {
+  display: flex;
+  justify-content: center;
+  gap: .6rem;
+}
+.dpad-btn {
+  min-width: 64px;
+  min-height: 64px;
+  border: 4px solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  background: var(--surface, #fff);
+  font-size: 1.6rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.dpad-btn:active { background: var(--comic-yellow); }
+
+/* -----------------------------------------------------
    MINI-GAMES — LEADERBOARD & CHAMPIONS
 ----------------------------------------------------- */
 .level-badge, .tier-badge {
